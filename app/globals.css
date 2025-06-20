@@ -1,0 +1,216 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 98%; /* Better card contrast with background */
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    /* Brand Colors */
+    --primary: 338 80% 30%; /* #8A0F3C - deep maroon */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 94%; /* Better secondary contrast */
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 94%; /* Better muted background */
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 348 76% 45%; /* #CF163C - bright crimson */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 75%; /* Much more visible borders for inputs */
+    --input: 0 0% 98%; /* Clean input background */
+    --ring: 338 80% 30%;
+    --chart-1: 338 80% 30%;
+    --chart-2: 348 76% 45%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3%; /* Deeper dark background */
+    --foreground: 0 0% 98%;
+    --card: 0 0% 12%; /* Much better card contrast */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 15%; /* Lighter popover for better tooltip contrast */
+    --popover-foreground: 0 0% 98%;
+    /* Brand Colors for Dark Mode */
+    --primary: 348 76% 55%; /* Lighter crimson for dark mode */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 16%; /* Better secondary contrast */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 16%; /* Enhanced muted background */
+    --muted-foreground: 0 0% 70%;
+    --accent: 338 70% 50%; /* Adjusted maroon for dark mode */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 25%; /* Even more visible borders */
+    --input: 0 0% 16%; /* Better input contrast */
+    --ring: 348 76% 55%;
+    --chart-1: 348 76% 55%;
+    --chart-2: 338 70% 50%;
+    --chart-3: 197 37% 35%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Enhanced glass morphism for dark mode */
+  .glass-dark {
+    @apply bg-card/30 backdrop-blur-md border border-white/10;
+  }
+  
+  /* Better contrast for cards in dark mode */
+  .card-enhanced {
+    @apply bg-card/70 backdrop-blur-sm border-border/50;
+  }
+  
+  /* Subtle shadow for better depth in dark mode */
+  .shadow-enhanced {
+    box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark .shadow-enhanced {
+    box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  /* Better hover states for light and dark mode */
+  .hover-light-dark {
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+  }
+  
+  .hover-muted-enhanced {
+    @apply hover:bg-gray-50 dark:hover:bg-gray-800/50;
+  }
+  
+  .hover-accent-light {
+    @apply hover:bg-primary/10 dark:hover:bg-primary/20;
+  }
+  
+  /* Button hover states */
+  .btn-hover-ghost {
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100;
+  }
+  
+  .btn-hover-secondary {
+    @apply hover:bg-gray-200 dark:hover:bg-gray-700;
+  }
+  
+  /* Card hover states */
+  .card-hover-enhanced {
+    @apply hover:bg-gray-50/80 dark:hover:bg-gray-800/30;
+  }
+  
+  /* Activity hover states */
+  .activity-hover {
+    @apply hover:bg-gray-100/80 dark:hover:bg-gray-800/50;
+  }
+  
+  /* Enhanced muted hover for better contrast */
+  .hover-muted-contrast {
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800/60;
+  }
+  
+  /* Stats card hover */
+  .stats-card-hover {
+    @apply hover:bg-gray-50/50 hover:shadow-xl dark:hover:bg-gray-800/20 hover:scale-105;
+  }
+  
+  /* Force tooltip text colors for charts */
+.recharts-tooltip-wrapper .recharts-tooltip-content {
+  background-color: hsl(var(--popover)) !important;
+  border: 2px solid hsl(var(--border)) !important;
+  border-radius: 12px !important;
+  color: hsl(var(--popover-foreground)) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-label {
+  color: hsl(var(--popover-foreground)) !important;
+  font-weight: 700 !important;
+  margin-bottom: 4px !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-item {
+  color: hsl(var(--popover-foreground)) !important;
+  font-weight: 600 !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-item-name,
+.recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-item-value {
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+/* Dark mode specific overrides */
+.dark .recharts-tooltip-wrapper .recharts-tooltip-content {
+  background-color: hsl(0 0% 15%) !important;
+  color: hsl(0 0% 98%) !important;
+}
+
+.dark .recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-label,
+.dark .recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-item,
+.dark .recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-item-name,
+.dark .recharts-tooltip-wrapper .recharts-tooltip-content .recharts-tooltip-item-value {
+  color: hsl(0 0% 98%) !important;
+}
+
+/* Enhanced card visibility utilities */
+.card-enhanced {
+  @apply bg-card/95 border-border/50 shadow-lg backdrop-blur-sm;
+}
+
+.card-interactive {
+  @apply bg-card/95 border-border/50 shadow-lg backdrop-blur-sm hover:shadow-xl hover:border-border transition-all duration-200;
+}
+
+.card-elevated {
+  @apply bg-card border-2 border-border/30 shadow-xl;
+}
+
+.stats-card {
+  @apply bg-gradient-to-br from-card to-card/80 border border-border/30 shadow-lg backdrop-blur-sm;
+}
+
+/* Enhanced dark mode cards */
+.dark .card-enhanced {
+  @apply border-border/60 shadow-2xl;
+}
+
+.dark .card-interactive {
+  @apply border-border/60 shadow-2xl hover:border-border/80;
+}
+
+.dark .card-elevated {
+  @apply border-border/50 shadow-2xl;
+}
+}
