@@ -83,27 +83,9 @@ export class BranchService {
   static async getBranches(workspaceId: string): Promise<Branch[]> {
     try {
       const branchesRef = collection(db, 'branches');
+      const q = query(branchesRef, where('workspaceId', '==', workspaceId));
+      const querySnapshot = await getDocs(q);
       
-      // Try to get branches with the actual workspace ID first
-      let q = query(branchesRef, where('workspaceId', '==', workspaceId));
-      let querySnapshot = await getDocs(q);
-      
-      // If no branches found with actual workspace ID, try hardcoded fallbacks
-      // This is a temporary fix for development
-      if (querySnapshot.empty) {
-        console.log('No branches found with workspace ID:', workspaceId);
-        console.log('Trying fallback workspace IDs...');
-        
-        const fallbackIds = ['default-workspace', 'current-workspace'];
-        for (const fallbackId of fallbackIds) {
-          q = query(branchesRef, where('workspaceId', '==', fallbackId));
-          querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            console.log('Found branches with fallback ID:', fallbackId);
-            break;
-          }
-        }
-      }      
       const branches: Branch[] = [];
 
       querySnapshot.forEach((doc) => {
@@ -718,25 +700,75 @@ export class BranchService {
       throw new Error('Failed to delete region');
     }
   }  /**
-   * Get potential managers (users with admin/owner roles)
+   * Get potential managers for a specific workspace (admins, team leads, and managers, no owners)
    */
-  static async getPotentialManagers(): Promise<User[]> {
+  static async getPotentialManagers(workspaceId: string): Promise<User[]> {
     try {
+      console.log('Loading potential managers for workspace:', workspaceId);
+      
+      // Get UserWorkspace relationships for this workspace
+      const userWorkspacesRef = collection(db, 'userWorkspaces');
+      const userWorkspaceQuery = query(
+        userWorkspacesRef, 
+        where('workspaceId', '==', workspaceId),
+        where('role', 'in', ['admin', 'team_lead', 'manager']) // Include admins, team leads, and managers
+      );
+      const userWorkspaceSnapshot = await getDocs(userWorkspaceQuery);
+      
+      if (userWorkspaceSnapshot.empty) {
+        console.log('No admin/team_lead users found in workspace');
+        return [];
+      }
+      
+      // Get user IDs and their workspace roles
+      const userWorkspaceData = userWorkspaceSnapshot.docs.map(doc => ({
+        userId: doc.data().userId,
+        workspaceRole: doc.data().role,
+        effectiveRole: doc.data().effectiveRole
+      }));
+      console.log('Found potential manager user data:', userWorkspaceData);
+      
+      // Get user details with workspace roles
+      const managers: (User & { workspaceRole: string, effectiveRole?: string })[] = [];
       const usersRef = collection(db, 'users');
-      // Simplified query to avoid index requirements
-      const managersQuery = query(usersRef, where('role', 'in', ['admin', 'owner']));
-      const querySnapshot = await getDocs(managersQuery);
       
-      const managers = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        lastActive: doc.data().lastActive?.toDate() || new Date(),
-        dateOfBirth: doc.data().dateOfBirth?.toDate(),
-      })) as User[];
+      // Fetch users in batches to avoid limitations
+      for (const userWorkspace of userWorkspaceData) {
+        try {
+          const userDoc = await getDoc(doc(usersRef, userWorkspace.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            managers.push({
+              id: userDoc.id,
+              ...userData,
+              createdAt: userData.createdAt?.toDate() || new Date(),
+              lastActive: userData.lastActive?.toDate() || new Date(),
+              dateOfBirth: userData.dateOfBirth?.toDate(),
+              workspaceRole: userWorkspace.workspaceRole, // Include workspace-specific role
+              effectiveRole: userWorkspace.effectiveRole, // Include effective role if available
+            } as User & { workspaceRole: string, effectiveRole?: string });
+          }
+        } catch (userError) {
+          console.warn('Error fetching user:', userWorkspace.userId, userError);
+        }
+      }
       
-      // Sort in memory instead of using orderBy in query
-      return managers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      console.log('Loaded managers before filtering:', managers.length);
+      
+      // Filter by workspace role (not global role) and only active users
+      const filteredManagers = managers.filter(manager => {
+        const isActive = manager.status === 'active';
+        const hasManagerialWorkspaceRole = ['admin', 'team_lead', 'manager'].includes(manager.workspaceRole || '');
+        
+        console.log(`Manager ${manager.name}: active=${isActive}, globalRole=${manager.role}, workspaceRole=${manager.workspaceRole}, hasManagerialWorkspaceRole=${hasManagerialWorkspaceRole}`);
+        
+        return isActive && hasManagerialWorkspaceRole;
+      });
+      
+      console.log('Final filtered managers:', filteredManagers.length);
+      
+      // Sort by name
+      return filteredManagers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     } catch (error) {
       console.error('Error getting potential managers:', error);
       // Return empty array instead of throwing error
@@ -747,9 +779,11 @@ export class BranchService {
   /**
    * Create sample managers for testing
    */
-  static async createSampleManagers(): Promise<void> {
+  static async createSampleManagers(workspaceId?: string): Promise<void> {
     try {
       const usersRef = collection(db, 'users');
+      const targetWorkspaceId = workspaceId || 'current-workspace';
+      
       const sampleManagers = [
         {
           email: 'john.doe@company.com',
@@ -760,7 +794,7 @@ export class BranchService {
           status: 'active',
           jobTitle: 'Regional Manager',
           department: 'Operations',
-          workspaceId: 'current-workspace',
+          workspaceId: targetWorkspaceId,
           teamIds: [],
           createdAt: serverTimestamp(),
           lastActive: serverTimestamp(),
@@ -774,7 +808,7 @@ export class BranchService {
           status: 'active',
           jobTitle: 'Branch Manager',
           department: 'Operations',
-          workspaceId: 'current-workspace',
+          workspaceId: targetWorkspaceId,
           teamIds: [],
           createdAt: serverTimestamp(),
           lastActive: serverTimestamp(),
@@ -788,7 +822,7 @@ export class BranchService {
           status: 'active',
           jobTitle: 'Area Manager',
           department: 'Operations',
-          workspaceId: 'current-workspace',
+          workspaceId: targetWorkspaceId,
           teamIds: [],
           createdAt: serverTimestamp(),
           lastActive: serverTimestamp(),
@@ -807,14 +841,16 @@ export class BranchService {
   /**
    * Create sample regions for testing
    */
-  static async createSampleRegions(): Promise<void> {
+  static async createSampleRegions(workspaceId?: string): Promise<void> {
     try {
       const regionsRef = collection(db, 'regions');
+      const targetWorkspaceId = workspaceId || 'current-workspace';
+      
       const sampleRegions = [
         {
           name: 'Greater Accra',
           description: 'Capital region with main headquarters',
-          workspaceId: 'current-workspace',
+          workspaceId: targetWorkspaceId,
           branches: [],
           adminIds: [],
           createdAt: serverTimestamp(),
@@ -823,7 +859,7 @@ export class BranchService {
         {
           name: 'Ashanti',
           description: 'Northern operations center',
-          workspaceId: 'current-workspace',
+          workspaceId: targetWorkspaceId,
           branches: [],
           adminIds: [],
           createdAt: serverTimestamp(),
@@ -832,7 +868,7 @@ export class BranchService {
         {
           name: 'Eastern',
           description: 'Eastern region operations',
-          workspaceId: 'current-workspace',
+          workspaceId: targetWorkspaceId,
           branches: [],
           adminIds: [],
           createdAt: serverTimestamp(),

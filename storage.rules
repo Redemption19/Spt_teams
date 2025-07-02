@@ -1,0 +1,157 @@
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user has workspace access (simplified for now)
+    function hasWorkspaceAccess() {
+      return request.auth != null;
+    }
+    
+    // Check file size limits
+    function isValidFileSize(maxSize) {
+      return resource == null || resource.size <= maxSize;
+    }
+    
+    // Check file type
+    function isValidFileType(allowedTypes) {
+      return resource == null || resource.contentType in allowedTypes;
+    }
+    
+    // ==================== USER AVATARS ====================
+    
+    match /avatars/{userId}/{allPaths=**} {
+      // Users can upload/update their own avatar
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ==================== WORKSPACE FILES ====================
+    
+    match /workspaces/{workspaceId}/{allPaths=**} {
+      // All authenticated workspace members can read/write workspace files
+      allow read, write: if isAuthenticated() && hasWorkspaceAccess();
+    }
+    
+    // ==================== FOLDER FILES ====================
+    
+    match /folders/{workspaceId}/{folderId}/{allPaths=**} {
+      // Workspace members can upload files to folders
+      allow read, write: if isAuthenticated() && hasWorkspaceAccess();
+    }
+    
+    // ==================== REPORT FILES ====================
+    
+    match /reports/{workspaceId}/{reportId}/{fieldId}/{fileName} {
+      // Report file uploads - authenticated users can upload files for reports
+      allow read: if isAuthenticated();
+      
+      allow write: if isAuthenticated() && 
+                   // Basic file validation
+                   isValidFileSize(50 * 1024 * 1024) && // 50MB max
+                   isValidFileType([
+                     'image/jpeg',
+                     'image/png', 
+                     'image/gif',
+                     'image/webp',
+                     'application/pdf',
+                     'application/msword',
+                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                     'application/vnd.ms-excel',
+                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     'application/vnd.ms-powerpoint',
+                     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                     'text/plain',
+                     'text/csv',
+                     'application/zip',
+                     'application/x-rar-compressed',
+                     'application/x-7z-compressed'
+                   ]);
+      
+      // Users can delete their own report files
+      allow delete: if isAuthenticated();
+    }
+    
+    // Alternative broader report files pattern for nested paths
+    match /reports/{workspaceId}/{allPaths=**} {
+      // More permissive rule for any report file structure
+      allow read, write: if isAuthenticated() && isValidFileSize(50 * 1024 * 1024);
+    }
+    
+    // ==================== PROJECT FILES ====================
+    
+    match /projects/{workspaceId}/{projectId}/{allPaths=**} {
+      // Project files - workspace members can upload
+      allow read, write: if isAuthenticated() && hasWorkspaceAccess();
+    }
+    
+    // ==================== TASK FILES ====================
+    
+    match /tasks/{workspaceId}/{taskId}/{allPaths=**} {
+      // Task attachments - workspace members can upload
+      allow read, write: if isAuthenticated() && hasWorkspaceAccess();
+    }
+    
+    // ==================== TEAM FILES ====================
+    
+    match /teams/{workspaceId}/{teamId}/{allPaths=**} {
+      // Team files - workspace members can upload
+      allow read, write: if isAuthenticated() && hasWorkspaceAccess();
+    }
+    
+    // ==================== PROFILE FILES ====================
+    
+    match /profiles/{userId}/{allPaths=**} {
+      // Users can manage their own profile files
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ==================== TEMPORARY UPLOADS ====================
+    
+    match /temp/{userId}/{allPaths=**} {
+      // Temporary upload area for processing
+      allow read, write: if isAuthenticated() && 
+                         request.auth.uid == userId &&
+                         isValidFileSize(100 * 1024 * 1024); // 100MB max for temp files
+    }
+    
+    // ==================== PUBLIC FILES ====================
+    
+    match /public/{allPaths=**} {
+      // Public files can be read by anyone, written by authenticated users
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    
+    // ==================== WORKSPACE LOGOS ====================
+    
+    match /logos/{workspaceId}/{allPaths=**} {
+      // Workspace owners and admins can upload logos
+      allow read: if true; // Logos are public
+      allow write: if isAuthenticated() && hasWorkspaceAccess();
+    }
+    
+    // ==================== LEGACY SUPPORT ====================
+    
+    match /uploads/{allPaths=**} {
+      // Legacy upload path - very permissive for backward compatibility
+      allow read, write: if isAuthenticated();
+    }
+    
+    // ==================== CATCH-ALL ====================
+    
+    // Default deny for unmatched paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

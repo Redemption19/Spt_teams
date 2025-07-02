@@ -1,5 +1,5 @@
-import { ReportsDashboard } from '@/components/reports/reports-dashboard';
+import { ReportsDropdown } from '@/components/reports/reports-dropdown';
 
 export default function ReportsPage() {
-  return <ReportsDashboard />;
+  return <ReportsDropdown />;
 }

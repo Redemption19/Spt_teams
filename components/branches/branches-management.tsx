@@ -37,6 +37,7 @@ import { RegionService } from '@/lib/region-service';
 import { TeamService } from '@/lib/team-service';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useAuth } from '@/lib/auth-context';
+import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
 import { Branch, Region, User, Team } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -110,7 +111,9 @@ const INITIAL_MANAGER_FORM: ManagerFormData = {
 export default function BranchesManagement() {
   const pathname = usePathname();
   const { currentWorkspace } = useWorkspace();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
+  const permissions = useRolePermissions();
+  const isOwner = useIsOwner();
 
   // Set initial tab based on current route
   const getInitialTab = () => {
@@ -121,7 +124,7 @@ export default function BranchesManagement() {
   // State
   const [branches, setBranches] = useState<Branch[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
-  const [managers, setManagers] = useState<User[]>([]);
+  const [managers, setManagers] = useState<(User & { workspaceRole?: string, effectiveRole?: string })[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,35 +172,84 @@ export default function BranchesManagement() {
 
   // Load data
   const loadData = useCallback(async () => {
-    if (!currentWorkspace) return;    try {
+    if (!currentWorkspace) return;
+
+    try {
       setLoading(true);
       setError(null);
+      
+      // Determine which workspace to load regions/branches from
+      // For sub-workspaces, load from parent workspace (same logic as header and user management)
+      const sourceWorkspaceId = currentWorkspace.workspaceType === 'sub' 
+        ? currentWorkspace.parentWorkspaceId || currentWorkspace.id
+        : currentWorkspace.id;
+      
       const [branchesData, regionsData, managersData, teamsData, usersData] = await Promise.all([
-        BranchService.getBranches(currentWorkspace.id),
-        RegionService.getWorkspaceRegions(currentWorkspace.id),
-        BranchService.getPotentialManagers(),
-        TeamService.getWorkspaceTeams(currentWorkspace.id),
-        UserService.getUsersByWorkspace(currentWorkspace.id)
-      ]); setBranches(branchesData);
-      setRegions(regionsData);
+        BranchService.getBranches(sourceWorkspaceId), // Use sourceWorkspaceId for sub-workspaces
+        RegionService.getWorkspaceRegions(sourceWorkspaceId), // Use sourceWorkspaceId for sub-workspaces
+        BranchService.getPotentialManagers(currentWorkspace.id), // Load managers from current workspace only
+        TeamService.getWorkspaceTeams(currentWorkspace.id), // Teams stay in current workspace
+        UserService.getUsersByWorkspace(currentWorkspace.id) // Users stay in current workspace
+      ]);
+
+      // Filter regions and branches based on workspace type and user role
+      let filteredRegions = regionsData;
+      let filteredBranches = branchesData;
+      
+      if (currentWorkspace.workspaceType === 'sub') {
+        // For sub-workspaces, only show the bound region and branch
+        filteredRegions = currentWorkspace.regionId 
+          ? regionsData.filter(r => r.id === currentWorkspace.regionId)
+          : [];
+        
+        filteredBranches = currentWorkspace.branchId 
+          ? branchesData.filter(b => b.id === currentWorkspace.branchId)
+          : [];
+      } else if (userProfile?.role === 'member') {
+        // For members in main workspaces, only show their assigned region and branch
+        if (userProfile.regionId) {
+          filteredRegions = regionsData.filter(r => r.id === userProfile.regionId);
+        } else {
+          filteredRegions = [];
+        }
+        
+        if (userProfile.branchId) {
+          filteredBranches = branchesData.filter(b => b.id === userProfile.branchId);
+        } else {
+          filteredBranches = [];
+        }
+      }
+
+      setBranches(filteredBranches); // Use filtered branches
+      setRegions(filteredRegions);   // Use filtered regions
       setManagers(managersData);
       setTeams(teamsData);
-      setUsers(usersData);      console.log('Branches Management - Loaded data:', {
-        branches: branchesData.length,
-        regions: regionsData.length,
+      setUsers(usersData);
+
+      console.log('Branches Management - Loaded data:', {
+        branches: filteredBranches.length,
+        regions: filteredRegions.length,
         managers: managersData.length,
         teams: teamsData.length,
-        users: usersData.length
-      });      console.log('Current workspace ID:', currentWorkspace.id);
+        users: usersData.length,
+        currentWorkspaceType: currentWorkspace.workspaceType,
+        sourceWorkspaceId: sourceWorkspaceId,
+        currentWorkspaceId: currentWorkspace.id,
+        boundRegionId: currentWorkspace.regionId,
+        boundBranchId: currentWorkspace.branchId,
+        isSubWorkspace: currentWorkspace.workspaceType === 'sub'
+      });
+
+      console.log('Current workspace ID:', currentWorkspace.id);
       console.log('Teams data:', teamsData.map(t => ({ id: t.id, name: t.name, branchId: t.branchId, workspaceId: t.workspaceId })));
       console.log('Users data:', usersData.map(u => ({ id: u.id, name: u.name, branchId: u.branchId, workspaceId: u.workspaceId })));
-      console.log('Branches data:', branchesData.map(b => ({ 
+      console.log('Branches data:', filteredBranches.map(b => ({ 
         id: b.id, 
         name: b.name, 
         userCount: usersData.filter(u => u.branchId === b.id).length,
         teamCount: teamsData.filter(t => t.branchId === b.id).length
       })));
-      console.log('Regions data:', regionsData.map(r => ({ id: r.id, name: r.name, workspaceId: r.workspaceId })));
+      console.log('Regions data:', filteredRegions.map(r => ({ id: r.id, name: r.name, workspaceId: r.workspaceId })));
     } catch (err) {
       console.error('Error loading data:', err);
       setError('Failed to load data. Please try again.');
@@ -261,6 +313,14 @@ export default function BranchesManagement() {
   };
   const getManagerName = (managerId: string) => {
     return managers.find(m => m.id === managerId)?.name || 'No Manager';
+  };
+
+  // Email functionality for managers
+  const handleEmailManager = (manager: User) => {
+    const subject = encodeURIComponent(`Message from ${userProfile?.name || 'Team Member'}`);
+    const body = encodeURIComponent(`Hello ${manager.name},\n\nI hope this message finds you well.\n\nBest regards,\n${userProfile?.name || 'Team Member'}\n${userProfile?.email || ''}`);
+    const mailtoLink = `mailto:${manager.email}?subject=${subject}&body=${body}`;
+    window.open(mailtoLink, '_blank');
   };
   // Branch operations
   const handleCreateBranch = async () => {
@@ -530,7 +590,7 @@ export default function BranchesManagement() {
   const createSampleData = async () => {
     try {
       setSubmitting(true);
-      await BranchService.createSampleRegions();
+      await BranchService.createSampleRegions(currentWorkspace?.id);
       await loadData();
       toast({
         title: "Success",
@@ -550,7 +610,7 @@ export default function BranchesManagement() {
   const createSampleManagers = async () => {
     try {
       setSubmitting(true);
-      await BranchService.createSampleManagers();
+      await BranchService.createSampleManagers(currentWorkspace?.id);
       await loadData();
       toast({
         title: "Success",
@@ -792,13 +852,14 @@ export default function BranchesManagement() {
           <p className="text-muted-foreground mt-1">Manage your organization&apos;s regional structure</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Dialog open={isCreateRegionOpen} onOpenChange={setIsCreateRegionOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="border-border hover:bg-gray-100 dark:hover:bg-gray-800">
-                <MapPin className="h-4 w-4 mr-2" />
-                New Region
-              </Button>
-            </DialogTrigger>
+          {(isOwner || permissions.canManageBranches) && (
+            <Dialog open={isCreateRegionOpen} onOpenChange={setIsCreateRegionOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-border hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  New Region
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Region</DialogTitle>
@@ -836,14 +897,16 @@ export default function BranchesManagement() {
               </div>
             </DialogContent>
           </Dialog>
+          )}
 
-          <Dialog open={isCreateBranchOpen} onOpenChange={setIsCreateBranchOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-primary to-accent text-white border-0">
-                <Plus className="h-4 w-4 mr-2" />
-                New Branch
-              </Button>
-            </DialogTrigger>            <DialogContent className="sm:max-w-4xl">
+          {(isOwner || permissions.canManageBranches) && (
+            <Dialog open={isCreateBranchOpen} onOpenChange={setIsCreateBranchOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-primary to-accent text-white border-0">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Branch
+                </Button>
+              </DialogTrigger>            <DialogContent className="sm:max-w-4xl">
               <DialogHeader>
                 <DialogTitle>Create New Branch</DialogTitle>
               </DialogHeader>
@@ -1023,6 +1086,7 @@ export default function BranchesManagement() {
               </div>
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </div>
       {/* Tab Navigation */}
@@ -1071,7 +1135,7 @@ export default function BranchesManagement() {
               </SelectContent>
             </Select>
           )}
-          {activeTab === 'managers' && (
+          {activeTab === 'managers' && (isOwner || permissions.canManageBranches) && (
             <Dialog open={isCreateManagerOpen} onOpenChange={setIsCreateManagerOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-gradient-to-r from-primary to-accent text-white border-0 ml-4">
@@ -1153,9 +1217,9 @@ export default function BranchesManagement() {
               <Building2 className="h-10 w-10 text-muted-foreground" />
               <h3 className="text-lg font-semibold text-muted-foreground">No Branches Found</h3>
               <p className="text-sm text-muted-foreground">
-                {searchTerm || selectedRegion !== 'all' ? "No branches match your search/filter." : "Start by creating a new branch."}
+                {searchTerm || selectedRegion !== 'all' ? "No branches match your search/filter." : (isOwner || permissions.canManageBranches) ? "Start by creating a new branch." : "No branches assigned to you. Contact your administrator to get assigned to a branch."}
               </p>
-              {!searchTerm && selectedRegion === 'all' && (
+              {!searchTerm && selectedRegion === 'all' && (isOwner || permissions.canManageBranches) && (
                 <Dialog open={isCreateBranchOpen} onOpenChange={setIsCreateBranchOpen}>
                   <DialogTrigger asChild>
                     <Button className="mt-4">
@@ -1372,25 +1436,32 @@ export default function BranchesManagement() {
                         size="sm"
                         onClick={() => viewBranchDetails(branch)}
                         className="h-8 w-8 p-0"
+                        title="View Details"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditBranch(branch)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteBranch(branch.id)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {(isOwner || permissions.canManageBranches) && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditBranch(branch)}
+                            className="h-8 w-8 p-0"
+                            title="Edit Branch"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteBranch(branch.id)}
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                            title="Delete Branch"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -1450,9 +1521,9 @@ export default function BranchesManagement() {
               <MapPin className="h-10 w-10 text-muted-foreground" />
               <h3 className="text-lg font-semibold text-muted-foreground">No Regions Found</h3>
               <p className="text-sm text-muted-foreground">
-                {searchTerm ? "No regions match your search." : "Start by creating a new region."}
+                {searchTerm ? "No regions match your search." : (isOwner || permissions.canManageBranches) ? "Start by creating a new region." : "No regions assigned to you. Contact your administrator to get assigned to a region."}
               </p>
-              {!searchTerm && (
+              {!searchTerm && (isOwner || permissions.canManageBranches) && (
                 <Dialog open={isCreateRegionOpen} onOpenChange={setIsCreateRegionOpen}>
                   <DialogTrigger asChild>
                     <Button className="mt-4">
@@ -1515,25 +1586,32 @@ export default function BranchesManagement() {
                         size="sm"
                         onClick={() => viewRegionDetails(region)}
                         className="h-8 w-8 p-0"
+                        title="View Details"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditRegion(region)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteRegion(region.id)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {(isOwner || permissions.canManageBranches) && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditRegion(region)}
+                            className="h-8 w-8 p-0"
+                            title="Edit Region"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRegion(region.id)}
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                            title="Delete Region"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>                  <div>
                     <CardTitle className="text-lg">{region.name}</CardTitle>
@@ -1556,6 +1634,36 @@ export default function BranchesManagement() {
         </TabsContent>
 
         <TabsContent value="managers" className="mt-0">
+          {/* Role Legend */}
+          {filteredManagers.length > 0 && (
+            <div className="mb-4 p-4 bg-muted/50 rounded-lg border border-border/50 shadow-sm">
+              <h4 className="text-sm font-medium text-foreground mb-2 flex items-center">
+                <span className="mr-2">📋</span>
+                Role Legend
+              </h4>
+              <div className="flex flex-wrap gap-3 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800">
+                    Admin
+                  </Badge>
+                  <span className="text-muted-foreground">- Full workspace management access</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800">
+                    Team Lead
+                  </Badge>
+                  <span className="text-muted-foreground">- Team and project management</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
+                    Manager
+                  </Badge>
+                  <span className="text-muted-foreground">- Branch and operations management</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {filteredManagers.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-muted/20 rounded-lg p-6">
               <Users className="h-10 w-10 text-muted-foreground" />
@@ -1563,7 +1671,7 @@ export default function BranchesManagement() {
               <p className="text-sm text-muted-foreground">
                 {searchTerm ? "No managers match your search." : "Start by creating a new manager or generating sample managers."}
               </p>
-              {!searchTerm && (
+              {!searchTerm && (isOwner || permissions.canManageBranches) && (
                 <div className="flex gap-3 justify-center mt-4">
                   <Dialog open={isCreateManagerOpen} onOpenChange={setIsCreateManagerOpen}>
                     <DialogTrigger asChild>
@@ -1645,70 +1753,146 @@ export default function BranchesManagement() {
             </div>
           )}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredManagers.map((manager) => (
-              <Card key={manager.id} className="border border-border/30">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
-                          {manager.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h4 className="font-medium">{manager.name}</h4>
-                        <p className="text-sm text-muted-foreground">{manager.jobTitle || 'Manager'}</p>
+            {filteredManagers.map((manager) => {
+              // Helper function to get role badge styling
+              const getRoleBadgeStyle = (role: string) => {
+                switch (role) {
+                  case 'admin':
+                    return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
+                  case 'team_lead':
+                    return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800';
+                  case 'manager':
+                    return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
+                  default:
+                    return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
+                }
+              };
+
+              // Helper function to get role display name
+              const getRoleDisplayName = (role: string) => {
+                switch (role) {
+                  case 'admin':
+                    return 'Admin';
+                  case 'team_lead':
+                    return 'Team Lead';
+                  case 'manager':
+                    return 'Manager';
+                  default:
+                    return role;
+                }
+              };
+
+              // Get border color based on role
+              const getCardBorderStyle = (role: string) => {
+                switch (role) {
+                  case 'admin':
+                    return 'border-blue-200 dark:border-blue-800/50 bg-blue-50/30 dark:bg-blue-900/5';
+                  case 'team_lead':
+                    return 'border-purple-200 dark:border-purple-800/50 bg-purple-50/30 dark:bg-purple-900/5';
+                  case 'manager':
+                    return 'border-orange-200 dark:border-orange-800/50 bg-orange-50/30 dark:bg-orange-900/5';
+                  default:
+                    return 'border-border/30';
+                }
+              };
+
+              return (
+                <Card key={manager.id} className={`border ${getCardBorderStyle(manager.workspaceRole || 'member')}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                            {manager.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-medium">{manager.name}</h4>
+                          <p className="text-sm text-muted-foreground">{manager.jobTitle || 'Manager'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        {/* Email button for all users */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEmailManager(manager)}
+                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+                          title="Send Email"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        {/* Edit/Delete buttons only for owners and admins */}
+                        {(isOwner || permissions.canManageBranches) && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => startEditManager(manager)}
+                              className="h-8 w-8 p-0"
+                              title="Edit Manager"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteManager(manager)}
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                              title="Delete Manager"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditManager(manager)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteManager(manager)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span>{manager.email}</span>
-                    </div>
-                    {manager.phone && (
+                    <div className="space-y-2 text-sm">
                       <div className="flex items-center space-x-2 text-muted-foreground">
-                        <Phone className="h-4 w-4" />
-                        <span>{manager.phone}</span>
+                        <Mail className="h-4 w-4" />
+                        <span>{manager.email}</span>
                       </div>
-                    )}
-                    {manager.department && (
-                      <div className="flex items-center space-x-2 text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        <span>{manager.department}</span>
+                      {manager.phone && (
+                        <div className="flex items-center space-x-2 text-muted-foreground">
+                          <Phone className="h-4 w-4" />
+                          <span>{manager.phone}</span>
+                        </div>
+                      )}
+                      {manager.department && (
+                        <div className="flex items-center space-x-2 text-muted-foreground">
+                          <Building2 className="h-4 w-4" />
+                          <span>{manager.department}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+                      <div className="space-y-1">
+                        {/* Workspace Role Badge */}
+                        {manager.workspaceRole && (
+                          <Badge className={getRoleBadgeStyle(manager.workspaceRole)}>
+                            {getRoleDisplayName(manager.workspaceRole)}
+                          </Badge>
+                        )}
+                        {/* Global Role Badge (if different from workspace role) */}
+                        {manager.role && manager.role !== manager.workspaceRole && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            Global: {manager.role}
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <Badge className={`${
-                      manager.status === 'active'
-                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
-                        : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800'
-                    }`}>
-                      {manager.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {/* Status Badge */}
+                      <Badge className={`${
+                        manager.status === 'active'
+                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
+                          : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800'
+                      }`}>
+                        {manager.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
       </Tabs>

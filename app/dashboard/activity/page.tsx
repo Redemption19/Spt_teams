@@ -11,16 +11,19 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
+import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
 import { ActivityService, EnhancedActivityLog, ActivityType } from '@/lib/activity-service';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow, format } from 'date-fns';
 
 export default function ActivityLogPage() {
-  const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { user, userProfile } = useAuth();
+  const { currentWorkspace, userRole } = useWorkspace();
+  const permissions = useRolePermissions();
+  const isOwner = useIsOwner();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activities, setActivities] = useState<EnhancedActivityLog[]>([]);
@@ -35,29 +38,38 @@ export default function ActivityLogPage() {
     byType: {} as Record<ActivityType, number>,
   });
 
-  // Filter states
+  // Filter states with role-based restrictions
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
 
-  // Load data
+  // Get role-based allowed categories and severities (memoized to prevent infinite loops)
+  const allowedCategories = useMemo(() => {
+    return userRole ? ActivityService.getAllowedCategoriesForRole(userRole as 'member' | 'admin' | 'owner') : [];
+  }, [userRole]);
+  
+  const allowedSeverities = useMemo(() => {
+    return userRole ? ActivityService.getAllowedSeveritiesForRole(userRole as 'member' | 'admin' | 'owner') : [];
+  }, [userRole]);
+
+  // Load data with RBAC (fixed to prevent circular dependencies)
   const loadData = useCallback(async () => {
-    if (!currentWorkspace?.id) return;
+    if (!currentWorkspace?.id || !user?.uid || !userRole) return;
     
     setLoading(true);
     try {
+      // Use RBAC-enabled methods
       const [activitiesData, statsData] = await Promise.all([
-        ActivityService.getWorkspaceActivities(currentWorkspace.id, 100),
-        ActivityService.getActivityStats(currentWorkspace.id),
+        ActivityService.getWorkspaceActivitiesWithRBAC(currentWorkspace.id, user.uid, userRole as 'member' | 'admin' | 'owner', 100),
+        ActivityService.getActivityStatsWithRBAC(currentWorkspace.id, user.uid, userRole as 'member' | 'admin' | 'owner'),
       ]);
       
       setActivities(activitiesData);
       setStats(statsData);
       
-      console.log('Loaded activities:', activitiesData.length);
-      console.log('Activity stats:', statsData);
+      console.log('Loaded RBAC activities:', activitiesData.length, 'for role:', userRole);
     } catch (error) {
       console.error('Error loading activity data:', error);
       toast({
@@ -68,10 +80,10 @@ export default function ActivityLogPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, user?.uid, userRole]);
 
   // Refresh data
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
@@ -79,10 +91,10 @@ export default function ActivityLogPage() {
       title: 'Refreshed',
       description: 'Activity data has been updated',
     });
-  };
+  }, [loadData]);
 
-  // Filter activities
-  useEffect(() => {
+  // Filter activities with role-based restrictions (using useMemo to prevent infinite loops)
+  const filteredActivitiesResult = useMemo(() => {
     let filtered = activities;
 
     // Search filter
@@ -95,19 +107,34 @@ export default function ActivityLogPage() {
       );
     }
 
-    // Category filter
+    // Category filter (restricted by role)
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(activity => activity.category === selectedCategory);
+      filtered = filtered.filter(activity => 
+        activity.category === selectedCategory && allowedCategories.includes(activity.category)
+      );
+    } else {
+      // Only show activities from allowed categories
+      filtered = filtered.filter(activity => allowedCategories.includes(activity.category));
     }
 
-    // Severity filter
+    // Severity filter (restricted by role)
     if (selectedSeverity !== 'all') {
-      filtered = filtered.filter(activity => activity.severity === selectedSeverity);
+      filtered = filtered.filter(activity => 
+        activity.severity === selectedSeverity && allowedSeverities.includes(activity.severity)
+      );
+    } else {
+      // Only show activities from allowed severities
+      filtered = filtered.filter(activity => allowedSeverities.includes(activity.severity));
     }
 
-    // User filter
+    // User filter (members can only see themselves unless it's allowed content)
     if (selectedUser !== 'all') {
-      filtered = filtered.filter(activity => activity.userId === selectedUser);
+      if (userRole === 'member' && selectedUser !== user?.uid) {
+        // Members can only filter to themselves
+        filtered = filtered.filter(activity => activity.userId === user?.uid);
+      } else {
+        filtered = filtered.filter(activity => activity.userId === selectedUser);
+      }
     }
 
     // Date range filter
@@ -124,18 +151,24 @@ export default function ActivityLogPage() {
       });
     }
 
-    setFilteredActivities(filtered);
-  }, [activities, searchQuery, selectedCategory, selectedSeverity, selectedUser, dateRange]);
+    return filtered;
+  }, [activities, searchQuery, selectedCategory, selectedSeverity, selectedUser, dateRange, allowedCategories, allowedSeverities, userRole, user?.uid]);
 
-  // Load data on mount
+  // Update filteredActivities when the computed result changes
   useEffect(() => {
-    if (currentWorkspace) {
+    setFilteredActivities(filteredActivitiesResult);
+  }, [filteredActivitiesResult]);
+
+  // Load data on mount (fixed circular dependency by removing loadData from dependencies)
+  useEffect(() => {
+    if (currentWorkspace?.id && user?.uid && userRole) {
       loadData();
     }
-  }, [currentWorkspace, loadData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWorkspace?.id, user?.uid, userRole]);
 
-  // Helper functions
-  const getActivityIcon = (type: ActivityType) => {
+  // Helper functions (memoized to prevent re-creation on every render)
+  const getActivityIcon = useCallback((type: ActivityType) => {
     switch (type) {
       case 'user_created':
       case 'user_updated':
@@ -167,9 +200,9 @@ export default function ActivityLogPage() {
       default:
         return <Activity className="h-4 w-4" />;
     }
-  };
+  }, []);
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = useCallback((severity: string) => {
     switch (severity) {
       case 'critical': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400';
       case 'high': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400';
@@ -177,9 +210,9 @@ export default function ActivityLogPage() {
       case 'low': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400';
       default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400';
     }
-  };
+  }, []);
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = useCallback((category: string) => {
     switch (category) {
       case 'user': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400';
       case 'team': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400';
@@ -188,11 +221,13 @@ export default function ActivityLogPage() {
       case 'content': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400';
       default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400';
     }
-  };
+  }, []);
 
-  // Get unique users for filter
-  const uniqueUsers = Array.from(new Set(activities.map(a => ({ id: a.userId, name: a.userName }))))
-    .filter((user, index, self) => self.findIndex(u => u.id === user.id) === index);
+  // Get unique users for filter (memoized to prevent re-computation)
+  const uniqueUsers = useMemo(() => {
+    return Array.from(new Set(activities.map(a => ({ id: a.userId, name: a.userName }))))
+      .filter((user, index, self) => self.findIndex(u => u.id === user.id) === index);
+  }, [activities]);
 
   if (!currentWorkspace) {
     return (
@@ -222,12 +257,44 @@ export default function ActivityLogPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+          {/* Only owners/admins can export full activity logs */}
+          {(isOwner || userRole === 'admin') && (
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Role-based access banner */}
+      {userRole && (
+        <div className={`p-3 rounded-lg border ${
+          userRole === 'owner' 
+            ? 'bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-800/50'
+            : userRole === 'admin'
+            ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800/50'
+            : 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800/50'
+        }`}>
+          <p className={`text-sm ${
+            userRole === 'owner' 
+              ? 'text-green-700 dark:text-green-400'
+              : userRole === 'admin'
+              ? 'text-blue-700 dark:text-blue-400'
+              : 'text-yellow-700 dark:text-yellow-400'
+          }`}>
+            {userRole === 'owner' && (
+              <>🔧 <strong>Owner Access:</strong> You can view all activity logs including system and security events.</>
+            )}
+            {userRole === 'admin' && (
+              <>⚙️ <strong>Admin Access:</strong> You can view most activities except critical security and system events.</>
+            )}
+            {userRole === 'member' && (
+              <>👤 <strong>Member Access:</strong> You can view your own activities and general content/team activities you're involved in.</>
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Statistics Cards */}
       <div className="grid gap-6 md:grid-cols-5">
@@ -328,11 +395,21 @@ export default function ActivityLogPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="user">User Management</SelectItem>
-                  <SelectItem value="team">Team & Structure</SelectItem>
-                  <SelectItem value="system">System Changes</SelectItem>
-                  <SelectItem value="security">Security Events</SelectItem>
-                  <SelectItem value="content">Content</SelectItem>
+                  {allowedCategories.includes('user') && (
+                    <SelectItem value="user">User Management</SelectItem>
+                  )}
+                  {allowedCategories.includes('team') && (
+                    <SelectItem value="team">Team & Structure</SelectItem>
+                  )}
+                  {allowedCategories.includes('system') && (
+                    <SelectItem value="system">System Changes</SelectItem>
+                  )}
+                  {allowedCategories.includes('security') && (
+                    <SelectItem value="security">Security Events</SelectItem>
+                  )}
+                  {allowedCategories.includes('content') && (
+                    <SelectItem value="content">Content</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -345,10 +422,18 @@ export default function ActivityLogPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Severities</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                  {allowedSeverities.includes('critical') && (
+                    <SelectItem value="critical">Critical</SelectItem>
+                  )}
+                  {allowedSeverities.includes('high') && (
+                    <SelectItem value="high">High</SelectItem>
+                  )}
+                  {allowedSeverities.includes('medium') && (
+                    <SelectItem value="medium">Medium</SelectItem>
+                  )}
+                  {allowedSeverities.includes('low') && (
+                    <SelectItem value="low">Low</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -361,11 +446,19 @@ export default function ActivityLogPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Users</SelectItem>
-                  {uniqueUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
+                  {/* Members can only filter to themselves */}
+                  {userRole === 'member' ? (
+                    <SelectItem value={user?.uid || ''}>
+                      {userProfile?.name || user?.email || 'Me'}
                     </SelectItem>
-                  ))}
+                  ) : (
+                    // Admins and owners can see all users
+                    uniqueUsers.map((userItem) => (
+                      <SelectItem key={userItem.id} value={userItem.id}>
+                        {userItem.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -404,6 +497,11 @@ export default function ActivityLogPage() {
                   <Badge variant="secondary">
                     {filteredActivities.length} of {activities.length} activities
                   </Badge>
+                  {userRole !== 'owner' && (
+                    <Badge variant="outline" className="text-xs">
+                      Role-filtered view
+                    </Badge>
+                  )}
                 </div>
                 <Button
                   variant="ghost"

@@ -80,17 +80,19 @@ export class ExportService {
     }
 
     // For browser compatibility, we'll use CSV format with Excel MIME type
+    // This creates an Excel-compatible CSV file that can be opened in Excel
     const headers = this.getHeaders(type);
     const rows = data.map(item => this.formatRowForCSV(item, type));
 
     const csvContent = [
-      headers.join('\t'), // Use tabs for better Excel compatibility
-      ...rows.map(row => row.join('\t'))
+      headers.join(','), // Use commas for proper CSV format
+      ...rows.map(row => row.join(','))
     ].join('\n');
 
     // Add BOM for proper UTF-8 encoding in Excel
     const bom = '\uFEFF';
-    this.downloadFile(bom + csvContent, `${filename}.xls`, 'application/vnd.ms-excel');
+    // Use .csv extension with Excel MIME type for maximum compatibility
+    this.downloadFile(bom + csvContent, `${filename}.csv`, 'application/vnd.ms-excel');
   }
 
   /**

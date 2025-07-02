@@ -1,0 +1,339 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Get user data (with error handling for onboarding)
+    function getUserData() {
+      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data : 
+        null;
+    }
+    
+    // Safe check for user data existence during onboarding
+    function userExists() {
+      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    // Check if user has role in main workspace
+    function hasMainWorkspaceRole(mainWorkspaceId, role) {
+      let userData = getUserData();
+      return userData != null && userData.roles != null && userData.roles[mainWorkspaceId] == role;
+    }
+    
+    // Check if user has role in sub workspace
+    function hasSubWorkspaceRole(subWorkspaceId, role) {
+      let userData = getUserData();
+      return userData != null && userData.roles != null && userData.roles[subWorkspaceId] == role;
+    }
+    
+    // Check if user is owner of main workspace
+    function isMainWorkspaceOwner(mainWorkspaceId) {
+      return hasMainWorkspaceRole(mainWorkspaceId, 'owner');
+    }
+    
+    // Check if user is admin of sub workspace
+    function isSubWorkspaceAdmin(subWorkspaceId) {
+      return hasSubWorkspaceRole(subWorkspaceId, 'admin');
+    }
+    
+    // Check if user belongs to main workspace (null-safe for onboarding)
+    function belongsToMainWorkspace(mainWorkspaceId) {
+      let userData = getUserData();
+      return userData != null && userData.mainWorkspaceIds != null && mainWorkspaceId in userData.mainWorkspaceIds;
+    }
+    
+    // Check if user belongs to sub workspace (null-safe for onboarding)
+    function belongsToSubWorkspace(subWorkspaceId) {
+      let userData = getUserData();
+      return userData != null && userData.subWorkspaceId == subWorkspaceId;
+    }
+    
+    // Check if user is member of specific team (null-safe for onboarding)
+    function isMemberOfTeam(teamId) {
+      let userData = getUserData();
+      return userData != null && userData.teamIds != null && teamId in userData.teamIds;
+    }
+    
+    // Check if user is owner of any main workspace that contains the given workspace (null-safe)
+    function isOwnerOfAnyMainWorkspace(targetMainWorkspaceIds) {
+      let userData = getUserData();
+      return userData != null && userData.mainWorkspaceIds != null && targetMainWorkspaceIds != null && 
+             userData.mainWorkspaceIds.hasAny(targetMainWorkspaceIds);
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function getUserRole(workspaceId) {
+      return get(/databases/$(database)/documents/workspaces/$(workspaceId)/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isOwnerOrAdmin(workspaceId) {
+      let role = getUserRole(workspaceId);
+      return role == 'owner' || role == 'admin';
+    }
+    
+    function isWorkspaceMember(workspaceId) {
+      return exists(/databases/$(database)/documents/workspaces/$(workspaceId)/users/$(request.auth.uid));
+    }
+    
+    // ==================== MAIN WORKSPACES ====================
+    
+    match /mainWorkspaces/{mainWorkspaceId} {
+      // Read: Very permissive - authenticated users can read (owners need full visibility)
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - Any authenticated user can create main workspace
+      // This enables seamless onboarding for new owners
+      allow create: if isAuthenticated();
+      
+      // Update: Workspace owners have FULL CONTROL over their workspace
+      allow update: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid ||
+        (!userExists() && request.auth.uid == resource.data.ownerId)  // During onboarding
+      );
+      
+      // Delete: Only owners can delete (MAXIMUM CONTROL for owners)
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+    
+    // ==================== SUB WORKSPACES ====================
+    
+    match /subWorkspaces/{subWorkspaceId} {
+      // Read: Very permissive - authenticated users can read (owners need full visibility)
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE for onboarding and owner control
+      allow create: if isAuthenticated();
+      
+      // Update: FULL CONTROL for main workspace owners, permissive during onboarding
+      allow update: if isAuthenticated() && (
+        !userExists() ||  // During onboarding
+        (resource.data.mainWorkspaceId != null && 
+         exists(/databases/$(database)/documents/mainWorkspaces/$(resource.data.mainWorkspaceId)) &&
+         get(/databases/$(database)/documents/mainWorkspaces/$(resource.data.mainWorkspaceId)).data.ownerId == request.auth.uid)
+      );
+      
+      // Delete: MAXIMUM CONTROL for main workspace owners
+      allow delete: if isAuthenticated() && (
+        !userExists() ||  // During onboarding cleanup
+        (resource.data.mainWorkspaceId != null && 
+         exists(/databases/$(database)/documents/mainWorkspaces/$(resource.data.mainWorkspaceId)) &&
+         get(/databases/$(database)/documents/mainWorkspaces/$(resource.data.mainWorkspaceId)).data.ownerId == request.auth.uid)
+      );
+    }
+    
+    // ==================== USERS ====================
+    
+    match /users/{userId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full visibility of their workspace users
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow user creation during registration and by owners
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - users can update themselves, owners have full control
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM CONTROL for workspace owners
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == userId ||  // Users can delete themselves
+        !userExists()  // Allow during onboarding cleanup
+      );
+    }
+    
+    // ==================== TEAMS ====================
+    
+    match /teams/{teamId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full team visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow team creation by authenticated users
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow team updates by authenticated users
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow team deletion by authenticated users
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== PROJECTS ====================
+    
+    match /projects/{projectId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full project visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow project creation by authenticated users
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow project updates by authenticated users
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow project deletion by authenticated users
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== TASKS ====================
+    
+    match /tasks/{taskId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full task visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow task creation by authenticated users
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow task updates by authenticated users
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow task deletion by authenticated users
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== FOLDERS ====================
+    
+    match /folders/{folderId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full folder visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow folder creation by authenticated users
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow folder updates by authenticated users
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow folder deletion by authenticated users
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== REPORTS ====================
+    
+    match /reports/{reportId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full report visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow report creation by authenticated users
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow report updates by authenticated users
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow report deletion by authenticated users
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== REGIONS ====================
+    
+    match /regions/{regionId} {
+      // Read: Allow authenticated users to read regions (needed for registration/assignment)
+      allow read: if isAuthenticated();
+      
+      // Create/Update/Delete: MAXIMUM PERMISSIVE for owners
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // ==================== BRANCHES ====================
+    
+    match /branches/{branchId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full branch visibility
+      allow read: if isAuthenticated();
+      
+      // Create/Update/Delete: MAXIMUM PERMISSIVE for owners
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // ==================== INVITATIONS ====================
+    
+    match /invitations/{invitationId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full invitation visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow invitation creation by authenticated users
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow invitation updates by authenticated users
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow invitation deletion by authenticated users
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== ACTIVITY LOGS ====================
+    
+    match /activityLogs/{activityId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full activity visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow all activity logging
+      allow create: if isAuthenticated();
+      
+      // Update/Delete: Activity logs are immutable for security
+      allow update, delete: if false;
+    }
+    
+    // ==================== LEGACY WORKSPACES (Backward Compatibility) ====================
+    
+    match /workspaces/{workspaceId} {
+      // Read: For backward compatibility
+      allow read: if isAuthenticated();
+      
+      // Create/Update/Delete: Allow for backward compatibility during transition
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // ==================== USER WORKSPACES (Legacy Association Table) ====================
+    
+    match /userWorkspaces/{userWorkspaceId} {
+      // Read: Users can read their own workspace associations (simplified for onboarding)
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Create: Allow during user registration and invitation acceptance
+      allow create: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Update: Users can update their own associations, workspace owners can update others
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (exists(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)) &&
+         request.auth.uid == get(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)).data.ownerId)
+      );
+      
+      // Delete: Users can leave workspaces, owners can remove users
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (exists(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)) &&
+         request.auth.uid == get(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)).data.ownerId)
+      );
+    }
+    
+    // ==================== TEAM USERS (Team membership tracking) ====================
+    
+    match /teamUsers/{teamUserId} {
+      // Read: MAXIMUM PERMISSIVE - owners need full team membership visibility
+      allow read: if isAuthenticated();
+      
+      // Create: MAXIMUM PERMISSIVE - allow team membership creation
+      allow create: if isAuthenticated();
+      
+      // Update: MAXIMUM PERMISSIVE - allow team membership updates
+      allow update: if isAuthenticated();
+      
+      // Delete: MAXIMUM PERMISSIVE - allow team membership deletion
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== CATCH-ALL for other collections ====================
+    
+    match /{document=**} {
+      // MAXIMUM PERMISSIVE - owners have full control over everything
+      allow read, write: if isAuthenticated();
+    }
+  }
+} 

@@ -11,7 +11,7 @@ import {
   orderBy,
   limit
 } from 'firebase/firestore';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db, auth } from './firebase';
 import { User } from './types';
 import { BranchService } from './branch-service';
@@ -35,7 +35,7 @@ export class UserService {
       
       const snapshot = await getDocs(q);
       return !snapshot.empty;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking for owner:', error);
       return true; // Assume owner exists to be safe
     }
@@ -50,10 +50,20 @@ export class UserService {
     preAssignedRole?: 'owner' | 'admin' | 'member'
   ): Promise<'owner' | 'admin' | 'member'> {
     
-    // If user was invited with a specific role, use that
-    if (inviteToken && preAssignedRole) {
-      // In real app, verify the invite token and get the role from invitation record
+    // console.log(`DEBUG: determineUserRole called with workspaceId: ${workspaceId}, inviteToken: ${inviteToken}, preAssignedRole: ${preAssignedRole}`);
+    
+    // If a role was explicitly assigned (by admin or invitation), use that
+    if (preAssignedRole) {
+      // console.log(`Using preAssignedRole: ${preAssignedRole}`);
       return preAssignedRole;
+    }
+    
+    // If user was invited with a token, get role from invitation
+    if (inviteToken) {
+      // In real app, verify the invite token and get the role from invitation record
+      // For now, default to member for invitations without explicit role
+      // console.log('User has inviteToken, defaulting to member role');
+      return 'member';
     }
     
     // For open registration, check if this should be the first owner
@@ -61,11 +71,13 @@ export class UserService {
     
     if (!hasExistingOwner) {
       // This is the first user, make them owner
+      // console.log('No existing owner found, making user owner');
       return 'owner';
     }
     
     // Default to member role for all other registrations
     // Admins should only be promoted by existing owners/admins
+    // console.log('Using default member role');
     return 'member';
   }
 
@@ -86,6 +98,7 @@ export class UserService {
     regionId?: string;
     inviteToken?: string;
     preAssignedRole?: 'owner' | 'admin' | 'member';
+    password?: string; // Optional password for direct creation
   }): Promise<User> {
     
     // Securely determine the role
@@ -95,9 +108,12 @@ export class UserService {
       userData.preAssignedRole
     );
 
-    // Generate ID if not provided or empty
-    const userId = userData.id && userData.id.trim() !== '' ? userData.id : doc(collection(db, 'users')).id;
+    let userId = userData.id && userData.id.trim() !== '' ? userData.id : '';
 
+    // Generate user ID first
+    userId = userData.id && userData.id.trim() !== '' ? userData.id : doc(collection(db, 'users')).id;
+    
+    // Create Firestore user document first (while admin is still authenticated)
     const user: User = {
       id: userId,
       email: userData.email,
@@ -115,10 +131,105 @@ export class UserService {
       regionId: userData.regionId,
       createdAt: new Date(),
       lastActive: new Date(),
+      // Password management flags
+      requiresPasswordChange: !!userData.password, // True if admin set password
+      firstLogin: true, // Always true for new users
     };
 
-    // Save to Firestore
-    await setDoc(doc(db, 'users', userId), user);
+    // Filter out undefined values to prevent Firestore errors
+    const cleanUserData = Object.fromEntries(
+      Object.entries(user).filter(([_, value]) => value !== undefined)
+    );
+
+    // Save user document to Firestore first
+    await setDoc(doc(db, 'users', userId), cleanUserData);
+    console.log('Created user document in Firestore:', userId);
+
+    // CRITICAL: Create UserWorkspace relationship BEFORE Firebase Auth user creation
+    // This ensures the admin is still authenticated when creating the relationship
+    try {
+      console.log(`Creating UserWorkspace relationship for user ${userId} in workspace ${userData.workspaceId} with role ${role}`);
+      // console.log(`DEBUG: Role determined: ${role}, preAssignedRole was: ${userData.preAssignedRole}`);
+      
+      // Get current user (the creator) for proper permission handling
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('Current user not authenticated');
+      }
+
+      // Import WorkspaceService here to avoid circular dependency
+      const { WorkspaceService } = await import('./workspace-service');
+      
+      // Use WorkspaceService.addUserToWorkspace which handles owner permissions properly
+      await WorkspaceService.addUserToWorkspace(
+        userId,
+        userData.workspaceId,
+        role,
+        currentUser.uid
+      );
+      
+      console.log(`Successfully created UserWorkspace relationship for user ${userId} with role ${role}`);
+    } catch (error: any) {
+      console.error('Error creating UserWorkspace relationship:', error);
+      
+      // Provide more helpful error messages
+      if (error.message?.includes('insufficient permissions')) {
+        throw new Error(`Permission denied: Unable to create user in this workspace. You may need to switch to the main workspace or ensure you have proper admin permissions.`);
+      } else if (error.message?.includes('Missing or insufficient permissions')) {
+        throw new Error(`Firestore permissions error: Please ensure you're properly authenticated and have workspace admin privileges.`);
+      }
+      
+      // This is critical - without this, user won't have workspace access
+      throw new Error(`Failed to create workspace relationship: ${error.message}`);
+    }
+
+    // Create Firebase Auth user if password provided
+    if (userData.password) {
+      try {
+        console.log('Creating Firebase Auth user via REST API...');
+        const firebaseAuthResult = await this.createFirebaseAuthUser(userData.email, userData.password, userId);
+        console.log('Firebase Auth user created successfully');
+        
+        // If the Firebase Auth UID is different from our generated userId, we need to handle this
+        if (firebaseAuthResult.uid !== userId) {
+          console.log(`Firebase Auth generated different UID: ${firebaseAuthResult.uid}, our ID: ${userId}`);
+          // console.log(`DEBUG: About to update UserWorkspace with role: ${role}`);
+          
+          // Update the Firestore document to use the Firebase Auth UID
+          await deleteDoc(doc(db, 'users', userId));
+          const updatedUser = { ...user, id: firebaseAuthResult.uid };
+          const cleanUpdatedUser = Object.fromEntries(
+            Object.entries(updatedUser).filter(([_, value]) => value !== undefined)
+          );
+          await setDoc(doc(db, 'users', firebaseAuthResult.uid), cleanUpdatedUser);
+          
+          // Update UserWorkspace relationship
+          try {
+            const { WorkspaceService } = await import('./workspace-service');
+            await deleteDoc(doc(db, 'userWorkspaces', `${userId}_${userData.workspaceId}`));
+            await WorkspaceService.addUserToWorkspace(
+              firebaseAuthResult.uid,
+              userData.workspaceId,
+              role,
+              auth.currentUser?.uid || 'system'
+            );
+            console.log(`Updated UserWorkspace relationship with Firebase Auth UID and role: ${role}`);
+          } catch (error) {
+            console.warn('Warning: Could not update UserWorkspace with Firebase Auth UID:', error);
+          }
+          
+          // Update userId for the rest of the function
+          userId = firebaseAuthResult.uid;
+          user.id = firebaseAuthResult.uid;
+        }
+        
+      } catch (error: any) {
+        console.error('Error creating Firebase Auth user:', error);
+        console.log('User document exists in Firestore, but login will fail without Firebase Auth account');
+        // Don't throw error - user creation in Firestore was successful
+        // We'll inform the admin about the issue
+      }
+    }
     
     // Log activity
     try {
@@ -131,7 +242,8 @@ export class UserService {
           email: user.email,
           role: user.role,
           department: user.department,
-          jobTitle: user.jobTitle
+          jobTitle: user.jobTitle,
+          hasPassword: !!userData.password
         },
         user.workspaceId,
         userId
@@ -335,6 +447,35 @@ export class UserService {
   }
 
   /**
+   * Get ALL users in the system (for owners in main workspace)
+   */
+  static async getAllUsers(): Promise<User[]> {
+    try {
+      const usersRef = collection(db, 'users');
+      const querySnapshot = await getDocs(usersRef);
+      
+      const users = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt || new Date(),
+        lastActive: doc.data().lastActive?.toDate?.() || doc.data().lastActive || new Date(),
+      })) as User[];
+      
+      console.log(`UserService: Found ${users.length} users across all workspaces`);
+      
+      // Sort by creation date (newest first)
+      return users.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Update user role (only by admins/owners)
    */
   static async updateUserRole(
@@ -468,6 +609,45 @@ export class UserService {
       console.error('Error sending password reset email:', error);
       throw error;
     }
+  }
+
+  /**
+   * Create Firebase Auth user using REST API (doesn't affect current auth state)
+   * This allows admins to create users with passwords without being signed out
+   */
+  private static async createFirebaseAuthUser(email: string, password: string, userId: string): Promise<{uid: string, email: string}> {
+    // Get Firebase Web API Key from config
+    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    if (!apiKey) {
+      throw new Error('Firebase API key not found');
+    }
+
+    const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+        returnSecureToken: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to create Firebase Auth user: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const result = await response.json();
+    console.log('Firebase Auth user created via REST API:', result.localId);
+
+    return {
+      uid: result.localId,
+      email: result.email
+    };
   }
 }
 

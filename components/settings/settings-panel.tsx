@@ -34,7 +34,8 @@ import {
   UserCheck,
   Info,
   Lock,
-  Edit3
+  Edit3,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -44,7 +45,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
   const { userProfile } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, refreshWorkspaces, refreshCurrentWorkspace } = useWorkspace();
   
   const [notifications, setNotifications] = useState({
     email: true,
@@ -77,6 +78,7 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
     allowGuestAccess: false,
     requireTwoFA: false,
     autoArchive: true,
+    allowAdminWorkspaceCreation: false,
   });
 
   // Load workspace data when component mounts or currentWorkspace changes
@@ -85,6 +87,7 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
       setWorkspaceSettings(prev => ({
         ...prev,
         workspaceName: currentWorkspace.name || 'Workspace',
+        allowAdminWorkspaceCreation: currentWorkspace.settings?.allowAdminWorkspaceCreation || false,
       }));
     }
   }, [currentWorkspace]);
@@ -202,16 +205,27 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
       // Import WorkspaceService dynamically
       const { WorkspaceService } = await import('@/lib/workspace-service');
       
-      // Update workspace in database
+      // Update basic workspace info
       await WorkspaceService.updateWorkspace(currentWorkspace.id, {
         name: workspaceSettings.workspaceName,
-        // Add other workspace settings as needed
       });
+
+      // Update workspace settings separately
+      await WorkspaceService.updateWorkspaceSettings(currentWorkspace.id, {
+        allowAdminWorkspaceCreation: workspaceSettings.allowAdminWorkspaceCreation,
+      });
+
+      // Refresh current workspace data immediately to reflect changes
+      await refreshCurrentWorkspace();
+      
+      // Also refresh the full workspace list
+      await refreshWorkspaces();
 
       toast({
         title: "Success",
         description: "Workspace settings updated successfully!",
       });
+      
     } catch (error) {
       console.error('Error saving workspace settings:', error);
       toast({
@@ -223,7 +237,7 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
   };
 
   return (
-    <div className="space-y-6">;
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Settings
@@ -778,6 +792,33 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
                         onCheckedChange={(checked) => setWorkspaceSettings({...workspaceSettings, autoArchive: checked})}
                       />
                     </div>
+
+                    {/* Owner-only admin workspace creation setting */}
+                    {userRole === 'owner' && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <Label className="text-base">Allow Admin Workspace Creation</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Let admins create new workspaces. Otherwise only owners can create workspaces.
+                            </p>
+                          </div>
+                          <Switch 
+                            checked={workspaceSettings.allowAdminWorkspaceCreation}
+                            onCheckedChange={(checked) => setWorkspaceSettings({...workspaceSettings, allowAdminWorkspaceCreation: checked})}
+                          />
+                        </div>
+                        
+                        {workspaceSettings.allowAdminWorkspaceCreation && (
+                          <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800">
+                            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <AlertDescription className="text-amber-800 dark:text-amber-200">
+                              <strong>Note:</strong> Admins will be able to create new workspaces and automatically become their owners. You can revoke this permission at any time.
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -792,6 +833,47 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
                     </Alert>
                   </>
                 )}
+
+                <Separator />
+
+                {/* Department Management */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Department Management</h3>
+                  
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Manage workspace departments to control access to reports and organize your team structure.
+                    </p>
+                    
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">Create & Manage Departments</p>
+                        <p className="text-sm text-muted-foreground">
+                          Set up departments for better organization and access control
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        className="border-primary text-primary hover:bg-primary hover:text-white"
+                        asChild
+                      >
+                        <Link href="/dashboard/settings?tab=departments">
+                          <Building2 className="h-4 w-4 mr-2" />
+                          Manage Departments
+                        </Link>
+                      </Button>
+                    </div>
+
+                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+                      <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <AlertDescription className="text-blue-800 dark:text-blue-200">
+                        <strong>Department Benefits:</strong> Use departments to control who can access specific report templates, organize users, and manage permissions across your workspace.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                </div>
+
+                <Separator />
 
                 <div className="flex justify-end">
                   <Button 

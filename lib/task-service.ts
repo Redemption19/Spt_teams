@@ -22,14 +22,24 @@ export class TaskService {
   /**
    * Create a new task
    */
-  static async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'attachments'>, createdBy?: string): Promise<string> {
+  static async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'attachments' | 'createdBy' | 'visibility' | 'permissions'>, createdBy?: string): Promise<string> {
     try {
       const tasksRef = collection(db, 'tasks');
       
       const newTask = {
         ...taskData,
-        comments: [],
+        comments: [], // Initialize with empty comments array
         attachments: [],
+        // === DEFAULT RBAC SETTINGS ===
+        createdBy: createdBy || 'system',
+        visibility: 'public' as const, // Default to public visibility
+        permissions: {
+          canView: [], // Empty means only explicit permissions
+          canEdit: [], // Only creator and system admins can edit by default
+          canDelete: [], // Only creator and system admins can delete by default
+          canComment: [], // Anyone who can view can comment by default
+          canAssign: [], // Only project admins can assign by default
+        },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
@@ -49,6 +59,7 @@ export class TaskService {
               assigneeId: taskData.assigneeId,
               priority: taskData.priority,
               status: taskData.status,
+              visibility: 'public',
             },
             taskData.workspaceId,
             createdBy
@@ -350,6 +361,328 @@ export class TaskService {
     } catch (error) {
       console.error('Error searching tasks:', error);
       throw new Error('Failed to search tasks');
+    }
+  }
+
+  // ===============================
+  // TASK RBAC METHODS
+  // ===============================
+
+  /**
+   * Update task visibility
+   */
+  static async updateTaskVisibility(
+    taskId: string, 
+    visibility: 'public' | 'private' | 'assignee-only',
+    updatedBy: string
+  ): Promise<void> {
+    try {
+      const task = await this.getTask(taskId);
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
+      const taskRef = doc(db, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        visibility,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Log activity
+      await ActivityService.logActivity(
+        'task_updated',
+        'task',
+        taskId,
+        {
+          targetName: task.title,
+          projectId: task.projectId,
+          previousVisibility: task.visibility,
+          newVisibility: visibility,
+        },
+        task.workspaceId,
+        updatedBy
+      );
+    } catch (error) {
+      console.error('Error updating task visibility:', error);
+      throw new Error('Failed to update task visibility');
+    }
+  }
+
+  /**
+   * Update task permissions
+   */
+  static async updateTaskPermissions(
+    taskId: string,
+    permissions: Partial<Task['permissions']>,
+    updatedBy: string
+  ): Promise<void> {
+    try {
+      const task = await this.getTask(taskId);
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
+      const updatedPermissions = {
+        ...task.permissions,
+        ...permissions,
+      };
+
+      const taskRef = doc(db, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        permissions: updatedPermissions,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Log activity
+      await ActivityService.logActivity(
+        'task_updated',
+        'task',
+        taskId,
+        {
+          targetName: task.title,
+          projectId: task.projectId,
+          updatedPermissions: Object.keys(permissions),
+        },
+        task.workspaceId,
+        updatedBy
+      );
+    } catch (error) {
+      console.error('Error updating task permissions:', error);
+      throw new Error('Failed to update task permissions');
+    }
+  }
+
+  /**
+   * Get tasks accessible to a specific user within a project
+   */
+  static async getAccessibleTasks(
+    projectId: string, 
+    userId: string, 
+    userRole: string
+  ): Promise<Task[]> {
+    try {
+      const allTasks = await this.getProjectTasks(projectId);
+      
+      return allTasks.filter(task => {
+        // Owner and admin can see all tasks
+        if (userRole === 'owner' || userRole === 'admin') {
+          return true;
+        }
+
+        // Task creator can see their tasks
+        if (task.createdBy === userId) {
+          return true;
+        }
+
+        // Task assignee can see assigned tasks
+        if (task.assigneeId === userId) {
+          return true;
+        }
+
+        // Check task visibility
+        if (task.visibility === 'public') {
+          return true;
+        }
+
+        if (task.visibility === 'assignee-only') {
+          return task.assigneeId === userId || task.createdBy === userId;
+        }
+
+        if (task.visibility === 'private') {
+          return task.permissions?.canView?.includes(userId) || false;
+        }
+
+        return false;
+      });
+    } catch (error) {
+      console.error('Error getting accessible tasks:', error);
+      throw new Error('Failed to get accessible tasks');
+    }
+  }
+
+  /**
+   * Assign task to user (with permission check)
+   */
+  static async assignTask(
+    taskId: string,
+    assigneeId: string,
+    assignedBy: string
+  ): Promise<void> {
+    try {
+      const task = await this.getTask(taskId);
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
+      await this.updateTask(taskId, { assigneeId }, assignedBy);
+
+      // Log activity specifically for assignment
+      await ActivityService.logActivity(
+        'task_assigned',
+        'task',
+        taskId,
+        {
+          targetName: task.title,
+          projectId: task.projectId,
+          assigneeId,
+          previousAssignee: task.assigneeId,
+        },
+        task.workspaceId,
+        assignedBy
+      );
+    } catch (error) {
+      console.error('Error assigning task:', error);
+      throw new Error('Failed to assign task');
+    }
+  }
+
+  /**
+   * Get user's assigned tasks
+   */
+  static async getUserAssignedTasks(userId: string, workspaceId?: string): Promise<Task[]> {
+    try {
+      const tasksRef = collection(db, 'tasks');
+      let q = query(tasksRef, where('assigneeId', '==', userId));
+      
+      if (workspaceId) {
+        q = query(tasksRef, 
+          where('assigneeId', '==', userId),
+          where('workspaceId', '==', workspaceId)
+        );
+      }
+      
+      const querySnapshot = await getDocs(q);
+      const tasks: Task[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        tasks.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          dueDate: data.dueDate?.toDate(),
+          comments: data.comments || [],
+          attachments: data.attachments || [],
+          tags: data.tags || [],
+        } as Task);
+      });
+
+      return tasks;
+    } catch (error) {
+      console.error('Error getting user assigned tasks:', error);
+      throw new Error('Failed to get user assigned tasks');
+    }
+  }
+
+  /**
+   * Get tasks created by user
+   */
+  static async getUserCreatedTasks(userId: string, workspaceId?: string): Promise<Task[]> {
+    try {
+      const tasksRef = collection(db, 'tasks');
+      let q = query(tasksRef, where('createdBy', '==', userId));
+      
+      if (workspaceId) {
+        q = query(tasksRef, 
+          where('createdBy', '==', userId),
+          where('workspaceId', '==', workspaceId)
+        );
+      }
+      
+      const querySnapshot = await getDocs(q);
+      const tasks: Task[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        tasks.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          dueDate: data.dueDate?.toDate(),
+          comments: data.comments || [],
+          attachments: data.attachments || [],
+          tags: data.tags || [],
+        } as Task);
+      });
+
+      return tasks;
+    } catch (error) {
+      console.error('Error getting user created tasks:', error);
+      throw new Error('Failed to get user created tasks');
+    }
+  }
+
+  /**
+   * Bulk update task status (for bulk operations)
+   */
+  static async bulkUpdateTaskStatus(
+    taskIds: string[],
+    newStatus: Task['status'],
+    updatedBy: string
+  ): Promise<void> {
+    try {
+      const batch = writeBatch(db);
+
+      for (const taskId of taskIds) {
+        const taskRef = doc(db, 'tasks', taskId);
+        batch.update(taskRef, {
+          status: newStatus,
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+
+      // Log bulk activity
+      await ActivityService.logActivity(
+        'task_updated',
+        'task',
+        taskIds.join(','),
+        {
+          taskCount: taskIds.length,
+          newStatus,
+          action: 'bulk_status_update',
+        },
+        '', // We don't have workspace ID here, could be improved
+        updatedBy
+      );
+    } catch (error) {
+      console.error('Error bulk updating task status:', error);
+      throw new Error('Failed to bulk update task status');
+    }
+  }
+
+  /**
+   * Bulk delete tasks (for bulk operations)
+   */
+  static async bulkDeleteTasks(taskIds: string[], deletedBy: string): Promise<void> {
+    try {
+      const batch = writeBatch(db);
+
+      for (const taskId of taskIds) {
+        const taskRef = doc(db, 'tasks', taskId);
+        batch.delete(taskRef);
+      }
+
+      await batch.commit();
+
+      // Log bulk activity
+      await ActivityService.logActivity(
+        'task_updated',
+        'task',
+        taskIds.join(','),
+        {
+          taskCount: taskIds.length,
+          action: 'bulk_delete',
+        },
+        '', // We don't have workspace ID here, could be improved
+        deletedBy
+      );
+    } catch (error) {
+      console.error('Error bulk deleting tasks:', error);
+      throw new Error('Failed to bulk delete tasks');
     }
   }
 } 

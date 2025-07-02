@@ -21,18 +21,25 @@ import {
   BarChart3,
   Crown,
   UserCheck,
-  User
+  User,
+  Building2,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
+import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
 import { UserService } from '@/lib/user-service';
 import { TeamService } from '@/lib/team-service';
+import { TaskService } from '@/lib/task-service';
+import { WorkspaceService } from '@/lib/workspace-service';
 
 interface DashboardStats {
   totalTasks: number;
   completedTasks: number;
   pendingReports: number;
   activeTeams: number;
+  allWorkspacesTeams?: number; // For Owner only
+  allWorkspacesTasks?: number; // For Owner only
   recentActivity: Array<{
     id: string;
     type: 'task' | 'report' | 'file' | 'user';
@@ -53,6 +60,8 @@ export function DashboardOverview() {
   const router = useRouter();
   const { user, userProfile } = useAuth();
   const { currentWorkspace, userRole } = useWorkspace();
+  const permissions = useRolePermissions();
+  const isOwner = useIsOwner();
   const [stats, setStats] = useState<DashboardStats>({
     totalTasks: 0,
     completedTasks: 0,
@@ -62,13 +71,20 @@ export function DashboardOverview() {
     upcomingDeadlines: []
   });
   const [userTeams, setUserTeams] = useState<any[]>([]);
+  const [allWorkspacesData, setAllWorkspacesData] = useState<{
+    workspaces: any[];
+    totalUsers: number;
+  }>({
+    workspaces: [],
+    totalUsers: 0
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (currentWorkspace && user) {
       loadDashboardData();
     }
-  }, [currentWorkspace, user]);
+  }, [currentWorkspace, user, userRole]);
 
   const loadDashboardData = async () => {
     if (!currentWorkspace || !user) return;
@@ -76,96 +92,14 @@ export function DashboardOverview() {
     try {
       setLoading(true);
 
-      // Load user's teams with their roles
-      const userTeamsData = await TeamService.getUserTeams(user.uid, currentWorkspace.id);
-      
-      // Transform the data to include member count and other info
-      const teamsWithDetails = await Promise.all(
-        userTeamsData.map(async ({ team, role }) => {
-          try {
-            // Get team members count (this would require a method to get team members)
-            // For now, we'll use a placeholder
-            return {
-              id: team.id,
-              name: team.name,
-              description: team.description,
-              memberCount: 0, // TODO: Implement team member count
-              role: role,
-              branchId: team.branchId,
-              regionId: team.regionId,
-              leadId: team.leadId,
-              createdAt: team.createdAt
-            };
-          } catch (error) {
-            console.warn('Error getting team details:', error);
-            return {
-              id: team.id,
-              name: team.name,
-              description: team.description,
-              memberCount: 0,
-              role: role,
-              branchId: team.branchId,
-              regionId: team.regionId,
-              leadId: team.leadId,
-              createdAt: team.createdAt
-            };
-          }
-        })
-      );
-
-      setUserTeams(teamsWithDetails);
-
-      // Update stats with actual data
-      setStats({
-        totalTasks: 12, // TODO: Implement actual task counting
-        completedTasks: 8, // TODO: Implement actual completed task counting
-        pendingReports: 3, // TODO: Implement actual report counting
-        activeTeams: teamsWithDetails.length, // Now using actual team count
-        recentActivity: [
-          {
-            id: '1',
-            type: 'task',
-            message: 'Task "Weekly Report" was completed',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-            user: 'John Doe'
-          },
-          {
-            id: '2',
-            type: 'file',
-            message: 'New document uploaded to Marketing folder',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-            user: 'Sarah Wilson'
-          },
-          {
-            id: '3',
-            type: 'user',
-            message: 'Mike Chen joined the Development team',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-          },
-        ],
-        upcomingDeadlines: [
-          {
-            id: '1',
-            title: 'Monthly Sales Report',
-            type: 'report',
-            dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2), // 2 days from now
-            priority: 'high'
-          },
-          {
-            id: '2',
-            title: 'Project Review Meeting Prep',
-            type: 'task',
-            dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5), // 5 days from now
-            priority: 'medium'
-          },
-        ]
-      });
-
-      console.log('Dashboard data loaded:', {
-        userTeams: teamsWithDetails.length,
-        currentUser: user.uid,
-        currentWorkspace: currentWorkspace.id
-      });
+      // Load role-specific data
+      if (userRole === 'owner') {
+        await loadOwnerDashboardData();
+      } else if (userRole === 'admin') {
+        await loadAdminDashboardData();
+      } else {
+        await loadMemberDashboardData();
+      }
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -178,6 +112,287 @@ export function DashboardOverview() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadOwnerDashboardData = async () => {
+    if (!user || !currentWorkspace) return;
+
+    // TypeScript assertion - we know currentWorkspace is not null here
+    const workspace = currentWorkspace!;
+
+    try {
+      // Load all accessible workspaces for owner
+      const { mainWorkspaces, subWorkspaces, userRoles } = await WorkspaceService.getUserAccessibleWorkspaces(user.uid);
+      
+      // Calculate total workspaces
+      const allWorkspaces = [
+        ...mainWorkspaces,
+        ...Object.values(subWorkspaces).flat()
+      ];
+
+      console.log('🏢 Owner Dashboard - Workspaces found:', {
+        mainWorkspaces: mainWorkspaces.length,
+        subWorkspaces: Object.keys(subWorkspaces).length,
+        totalWorkspaces: allWorkspaces.length,
+        workspaceNames: allWorkspaces.map(w => ({ name: w.name, type: w.workspaceType, id: w.id }))
+      });
+
+      // Load teams across all workspaces
+      let allTeams: any[] = [];
+      let allTasks: any[] = [];
+      let allUsers: any[] = [];
+
+      for (const workspace of allWorkspaces) {
+        try {
+          const [workspaceTeams, workspaceTasks, workspaceUsers] = await Promise.all([
+            TeamService.getWorkspaceTeams(workspace.id),
+            TaskService.getWorkspaceTasks(workspace.id),
+            WorkspaceService.getWorkspaceUsers(workspace.id)
+          ]);
+
+          console.log(`📊 Data for workspace "${workspace.name}":`, {
+            teams: workspaceTeams.length,
+            tasks: workspaceTasks.length,
+            users: workspaceUsers.length
+          });
+
+          // Add teams with workspace context
+          workspaceTeams.forEach(team => {
+            allTeams.push({
+              ...team,
+              workspaceId: workspace.id,
+              workspaceName: workspace.name,
+              workspaceType: workspace.workspaceType
+            });
+          });
+
+          // Add tasks with workspace context
+          workspaceTasks.forEach(task => {
+            allTasks.push({
+              ...task,
+              workspaceId: workspace.id,
+              workspaceName: workspace.name
+            });
+          });
+
+          // Add users
+          allUsers.push(...workspaceUsers.map(wu => ({
+            ...wu.user,
+            workspaceId: workspace.id,
+            workspaceName: workspace.name,
+            role: wu.role
+          })));
+        } catch (error) {
+          console.warn(`❌ Error loading data for workspace ${workspace.name}:`, error);
+        }
+      }
+
+      // Remove duplicate teams (same team ID)
+      const uniqueTeams = allTeams.filter((team, index, self) => 
+        index === self.findIndex((t) => t.id === team.id)
+      );
+
+      // Remove duplicate tasks (same task ID)
+      const uniqueTasks = allTasks.filter((task, index, self) => 
+        index === self.findIndex((t) => t.id === task.id)
+      );
+
+      // Remove duplicate users (same user ID)
+      const uniqueUsers = allUsers.filter((user, index, self) => 
+        index === self.findIndex((u) => u.id === user.id)
+      );
+
+      console.log('✅ After deduplication:', {
+        totalTeams: allTeams.length,
+        uniqueTeams: uniqueTeams.length,
+        totalTasks: allTasks.length,
+        uniqueTasks: uniqueTasks.length,
+        totalUsers: allUsers.length,
+        uniqueUsers: uniqueUsers.length,
+        teamDetails: uniqueTeams.map(t => ({ name: t.name, workspace: t.workspaceName, id: t.id }))
+      });
+
+      // Load current workspace teams for "My Teams" section
+      const currentWorkspaceTeams = await TeamService.getUserTeams(user.uid, currentWorkspace!.id);
+      const teamsWithDetails = currentWorkspaceTeams.map(({ team, role }) => ({
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        memberCount: 0,
+        role: role,
+        branchId: team.branchId,
+        regionId: team.regionId,
+        leadId: team.leadId,
+        createdAt: team.createdAt
+      }));
+
+      setUserTeams(teamsWithDetails);
+      setAllWorkspacesData({
+        workspaces: allWorkspaces,
+        totalUsers: uniqueUsers.length
+      });
+
+      // Calculate completed tasks
+      const completedTasks = uniqueTasks.filter(task => task.status === 'completed').length;
+
+      setStats({
+        totalTasks: uniqueTasks.length,
+        completedTasks: completedTasks,
+        allWorkspacesTasks: uniqueTasks.length,
+        allWorkspacesTeams: uniqueTeams.length, // Use deduplicated count
+        activeTeams: teamsWithDetails.length,
+        pendingReports: 3, // Placeholder
+        recentActivity: generateRecentActivity(uniqueTasks.slice(0, 3)),
+        upcomingDeadlines: generateUpcomingDeadlines(uniqueTasks.filter(t => t.dueDate))
+      });
+
+    } catch (error) {
+      console.error('❌ Error loading owner dashboard data:', error);
+    }
+  };
+
+  const loadAdminDashboardData = async () => {
+    if (!user || !currentWorkspace) return;
+
+    try {
+      // Load current workspace data
+      const [workspaceTeams, workspaceTasks, workspaceUsers] = await Promise.all([
+        TeamService.getWorkspaceTeams(currentWorkspace.id),
+        TaskService.getWorkspaceTasks(currentWorkspace.id),
+        WorkspaceService.getWorkspaceUsers(currentWorkspace.id)
+      ]);
+
+      // Load user's teams
+      const userTeamsData = await TeamService.getUserTeams(user.uid, currentWorkspace!.id);
+      const teamsWithDetails = userTeamsData.map(({ team, role }) => ({
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        memberCount: 0,
+        role: role,
+        branchId: team.branchId,
+        regionId: team.regionId,
+        leadId: team.leadId,
+        createdAt: team.createdAt
+      }));
+
+      setUserTeams(teamsWithDetails);
+
+      // Filter tasks that members are doing (exclude admin's own tasks for this specific view)
+      const memberTasks = workspaceTasks.filter(task => {
+        const taskOwner = workspaceUsers.find(wu => wu.user.id === task.assigneeId || wu.user.id === task.createdBy);
+        return taskOwner && taskOwner.role === 'member';
+      });
+
+      const completedMemberTasks = memberTasks.filter(task => task.status === 'completed').length;
+
+      setStats({
+        totalTasks: memberTasks.length,
+        completedTasks: completedMemberTasks,
+        activeTeams: teamsWithDetails.length,
+        pendingReports: 2, // Placeholder
+        recentActivity: generateRecentActivity(workspaceTasks.slice(0, 3)),
+        upcomingDeadlines: generateUpcomingDeadlines(workspaceTasks.filter(t => t.dueDate))
+      });
+
+    } catch (error) {
+      console.error('Error loading admin dashboard data:', error);
+    }
+  };
+
+  const loadMemberDashboardData = async () => {
+    if (!user || !currentWorkspace) return;
+
+    try {
+      // Load user's assigned tasks and created tasks
+      const [userAssignedTasks, userCreatedTasks, userTeamsData] = await Promise.all([
+        TaskService.getUserAssignedTasks(user.uid, currentWorkspace.id),
+        TaskService.getUserCreatedTasks(user.uid, currentWorkspace.id),
+        TeamService.getUserTeams(user.uid, currentWorkspace.id)
+      ]);
+
+      // Combine assigned and created tasks (remove duplicates)
+      const allUserTasks = [...userAssignedTasks];
+      userCreatedTasks.forEach(task => {
+        if (!allUserTasks.find(t => t.id === task.id)) {
+          allUserTasks.push(task);
+        }
+      });
+
+      // Load team tasks for teams user belongs to
+      let teamTasks: any[] = [];
+      for (const { team } of userTeamsData) {
+        try {
+          const allWorkspaceTasks = await TaskService.getWorkspaceTasks(currentWorkspace.id);
+          const currentTeamTasks = allWorkspaceTasks.filter(task => {
+            // Tasks where team members are involved or tasks in projects related to this team
+            return task.assigneeId && userTeamsData.some(ut => 
+              ut.team.id === team.id
+            );
+          });
+          teamTasks.push(...currentTeamTasks);
+        } catch (error) {
+          console.warn(`Error loading tasks for team ${team.name}:`, error);
+        }
+      }
+
+      // Remove duplicate team tasks
+      teamTasks = teamTasks.filter((task, index, self) => 
+        index === self.findIndex((t) => t.id === task.id)
+      );
+
+      const teamsWithDetails = userTeamsData.map(({ team, role }) => ({
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        memberCount: 0,
+        role: role,
+        branchId: team.branchId,
+        regionId: team.regionId,
+        leadId: team.leadId,
+        createdAt: team.createdAt
+      }));
+
+      setUserTeams(teamsWithDetails);
+
+      const completedTasks = allUserTasks.filter(task => task.status === 'completed').length;
+
+      setStats({
+        totalTasks: allUserTasks.length,
+        completedTasks: completedTasks,
+        activeTeams: teamsWithDetails.length,
+        pendingReports: 1, // Placeholder
+        recentActivity: generateRecentActivity([...allUserTasks, ...teamTasks].slice(0, 3)),
+        upcomingDeadlines: generateUpcomingDeadlines(allUserTasks.filter(t => t.dueDate))
+      });
+
+    } catch (error) {
+      console.error('Error loading member dashboard data:', error);
+    }
+  };
+
+  const generateRecentActivity = (tasks: any[]) => {
+    return tasks.map((task, index) => ({
+      id: task.id || `activity-${index}`,
+      type: 'task' as const,
+      message: `Task "${task.title}" was ${task.status === 'completed' ? 'completed' : 'updated'}`,
+      timestamp: new Date(Date.now() - (index + 1) * 1000 * 60 * 30),
+      user: task.assigneeName || 'Unknown User'
+    }));
+  };
+
+  const generateUpcomingDeadlines = (tasksWithDueDate: any[]) => {
+    return tasksWithDueDate
+      .filter(task => task.dueDate > new Date())
+      .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+      .slice(0, 3)
+      .map(task => ({
+        id: task.id,
+        title: task.title,
+        type: 'task' as const,
+        dueDate: task.dueDate,
+        priority: task.priority || 'medium'
+      }));
   };
 
   const getGreeting = () => {
@@ -207,12 +422,23 @@ export function DashboardOverview() {
 
   const completionPercentage = stats.totalTasks > 0 ? (stats.completedTasks / stats.totalTasks) * 100 : 0;
 
+  const getTaskProgressLabel = () => {
+    if (userRole === 'owner') return 'Tasks Progress (All Tasks)';
+    if (userRole === 'admin') return 'Tasks Progress (Member Tasks)';
+    return 'Tasks Progress (My Tasks)';
+  };
+
+  const getTeamsLabel = () => {
+    if (userRole === 'owner') return 'Teams you\'re part of';
+    return 'Teams you\'re part of';
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {getGreeting()}, {userProfile?.name || 'there'}!
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -236,7 +462,7 @@ export function DashboardOverview() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button onClick={() => router.push('/dashboard/calendar')}>
+          <Button onClick={() => router.push('/dashboard/calendar')} className="w-full sm:w-auto">
             <Calendar className="h-4 w-4 mr-2" />
             View Calendar
           </Button>
@@ -244,10 +470,10 @@ export function DashboardOverview() {
       </div>
 
       {/* Quick Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasks Progress</CardTitle>
+            <CardTitle className="text-sm font-medium">{getTaskProgressLabel()}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -259,7 +485,7 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Reports</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -272,7 +498,7 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Teams</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -285,16 +511,16 @@ export function DashboardOverview() {
               </div>
             ) : (
               <>
-            <div className="text-2xl font-bold">{stats.activeTeams}</div>
-            <p className="text-xs text-muted-foreground">
-              Teams you&apos;re part of
-            </p>
+                <div className="text-2xl font-bold">{stats.activeTeams}</div>
+                <p className="text-xs text-muted-foreground">
+                  {getTeamsLabel()}
+                </p>
               </>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Activity Score</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -307,6 +533,56 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Owner-specific stats */}
+      {userRole === 'owner' && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card className="card-interactive border-l-4 border-l-yellow-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center">
+                <Globe className="h-4 w-4 mr-2 text-yellow-600" />
+                All Workspaces
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{allWorkspacesData.workspaces.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Main & Sub workspaces
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="card-interactive border-l-4 border-l-blue-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center">
+                <Users className="h-4 w-4 mr-2 text-blue-600" />
+                All Teams Across Workspaces
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.allWorkspacesTeams || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                Total teams managed
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="card-interactive border-l-4 border-l-green-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center">
+                <Target className="h-4 w-4 mr-2 text-green-600" />
+                Total System Users
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{allWorkspacesData.totalUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Across all workspaces
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* My Teams */}

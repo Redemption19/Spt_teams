@@ -11,7 +11,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Team, TeamUser } from './types';
+import { Team, TeamUser, SystemWideTeam } from './types';
 import { sortByDateDesc } from './firestore-utils';
 import { BranchService } from './branch-service';
 import { WorkspaceService } from './workspace-service';
@@ -20,13 +20,82 @@ import { auth } from './firebase';
 
 export class TeamService {
     /**
-   * Create a new team
+   * Check if user can create teams in workspace
+   * Admin: Can create teams only under the sub-workspace they're under
+   * Owner: Can create teams for both main workspace and sub-workspaces
+   */
+  static async canCreateTeamInWorkspace(userId: string, workspaceId: string): Promise<boolean> {
+    try {
+      const userRole = await WorkspaceService.getUserRole(userId, workspaceId);
+      
+      // Owner can create teams in any workspace
+      if (userRole === 'owner') {
+        return true;
+      }
+      
+      // Admin can create teams only in their assigned workspace
+      if (userRole === 'admin') {
+        return true; // Admin is already restricted to their workspace context
+      }
+      
+      // Members cannot create teams
+      return false;
+    } catch (error) {
+      console.error('Error checking team creation permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user can manage team members
+   */
+  static async canManageTeamMembers(userId: string, workspaceId: string): Promise<boolean> {
+    try {
+      const userRole = await WorkspaceService.getUserRole(userId, workspaceId);
+      return userRole === 'owner' || userRole === 'admin';
+    } catch (error) {
+      console.error('Error checking team member management permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user can edit a specific team
+   */
+  static async canEditTeam(userId: string, team: Team): Promise<boolean> {
+    try {
+      const userRole = await WorkspaceService.getUserRole(userId, team.workspaceId);
+      
+      // Owner can edit any team
+      if (userRole === 'owner') return true;
+      
+      // Admin can edit teams in their workspace
+      if (userRole === 'admin') return true;
+      
+      // Team lead can edit their team
+      if (team.leadId === userId) return true;
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking team edit permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Create a new team with permission checking
    */
   static async createTeam(
     teamData: Omit<Team, 'id' | 'createdAt' | 'updatedAt'>,
     createdBy: string
   ): Promise<string> {
     try {
+      // Check permission before creating team
+      const canCreate = await this.canCreateTeamInWorkspace(createdBy, teamData.workspaceId);
+      if (!canCreate) {
+        throw new Error('Insufficient permissions to create team in this workspace');
+      }
+
       const teamRef = doc(collection(db, 'teams'));
       const teamId = teamRef.id;
       
@@ -50,7 +119,8 @@ export class TeamService {
             targetName: team.name,
             description: team.description,
             branchId: team.branchId,
-            regionId: team.regionId
+            regionId: team.regionId,
+            leadId: team.leadId
           },
           team.workspaceId,
           createdBy
@@ -119,6 +189,30 @@ export class TeamService {
       throw error;
     }
   }
+
+  /**
+   * Get teams accessible to a user based on their role
+   * Admin/Owner: See all teams in workspace
+   * Member: See only teams they belong to
+   */
+  static async getAccessibleTeams(userId: string, workspaceId: string): Promise<Team[]> {
+    try {
+      const userRole = await WorkspaceService.getUserRole(userId, workspaceId);
+      
+      // Owner and admin can see all teams
+      if (userRole === 'owner' || userRole === 'admin') {
+        return await this.getWorkspaceTeams(workspaceId);
+      }
+      
+      // Members can only see teams they belong to
+      const userTeams = await this.getUserTeams(userId, workspaceId);
+      return userTeams.map(ut => ut.team);
+    } catch (error) {
+      console.error('Error fetching accessible teams:', error);
+      throw error;
+    }
+  }
+
   /**
    * Update team
    */
@@ -207,6 +301,20 @@ export class TeamService {
     assignedBy?: string
   ): Promise<void> {
     try {
+      // Get team to check workspace permissions
+      const team = await this.getTeam(teamId);
+      if (!team) {
+        throw new Error('Team not found');
+      }
+
+      // Check permission if assignedBy is provided (for admin/owner assignments)
+      if (assignedBy && assignedBy !== userId) {
+        const canManage = await this.canManageTeamMembers(assignedBy, team.workspaceId);
+        if (!canManage) {
+          throw new Error('Insufficient permissions to add users to team');
+        }
+      }
+
       const teamUserRef = doc(db, 'teamUsers', `${userId}_${teamId}`);
       const teamUser: TeamUser = {
         id: `${userId}_${teamId}`,
@@ -219,9 +327,16 @@ export class TeamService {
       
       await setDoc(teamUserRef, teamUser);
       
+      // If setting as lead, also update the team's leadId
+      if (role === 'lead') {
+        await updateDoc(doc(db, 'teams', teamId), {
+          leadId: userId,
+          updatedAt: new Date(),
+        });
+      }
+      
       // Log activity
       try {
-        const team = await this.getTeam(teamId);
         await ActivityService.logActivity(
           'team_member_added',
           'team',
@@ -433,6 +548,266 @@ export class TeamService {
     } catch (error) {
       console.error('Error fetching user team role:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Assign team lead with permission checking
+   */
+  static async assignTeamLead(teamId: string, leadId: string, assignedBy: string): Promise<void> {
+    try {
+      const team = await this.getTeam(teamId);
+      if (!team) {
+        throw new Error('Team not found');
+      }
+
+      // Check permission
+      const canAssign = await this.canManageTeamMembers(assignedBy, team.workspaceId);
+      if (!canAssign) {
+        throw new Error('Insufficient permissions to assign team lead');
+      }
+
+      // Update team with new lead
+      await updateDoc(doc(db, 'teams', teamId), {
+        leadId: leadId,
+        updatedAt: new Date(),
+      });
+
+      // Add user to team as lead if not already a member
+      const existingRole = await this.getUserTeamRole(leadId, teamId);
+      if (!existingRole) {
+        await this.addUserToTeam(leadId, teamId, 'lead', assignedBy);
+      } else {
+        // Update existing member role to lead
+        await this.updateTeamUserRole(leadId, teamId, 'lead', assignedBy);
+      }
+
+      // Log activity
+      try {
+        await ActivityService.logActivity(
+          'team_lead_assigned',
+          'team',
+          teamId,
+          { 
+            targetName: team.name,
+            leadId: leadId,
+            assignedBy: assignedBy
+          },
+          team.workspaceId,
+          assignedBy
+        );
+      } catch (error) {
+        console.warn('Warning: Could not log team lead assignment activity:', error);
+      }
+    } catch (error) {
+      console.error('Error assigning team lead:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove team lead
+   */
+  static async removeTeamLead(teamId: string, removedBy: string): Promise<void> {
+    try {
+      const team = await this.getTeam(teamId);
+      if (!team) {
+        throw new Error('Team not found');
+      }
+
+      // Check permission
+      const canRemove = await this.canManageTeamMembers(removedBy, team.workspaceId);
+      if (!canRemove) {
+        throw new Error('Insufficient permissions to remove team lead');
+      }
+
+      const oldLeadId = team.leadId;
+
+      // Update team to remove lead
+      await updateDoc(doc(db, 'teams', teamId), {
+        leadId: null,
+        updatedAt: new Date(),
+      });
+
+      // Update team user role to member if they're still in the team
+      if (oldLeadId) {
+        const existingRole = await this.getUserTeamRole(oldLeadId, teamId);
+        if (existingRole) {
+          await this.updateTeamUserRole(oldLeadId, teamId, 'member', removedBy);
+        }
+      }
+
+      // Log activity
+      try {
+        await ActivityService.logActivity(
+          'team_lead_removed',
+          'team',
+          teamId,
+          { 
+            targetName: team.name,
+            previousLeadId: oldLeadId,
+            removedBy: removedBy
+          },
+          team.workspaceId,
+          removedBy
+        );
+      } catch (error) {
+        console.warn('Warning: Could not log team lead removal activity:', error);
+      }
+    } catch (error) {
+      console.error('Error removing team lead:', error);
+      throw error;
+    }
+  }
+
+  // ===============================
+  // SYSTEM-WIDE FUNCTIONALITY
+  // ===============================
+
+  /**
+   * Get teams across all accessible workspaces for system-wide view
+   * Only available to main workspace owners
+   */
+  static async getSystemWideTeams(userId: string): Promise<{teams: SystemWideTeam[], workspaces: any[]}> {
+    try {
+      // Get all accessible workspaces for the user
+      const workspaceData = await WorkspaceService.getUserAccessibleWorkspaces(userId);
+      
+      // Extract all workspaces from the structure
+      const allWorkspaces = [
+        ...workspaceData.mainWorkspaces,
+        ...Object.values(workspaceData.subWorkspaces).flat()
+      ];
+      
+      // Check if user is owner of a main workspace
+      const mainWorkspace = workspaceData.mainWorkspaces.find(w => workspaceData.userRoles[w.id] === 'owner');
+      if (!mainWorkspace) {
+        throw new Error('System-wide access requires main workspace owner role');
+      }
+
+      const allTeams: SystemWideTeam[] = [];
+      const seenTeamIds = new Set<string>();
+      
+      // Load teams from all workspaces with deduplication
+      for (const workspace of allWorkspaces) {
+        try {
+          const workspaceTeams = await this.getWorkspaceTeams(workspace.id);
+          // Add workspace info to each team for context and deduplicate
+          for (const team of workspaceTeams) {
+            if (!seenTeamIds.has(team.id)) {
+              seenTeamIds.add(team.id);
+              const systemWideTeam: SystemWideTeam = {
+                ...team,
+                workspaceName: workspace.name,
+                workspaceType: workspace.parentWorkspaceId ? 'sub' : 'main'
+              };
+              allTeams.push(systemWideTeam);
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to load teams from workspace ${workspace.name}:`, error);
+        }
+      }
+
+      return {
+        teams: sortByDateDesc(allTeams, 'createdAt'),
+        workspaces: allWorkspaces
+      };
+    } catch (error) {
+      console.error('Error fetching system-wide teams:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get teams with proper role-based visibility
+   * Uses getAccessibleTeams for members, getWorkspaceTeams for admin/owners
+   */
+  static async getTeamsWithRoleBasedVisibility(userId: string, workspaceId: string): Promise<Team[]> {
+    try {
+      const userRole = await WorkspaceService.getUserRole(userId, workspaceId);
+      
+      // Admin/Owner: See all teams in workspace
+      if (userRole === 'owner' || userRole === 'admin') {
+        return await this.getWorkspaceTeams(workspaceId);
+      }
+      
+      // Members: Only see teams they belong to
+      return await this.getAccessibleTeams(userId, workspaceId);
+    } catch (error) {
+      console.error('Error fetching teams with role-based visibility:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get team members with user details for member management
+   */
+  static async getTeamMembersWithDetails(teamId: string): Promise<any[]> {
+    try {
+      const teamMembers = await this.getTeamMembers(teamId);
+      const membersWithDetails = [];
+
+      for (const member of teamMembers) {
+        try {
+          const userRef = doc(db, 'users', member.userId);
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            membersWithDetails.push({
+              ...member,
+              user: {
+                id: member.userId,
+                name: userData.name || 'Unknown User',
+                email: userData.email || '',
+                photoURL: userData.photoURL || null
+              }
+            });
+          }
+        } catch (error) {
+          console.warn(`Failed to load user details for ${member.userId}:`, error);
+          // Add member without user details
+          membersWithDetails.push({
+            ...member,
+            user: {
+              id: member.userId,
+              name: 'Unknown User',
+              email: '',
+              photoURL: null
+            }
+          });
+        }
+      }
+
+      return membersWithDetails;
+    } catch (error) {
+      console.error('Error fetching team members with details:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if user can manage a specific team's members
+   */
+  static async canManageSpecificTeam(userId: string, team: Team): Promise<boolean> {
+    try {
+      const userRole = await WorkspaceService.getUserRole(userId, team.workspaceId);
+      
+      // Owner and admin can manage any team
+      if (userRole === 'owner' || userRole === 'admin') {
+        return true;
+      }
+      
+      // Team lead can manage their team
+      if (team.leadId === userId) {
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking team management permission:', error);
+      return false;
     }
   }
 }

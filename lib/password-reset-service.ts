@@ -1,15 +1,31 @@
 import { 
   collection, 
   doc, 
+  getDoc,
+  setDoc,
+  updateDoc,
   deleteDoc,
   query,
   where,
-  getDocs
+  getDocs,
+  Timestamp
 } from 'firebase/firestore';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { db, auth } from './firebase';
 import { EmailService } from './email-service';
 import { UserService } from './user-service';
+
+// Type definition for password reset tokens
+interface PasswordResetToken {
+  id: string;
+  userId: string;
+  email: string;
+  token: string;
+  expiresAt: Timestamp;
+  used: boolean;
+  usedAt?: Timestamp;
+  createdAt: Timestamp;
+}
 
 export class PasswordResetService {
 

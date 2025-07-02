@@ -13,12 +13,15 @@ import {
 import { auth } from './firebase';
 import { User } from './types';
 import { EmailService } from './email-service';
+import { PasswordChangeModal } from '../components/auth/password-change-modal';
+
 
 interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: User | null;
   loading: boolean;
   isNewUser: boolean;
+  requiresPasswordChange: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData: {
     name: string;
@@ -34,6 +37,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   clearNewUserFlag: () => void;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
   // Initialize EmailJS on client side
   useEffect(() => {
@@ -60,6 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (profile) {
             setUserProfile(profile);
+            // Check if user requires password change
+            setRequiresPasswordChange(!!profile.requiresPasswordChange);
           } else {
             // Fallback to mock profile if not found in Firestore
             const mockProfile: User = {
@@ -75,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               lastActive: new Date(),
             };
             setUserProfile(mockProfile);
+            setRequiresPasswordChange(false);
           }
         } catch (error) {
           console.error('Error loading user profile:', error);
@@ -92,9 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             lastActive: new Date(),
           };
           setUserProfile(mockProfile);
+          setRequiresPasswordChange(false);
         }
       } else {
         setUserProfile(null);
+        setRequiresPasswordChange(false);
       }
       setLoading(false);
     });
@@ -234,19 +244,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsNewUser(false);
   };
 
+  const refreshUserProfile = async () => {
+    if (user) {
+      try {
+        const { UserService } = await import('./user-service');
+        const profile = await UserService.getUserById(user.uid);
+        
+        if (profile) {
+          setUserProfile(profile);
+          setRequiresPasswordChange(!!profile.requiresPasswordChange);
+        }
+      } catch (error) {
+        console.error('Error refreshing user profile:', error);
+      }
+    }
+  };
+
+  const handlePasswordChanged = () => {
+    setRequiresPasswordChange(false);
+    // Refresh the user profile to get updated data
+    refreshUserProfile();
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       userProfile,
       loading,
       isNewUser,
+      requiresPasswordChange,
       signIn,
       signUp,
       signInWithGoogle,
       logout,
-      clearNewUserFlag
+      clearNewUserFlag,
+      refreshUserProfile
     }}>
       {children}
+      {/* Password Change Modal */}
+      {user && userProfile && requiresPasswordChange && (
+        <PasswordChangeModal
+          isOpen={requiresPasswordChange}
+          userEmail={user.email || ''}
+          userId={user.uid}
+          onPasswordChanged={handlePasswordChanged}
+        />
+      )}
     </AuthContext.Provider>
   );
 }
