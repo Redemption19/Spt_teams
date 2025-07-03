@@ -18,9 +18,15 @@ import { DashboardSummaryData } from '@/lib/types';
 
 interface SummaryCardsProps {
   data?: DashboardSummaryData;
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
-export function SummaryCards({ data }: SummaryCardsProps) {
+export function SummaryCards({ 
+  data, 
+  showAllWorkspaces, 
+  workspaceCount 
+}: SummaryCardsProps) {
   if (!data) {
     return (
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">

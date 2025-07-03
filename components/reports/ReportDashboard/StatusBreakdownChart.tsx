@@ -9,6 +9,8 @@ import { PieChart as PieChartIcon, Activity } from 'lucide-react';
 
 interface StatusBreakdownChartProps {
   data: StatusBreakdownData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {
@@ -127,4 +129,4 @@ export function StatusBreakdownChart({ data }: StatusBreakdownChartProps) {
       </CardContent>
     </Card>
   );
-} 
+}

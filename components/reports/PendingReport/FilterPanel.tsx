@@ -15,6 +15,8 @@ interface FilterPanelProps {
   templates: ReportTemplate[];
   departments: any[];
   resultsCount: number;
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 export function FilterPanel({
@@ -24,6 +26,8 @@ export function FilterPanel({
   templates,
   departments,
   resultsCount,
+  showAllWorkspaces,
+  workspaceCount,
 }: FilterPanelProps) {
   const hasActiveFilters = Object.values(filters).some(value => 
     value !== '' && value !== 'all'

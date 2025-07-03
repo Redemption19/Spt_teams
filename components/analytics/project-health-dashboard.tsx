@@ -262,19 +262,19 @@ export function ProjectHealthDashboard({
   return (
     <div className="space-y-6">
       {/* Header with workspace scope indicator */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Project Health Dashboard</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Project Health Dashboard</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {showAllWorkspaces 
               ? `Monitoring ${projects.length} projects across ${accessibleWorkspaces?.length || 1} workspaces`
               : `Monitoring ${projects.length} projects in current workspace`
             }
           </p>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs sm:text-sm text-muted-foreground flex flex-wrap gap-1 sm:gap-2">
           {showAllWorkspaces && (
-            <span className="mr-2">🌐 All Workspaces ({accessibleWorkspaces?.length || 1})</span>
+            <span className="mr-2 whitespace-nowrap">🌐 All Workspaces ({accessibleWorkspaces?.length || 1})</span>
           )}
           {userRole === 'member' && '👤 Accessible Projects'}
           {userRole === 'admin' && !showAllWorkspaces && '⚙️ Workspace Projects'}
@@ -285,7 +285,7 @@ export function ProjectHealthDashboard({
       </div>
 
       {/* Summary Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <Card className="card-enhanced">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -340,7 +340,7 @@ export function ProjectHealthDashboard({
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Project Status Distribution */}
         <Card className="card-enhanced">
           <CardHeader>
@@ -354,7 +354,24 @@ export function ProjectHealthDashboard({
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent, cx, cy }) => {
+                    if (statusData.length === 1) {
+                      return (
+                        <text
+                          x={cx}
+                          y={cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={statusData[0].color}
+                          fontSize="16"
+                        >
+                          {`${name} ${(percent * 100).toFixed(0)}%`}
+                        </text>
+                      );
+                    }
+                    // Default label for multiple segments
+                    return `${name} ${(percent * 100).toFixed(0)}%`;
+                  }}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -382,7 +399,24 @@ export function ProjectHealthDashboard({
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent, cx, cy }) => {
+                    if (healthData.length === 1) {
+                      return (
+                        <text
+                          x={cx}
+                          y={cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={healthData[0].color}
+                          fontSize="16"
+                        >
+                          {`${name} ${(percent * 100).toFixed(0)}%`}
+                        </text>
+                      );
+                    }
+                    // Default label for multiple segments
+                    return `${name} ${(percent * 100).toFixed(0)}%`;
+                  }}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -402,62 +436,60 @@ export function ProjectHealthDashboard({
       <Card className="card-enhanced">
         <CardHeader>
           <CardTitle>Project Health Details</CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Detailed health metrics for all projects
           </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {projects.map((project) => (
-              <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h4 className="font-semibold">{project.name}</h4>
+              <div key={project.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h4 className="font-semibold text-sm sm:text-base truncate max-w-[160px]">{project.name}</h4>
                     <Badge variant={
                       project.status === 'completed' ? 'default' :
                       project.status === 'active' ? 'secondary' :
                       project.status === 'planning' ? 'outline' : 'secondary'
-                    }>
+                    } className="text-2xs sm:text-xs px-2 py-0.5 whitespace-nowrap">
                       {project.status}
                     </Badge>
                     <Badge variant={
                       project.healthStatus === 'healthy' ? 'default' :
                       project.healthStatus === 'warning' ? 'secondary' : 'destructive'
-                    }>
+                    } className="text-2xs sm:text-xs px-2 py-0.5 whitespace-nowrap">
                       {project.healthStatus === 'healthy' ? '✅' : 
                        project.healthStatus === 'warning' ? '⚠️' : '🚨'} {project.healthStatus}
                     </Badge>
                   </div>
-                  
-                  <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                    <span className="flex items-center space-x-1">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
                       <Target className="h-3 w-3" />
                       <span>{project.taskCount} tasks</span>
                     </span>
-                    <span className="flex items-center space-x-1">
+                    <span className="flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" />
                       <span>{project.completedTasks} completed</span>
                     </span>
-                    <span className="flex items-center space-x-1">
+                    <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       <span>{project.overdueTasks} overdue</span>
                     </span>
-                    <span className="flex items-center space-x-1">
+                    <span className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
                       <span>{project.teamMembers} members</span>
                     </span>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{project.completionRate.toFixed(1)}%</p>
-                    <p className="text-xs text-muted-foreground">completion</p>
+                <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-4 min-w-[120px] sm:min-w-[160px]">
+                  <div className="text-center sm:text-right">
+                    <p className="text-xs sm:text-sm font-medium">{project.completionRate.toFixed(1)}%</p>
+                    <p className="text-2xs sm:text-xs text-muted-foreground">completion</p>
                   </div>
-                  <Progress value={project.completionRate} className="w-24" />
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{project.riskScore}</p>
-                    <p className="text-xs text-muted-foreground">risk score</p>
+                  <Progress value={project.completionRate} className="w-20 sm:w-24" />
+                  <div className="text-center sm:text-right">
+                    <p className="text-xs sm:text-sm font-medium">{project.riskScore}</p>
+                    <p className="text-2xs sm:text-xs text-muted-foreground">risk score</p>
                   </div>
                 </div>
               </div>

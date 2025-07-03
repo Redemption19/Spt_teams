@@ -311,12 +311,12 @@ export default function AnalyticsMain() {
   // Member-specific simplified analytics
   if (userRole === 'member') {
 
-    return (
-      <div className="space-y-6">
+  return (
+    <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               My Analytics
             </h1>
             <p className="text-muted-foreground mt-1">Your personal performance metrics and insights</p>
@@ -558,16 +558,18 @@ export default function AnalyticsMain() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 md:p-6 max-w-full overflow-x-hidden">
+      {/* Header and Controls */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Analytics
           </h1>
-          <p className="text-muted-foreground mt-1">Comprehensive insights into team performance and productivity</p>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+            Workspace performance, productivity, and trends
+          </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-3 w-full sm:w-auto">
           {/* Cross-workspace toggle for owners */}
           {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
             <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
@@ -674,32 +676,14 @@ export default function AnalyticsMain() {
       />
 
       {/* Analytics Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        {/* Different tab layouts based on user role */}
-        {userRole === 'member' ? (
-          // Member-specific tabs (limited access)
-          <TabsList className="grid w-full grid-cols-2 lg:w-auto">
-            <TabsTrigger value="overview">My Dashboard</TabsTrigger>
-            <TabsTrigger value="performance">My Performance</TabsTrigger>
-          </TabsList>
-        ) : userRole === 'admin' ? (
-          // Admin tabs (workspace access)
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="teams">Teams</TabsTrigger>
-          </TabsList>
-        ) : (
-          // Owner tabs (full access)
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 lg:w-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="teams">Teams</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-          </TabsList>
-        )}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4">
+        <TabsList className="w-full flex flex-row flex-wrap justify-start">
+          <TabsTrigger value="overview" className="flex-1 text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="performance" className="flex-1 text-xs sm:text-sm">Performance</TabsTrigger>
+          <TabsTrigger value="branches" className="flex-1 text-xs sm:text-sm">Branches</TabsTrigger>
+          <TabsTrigger value="teams" className="flex-1 text-xs sm:text-sm">Teams</TabsTrigger>
+          <TabsTrigger value="projects" className="flex-1 text-xs sm:text-sm">Projects</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           {userRole === 'member' ? (
@@ -990,7 +974,7 @@ export default function AnalyticsMain() {
                       <Button 
                         variant="outline" 
                         className="w-full justify-start h-10"
-                        onClick={() => setActiveTab('trends')}
+                        onClick={() => setActiveTab('branches')}
                       >
                         <BarChart3 className="h-4 w-4 mr-3" />
                         Trend Analysis
@@ -1138,7 +1122,7 @@ export default function AnalyticsMain() {
                   Project health analytics are available to administrators and owners only.
                 </p>
               </div>
-            </div>
+          </div>
           )}
         </TabsContent>
 
@@ -1181,6 +1165,35 @@ export default function AnalyticsMain() {
           )}
         </TabsContent>
 
+        <TabsContent value="branches" className="space-y-6">
+          {canViewSystemWideAnalytics ? (
+          <PerformanceChart
+            title="Task Creation vs Completion Trends"
+            dataKey1="tasks"
+            dataKey2="productivity"
+            name1="Tasks Created"
+            name2="Completion Rate %"
+              workspaceId={getEffectiveWorkspaceId()}
+              userId={user?.uid || ''}
+              userRole={userRole as 'member' | 'admin' | 'owner'}
+              filters={dateFilters}
+              refreshTrigger={refreshing}
+              showAllWorkspaces={isOwner && showAllWorkspaces}
+              accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
+            />
+          ) : (
+            <div className="flex items-center justify-center p-12">
+              <div className="text-center">
+                <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-muted-foreground">Owner Access Required</h3>
+                <p className="text-sm text-muted-foreground">
+                  Advanced trend analytics are available to workspace owners only.
+                </p>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="teams" className="space-y-6">
           {canViewAdvancedAnalytics ? (
             <div className="grid gap-6 lg:grid-cols-2">
@@ -1210,35 +1223,6 @@ export default function AnalyticsMain() {
                 <h3 className="text-lg font-semibold text-muted-foreground">Admin Access Required</h3>
                 <p className="text-sm text-muted-foreground">
                   Team analytics are available to administrators and owners only.
-                </p>
-              </div>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="trends" className="space-y-6">
-          {canViewSystemWideAnalytics ? (
-            <PerformanceChart
-              title="Task Creation vs Completion Trends"
-              dataKey1="tasks"
-              dataKey2="productivity"
-              name1="Tasks Created"
-              name2="Completion Rate %"
-              workspaceId={getEffectiveWorkspaceId()}
-              userId={user?.uid || ''}
-              userRole={userRole as 'member' | 'admin' | 'owner'}
-              filters={dateFilters}
-              refreshTrigger={refreshing}
-              showAllWorkspaces={isOwner && showAllWorkspaces}
-              accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
-            />
-          ) : (
-            <div className="flex items-center justify-center p-12">
-              <div className="text-center">
-                <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-muted-foreground">Owner Access Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  Advanced trend analytics are available to workspace owners only.
                 </p>
               </div>
             </div>

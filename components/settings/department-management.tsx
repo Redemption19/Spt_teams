@@ -56,8 +56,11 @@ import DeleteDepartmentAlertDialog from '@/components/folders/dialogs/DeleteDepa
 export function DepartmentManagement() {
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, accessibleWorkspaces } = useWorkspace();
   const isAdminOrOwner = useIsAdminOrOwner();
+
+  // Cross-workspace management state for owners
+  const [showAllWorkspaces, setShowAllWorkspaces] = useState(false);
 
   // States
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -87,29 +90,46 @@ export function DepartmentManagement() {
 
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
-  // Load data
+  // Load data with cross-workspace support
   const loadData = async () => {
-    if (!currentWorkspace?.id || !user?.uid) return;
-    
+    if (!user?.uid) return;
+    const workspaceIds = (isAdminOrOwner && showAllWorkspaces && accessibleWorkspaces?.length)
+      ? accessibleWorkspaces.map(w => w.id)
+      : currentWorkspace?.id ? [currentWorkspace.id] : [];
+    if (workspaceIds.length === 0) return;
     try {
       setLoading(true);
-      
+      let allDepartments: Department[] = [];
+      let allUsers: User[] = [];
+      let allMembers: {[key: string]: DepartmentUser[]} = {};
+      for (const wsId of workspaceIds) {
+        const wsObj = accessibleWorkspaces?.find(w => w.id === wsId) || currentWorkspace;
       const [depts, workspaceUsers] = await Promise.all([
-        DepartmentService.getWorkspaceDepartments(currentWorkspace.id),
-        UserService.getUsersByWorkspace(currentWorkspace.id)
-      ]);
-      
-      setDepartments(depts);
-      setUsers(workspaceUsers);
-
+          DepartmentService.getWorkspaceDepartments(wsId),
+          UserService.getUsersByWorkspace(wsId)
+        ]);
+        // Attach workspace info to each department for badge
+        depts.forEach(dept => {
+          (dept as any)._workspaceName = wsObj?.name || 'Workspace';
+          (dept as any)._workspaceId = wsId;
+          if (!allDepartments.some(d => d.id === dept.id)) {
+            allDepartments.push(dept);
+          }
+        });
+        workspaceUsers.forEach(user => {
+          if (!allUsers.some(u => u.id === user.id)) {
+            allUsers.push(user);
+          }
+        });
       // Load members for each department
-      const membersData: {[key: string]: DepartmentUser[]} = {};
       for (const dept of depts) {
-        const members = await DepartmentService.getDepartmentMembers(currentWorkspace.id, dept.id);
-        membersData[dept.id] = members;
+          const members = await DepartmentService.getDepartmentMembers(wsId, dept.id);
+          allMembers[dept.id] = members;
+        }
       }
-      setDepartmentMembers(membersData);
-      
+      setDepartments(allDepartments);
+      setUsers(allUsers);
+      setDepartmentMembers(allMembers);
     } catch (error) {
       console.error('Error loading departments:', error);
       toast({
@@ -124,7 +144,7 @@ export function DepartmentManagement() {
 
   useEffect(() => {
     loadData();
-  }, [currentWorkspace?.id, user?.uid]);
+  }, [currentWorkspace?.id, user?.uid, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',')]);
 
   // Get current user's department info for members
   const currentUserProfile = users.find(u => u.email === user?.email);
@@ -474,168 +494,57 @@ export function DepartmentManagement() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-      {/* Header */}
-      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 md:p-6 max-w-full overflow-x-hidden">
+      {/* Header and Cross-Workspace Toggle */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {isAdminOrOwner ? 'Department Management' : 'Departments'}
+            {isAdminOrOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+              <span className="ml-2 text-green-600 dark:text-green-400 text-lg align-middle">🌐</span>
+            )}
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
             {isAdminOrOwner 
               ? 'Create and manage departments for your workspace'
               : 'View departments and team members in your workspace'
             }
           </p>
         </div>
-        {isAdminOrOwner && (
-          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
-            {departments.length > 0 && (
-              <Button 
-                variant="secondary" 
-                onClick={syncDepartmentCounts} 
-                disabled={submitting}
-                className="w-full sm:w-auto h-10 sm:h-9 text-sm"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Syncing...
-                  </>
-                ) : (
-                  <>
-                    <ArrowUpDown className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Sync Counts</span>
-                    <span className="sm:hidden">Sync</span>
-                  </>
-                )}
-              </Button>
-            )}
-            {departments.length === 0 && (
-              <Button 
-                variant="outline" 
-                onClick={createSampleDepartments} 
-                disabled={submitting}
-                className="w-full sm:w-auto h-10 sm:h-9 text-sm"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Add Sample Departments</span>
-                    <span className="sm:hidden">Sample Departments</span>
-                  </>
-                )}
-              </Button>
-            )}
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto h-10 sm:h-9 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Create Department</span>
-                  <span className="sm:hidden">Create</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-lg sm:text-xl">Create New Department</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dept-name" className="text-sm font-medium">Department Name *</Label>
-                    <Input
-                      id="dept-name"
-                      value={departmentForm.name}
-                      onChange={(e) => setDepartmentForm({...departmentForm, name: e.target.value})}
-                      placeholder="e.g., Finance, HR, Marketing"
-                      className="h-10"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dept-description" className="text-sm font-medium">Description</Label>
-                    <Textarea
-                      id="dept-description"
-                      value={departmentForm.description}
-                      onChange={(e) => setDepartmentForm({...departmentForm, description: e.target.value})}
-                      placeholder="Brief description of this department's role"
-                      rows={3}
-                      className="min-h-[80px] resize-none"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dept-head" className="text-sm font-medium">Department Head</Label>
-                    <Select 
-                      value={departmentForm.headId} 
-                      onValueChange={(value) => setDepartmentForm({...departmentForm, headId: value})}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select department head (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No department head</SelectItem>
-                        {users.map(user => (
-                          <SelectItem key={user.id} value={user.id}>
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">{user.name}</span>
-                              <span className="text-xs text-muted-foreground">{user.email}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dept-color" className="text-sm font-medium">Color</Label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={departmentForm.color}
-                        onChange={(e) => setDepartmentForm({...departmentForm, color: e.target.value})}
-                        className="w-12 h-10 rounded border cursor-pointer"
-                      />
-                      <span className="text-sm text-muted-foreground font-mono">{departmentForm.color}</span>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsCreateOpen(false)}
-                    disabled={submitting}
-                    className="w-full sm:w-auto h-10"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleCreateDepartment}
-                    disabled={submitting}
-                    className="w-full sm:w-auto h-10"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      'Create Department'
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+        {/* Cross-workspace toggle for owners */}
+        {isAdminOrOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+          <div className="flex items-center space-x-2 px-2 py-1 sm:px-3 sm:py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50 w-full sm:w-auto">
+            <button
+              onClick={() => setShowAllWorkspaces(!showAllWorkspaces)}
+              className={`flex items-center space-x-2 text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto justify-center ${
+                showAllWorkspaces 
+                  ? 'text-green-700 dark:text-green-400' 
+                  : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
+              }`}
+            >
+              <span className="text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
+              <span>
+                {showAllWorkspaces 
+                  ? `All Workspaces (${accessibleWorkspaces.length})` 
+                  : 'Current Workspace'
+                }
+              </span>
+            </button>
           </div>
         )}
-      </div>
+                  </div>
+
+      {/* Cross-workspace scope banner for owners */}
+      {isAdminOrOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+        <div className="p-2 sm:p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50 text-xs sm:text-sm">
+          <p className="text-green-700 dark:text-green-400">
+            🌐 <strong>Cross-Workspace Departments:</strong> Viewing and managing departments across all {accessibleWorkspaces.length} accessible workspaces. Departments and members from all workspaces are displayed together for centralized management.
+          </p>
+                  </div>
+      )}
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Departments</CardTitle>
@@ -678,28 +587,25 @@ export function DepartmentManagement() {
       </div>
 
       {/* Tabs for Departments and Unassigned Users */}
-      <Tabs defaultValue="departments" className="space-y-4">
-        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="departments" className="flex-1 sm:flex-initial text-sm">
-              <span className="hidden sm:inline">Departments</span>
-              <span className="sm:hidden">Departments</span>
+      <Tabs defaultValue="departments" className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList className="w-full sm:w-auto flex flex-row">
+            <TabsTrigger value="departments" className="flex-1 sm:flex-initial text-xs sm:text-sm">
+              <span>Departments</span>
             </TabsTrigger>
             {isAdminOrOwner && (
-              <TabsTrigger value="unassigned" className="flex-1 sm:flex-initial text-sm">
-                <span className="hidden sm:inline">Unassigned Users ({unassignedUsers.length})</span>
-                <span className="sm:hidden">Unassigned ({unassignedUsers.length})</span>
+              <TabsTrigger value="unassigned" className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                <span>Unassigned ({unassignedUsers.length})</span>
               </TabsTrigger>
             )}
           </TabsList>
-
-          <div className="relative w-full sm:max-w-sm">
+          <div className="relative w-full sm:max-w-sm mt-2 sm:mt-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search departments..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-9"
+              className="pl-10 h-9 text-xs sm:text-sm"
             />
           </div>
         </div>
@@ -735,19 +641,29 @@ export function DepartmentManagement() {
               )}
             </div>
           ) : (
-            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredDepartments.map((department) => (
                 <Card key={department.id} className="card-interactive hover:shadow-lg transition-all duration-200">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <div 
                           className="w-4 h-4 rounded-full flex-shrink-0" 
                           style={{ backgroundColor: department.color }}
                         />
-                        <CardTitle className="text-base sm:text-lg truncate">{department.name}</CardTitle>
+                        <CardTitle className="text-sm sm:text-base md:text-lg truncate">{department.name}</CardTitle>
+                        {isAdminOrOwner && showAllWorkspaces && accessibleWorkspaces && (
+                          <Badge
+                            variant="outline"
+                            className="ml-1 sm:ml-2 text-2xs sm:text-xs flex items-center gap-1 px-2 py-0.5 whitespace-nowrap max-w-[120px] truncate"
+                            title={(department as any)._workspaceName}
+                          >
+                            <span className="text-blue-400 text-base">🌐</span>
+                            <span className="truncate">{(department as any)._workspaceName || 'Workspace'}</span>
+                          </Badge>
+                        )}
                         {!isAdminOrOwner && userDepartment?.id === department.id && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-2xs sm:text-xs">
                             My Department
                           </Badge>
                         )}
@@ -784,55 +700,23 @@ export function DepartmentManagement() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3 pt-0">
+                  <CardContent className="space-y-2 sm:space-y-3 pt-0">
                     {department.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                         {department.description}
                       </p>
                     )}
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{department.memberCount} members</span>
+                        <span className="text-xs sm:text-sm font-medium">{department.memberCount} members</span>
                       </div>
                       <Badge 
                         variant={department.status === 'active' ? 'default' : 'secondary'}
-                        className="text-xs"
+                        className="text-2xs sm:text-xs"
                       >
-                        {department.status}
+                        {department.status === 'active' ? 'Active' : 'Inactive'}
                       </Badge>
-                    </div>
-
-                    {department.headName && (
-                      <div className="flex items-center gap-2">
-                        <Crown className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm truncate">{department.headName}</span>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleViewMembers(department)}
-                        className="flex-1 h-9 text-xs sm:text-sm"
-                      >
-                        <Users className="h-4 w-4 mr-1" />
-                        <span className="hidden sm:inline">View Members</span>
-                        <span className="sm:hidden">Members</span>
-                      </Button>
-                      {isAdminOrOwner && (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleAssignMembers(department)}
-                          className="h-9 px-3"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                          <span className="sr-only">Assign Members</span>
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>

@@ -11,6 +11,8 @@ import { Users, Award, Clock } from 'lucide-react';
 
 interface UserSubmissionChartProps {
   data: UserSubmissionData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {

@@ -10,6 +10,8 @@ import { TrendingUp, Clock, CheckCircle, AlertTriangle, Award, Target } from 'lu
 
 interface MonthlyApprovalTrendChartProps {
   data: ApprovalTrendData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {

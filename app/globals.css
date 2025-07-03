@@ -213,4 +213,23 @@
 .dark .card-elevated {
   @apply border-border/50 shadow-2xl;
 }
+
+/* Custom scrollbar for chat area */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--card)) hsl(var(--background));
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  background: hsl(var(--background));
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--card));
+  border-radius: 8px;
+  border: 2px solid hsl(var(--background));
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
 }

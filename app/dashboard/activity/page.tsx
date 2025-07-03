@@ -133,7 +133,7 @@ export default function ActivityLogPage() {
         // Members can only filter to themselves
         filtered = filtered.filter(activity => activity.userId === user?.uid);
       } else {
-        filtered = filtered.filter(activity => activity.userId === selectedUser);
+      filtered = filtered.filter(activity => activity.userId === selectedUser);
       }
     }
 
@@ -226,7 +226,7 @@ export default function ActivityLogPage() {
   // Get unique users for filter (memoized to prevent re-computation)
   const uniqueUsers = useMemo(() => {
     return Array.from(new Set(activities.map(a => ({ id: a.userId, name: a.userName }))))
-      .filter((user, index, self) => self.findIndex(u => u.id === user.id) === index);
+    .filter((user, index, self) => self.findIndex(u => u.id === user.id) === index);
   }, [activities]);
 
   if (!currentWorkspace) {
@@ -259,10 +259,10 @@ export default function ActivityLogPage() {
           </Button>
           {/* Only owners/admins can export full activity logs */}
           {(isOwner || userRole === 'admin') && (
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
           )}
         </div>
       </div>
@@ -396,19 +396,19 @@ export default function ActivityLogPage() {
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {allowedCategories.includes('user') && (
-                    <SelectItem value="user">User Management</SelectItem>
+                  <SelectItem value="user">User Management</SelectItem>
                   )}
                   {allowedCategories.includes('team') && (
-                    <SelectItem value="team">Team & Structure</SelectItem>
+                  <SelectItem value="team">Team & Structure</SelectItem>
                   )}
                   {allowedCategories.includes('system') && (
-                    <SelectItem value="system">System Changes</SelectItem>
+                  <SelectItem value="system">System Changes</SelectItem>
                   )}
                   {allowedCategories.includes('security') && (
-                    <SelectItem value="security">Security Events</SelectItem>
+                  <SelectItem value="security">Security Events</SelectItem>
                   )}
                   {allowedCategories.includes('content') && (
-                    <SelectItem value="content">Content</SelectItem>
+                  <SelectItem value="content">Content</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -423,16 +423,16 @@ export default function ActivityLogPage() {
                 <SelectContent>
                   <SelectItem value="all">All Severities</SelectItem>
                   {allowedSeverities.includes('critical') && (
-                    <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
                   )}
                   {allowedSeverities.includes('high') && (
-                    <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
                   )}
                   {allowedSeverities.includes('medium') && (
-                    <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
                   )}
                   {allowedSeverities.includes('low') && (
-                    <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
                   )}
                 </SelectContent>
               </Select>

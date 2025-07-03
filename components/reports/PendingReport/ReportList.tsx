@@ -13,6 +13,8 @@ interface ReportListProps {
   onApprove: (report: EnhancedReport, comment?: string) => void;
   onReject: (report: EnhancedReport, comment: string) => void;
   isProcessing: string | null;
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 export function ReportList({
@@ -25,6 +27,8 @@ export function ReportList({
   onApprove,
   onReject,
   isProcessing,
+  showAllWorkspaces,
+  workspaceCount,
 }: ReportListProps) {
   if (loading) {
     return (
@@ -53,7 +57,7 @@ export function ReportList({
           </div>
           <div className="pt-2">
             <p className="text-xs text-muted-foreground">
-              💡 Reports with status "submitted" will show up here for approval
+              💡 Reports with status &quot;submitted&quot; will show up here for approval
             </p>
           </div>
         </div>

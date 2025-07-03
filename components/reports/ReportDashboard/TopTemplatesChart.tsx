@@ -10,6 +10,8 @@ import { FileText, Star, Calendar } from 'lucide-react';
 
 interface TopTemplatesChartProps {
   data: TopTemplatesData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {
@@ -147,4 +149,4 @@ export function TopTemplatesChart({ data }: TopTemplatesChartProps) {
       </CardContent>
     </Card>
   );
-} 
+}

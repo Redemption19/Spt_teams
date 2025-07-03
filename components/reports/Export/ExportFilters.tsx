@@ -250,9 +250,9 @@ export function ExportFilters({
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">From Date</label>
               <EnhancedDatePicker
-                date={filters.dateRange.from}
+                date={filters.dateRange.from || undefined}
                 onDateChange={(date) => onFiltersChange({
-                  dateRange: { ...filters.dateRange, from: date }
+                  dateRange: { ...filters.dateRange, from: date || null }
                 })}
                 placeholder="Select start date..."
                 className="h-10"
@@ -264,9 +264,9 @@ export function ExportFilters({
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">To Date</label>
               <EnhancedDatePicker
-                date={filters.dateRange.to}
+                date={filters.dateRange.to || undefined}
                 onDateChange={(date) => onFiltersChange({
-                  dateRange: { ...filters.dateRange, to: date }
+                  dateRange: { ...filters.dateRange, to: date || null }
                 })}
                 placeholder="Select end date..."
                 className="h-10"
@@ -310,7 +310,7 @@ export function ExportFilters({
               )}
               {filters.search && (
                 <span className="px-2 py-1 bg-primary/10 text-primary rounded-full">
-                  Search: "{filters.search}"
+                  Search: &quot;{filters.search}&quot;
                 </span>
               )}
             </div>

@@ -396,6 +396,7 @@ export interface Folder {
   
   // File management
   fileCount: number;
+  memberCount?: number; // Number of members with access to this folder
   totalSize: number; // in bytes
   allowedFileTypes?: string[]; // ['pdf', 'doc', 'jpg'] etc.
   maxFileSize?: number; // in bytes
@@ -406,6 +407,7 @@ export interface Folder {
   createdBy: string;
   lastAccessedAt?: Date;
   lastAccessedBy?: string;
+  department?: string; // Department this folder belongs to
   
   // Folder settings
   settings: {
@@ -720,6 +722,8 @@ export interface EnhancedReport {
   templateVersion?: number; // Version of template when report was created
   workspaceId: string;
   authorId: string;
+  authorEmail?: string; // Fallback author email for legacy reports
+  authorDepartment?: string; // Fallback author department for legacy reports
   
   // Report content - dynamic based on template
   fieldData: Record<string, any>; // Field ID -> Field Value mapping

@@ -9,6 +9,8 @@ import { TrendingUp, Calendar } from 'lucide-react';
 
 interface ReportsOverTimeChartProps {
   data: ReportsOverTimeData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {
@@ -30,7 +32,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ReportsOverTimeChart({ data }: ReportsOverTimeChartProps) {
+export function ReportsOverTimeChart({ 
+  data, 
+  showAllWorkspaces, 
+  workspaceCount 
+}: ReportsOverTimeChartProps) {
   // Calculate trend
   const totalSubmissions = data.reduce((sum, item) => sum + item.submitted, 0);
   const avgDaily = data.length > 0 ? totalSubmissions / data.length : 0;

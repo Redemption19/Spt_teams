@@ -330,10 +330,10 @@ export default function BranchMetricsChart({
   }
 
   if (data.length === 0) {
-    return (
-      <Card className="card-enhanced border border-border/30">
-        <CardHeader>
-          <CardTitle>Branch Performance Metrics</CardTitle>
+  return (
+    <Card className="card-enhanced border border-border/30">
+      <CardHeader>
+        <CardTitle>Branch Performance Metrics</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-96">

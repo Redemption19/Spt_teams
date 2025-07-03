@@ -112,17 +112,17 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
         try {
           const [wsUserReports, wsAvailableTemplates] = await Promise.all([
             ReportService.getUserReports(wsId, user.uid, {
-              orderBy: 'updatedAt',
-              orderDirection: 'desc',
-              limit: 50
-            }),
-            userProfile?.departmentId ? ReportTemplateService.getTemplatesForUser(
+          orderBy: 'updatedAt',
+          orderDirection: 'desc',
+          limit: 50
+        }),
+        userProfile?.departmentId ? ReportTemplateService.getTemplatesForUser(
               wsId,
-              userProfile.departmentId,
-              userProfile.role,
-              { status: 'active' }
-            ) : []
-          ]);
+          userProfile.departmentId,
+          userProfile.role,
+          { status: 'active' }
+        ) : []
+      ]);
 
           // Aggregate user reports (avoid duplicates)
           wsUserReports.forEach(report => {

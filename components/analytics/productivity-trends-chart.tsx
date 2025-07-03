@@ -244,10 +244,10 @@ export default function ProductivityTrendsChart({
   }
 
   if (data.length === 0) {
-    return (
-      <Card className="card-enhanced border border-border/30">
-        <CardHeader>
-          <CardTitle>Productivity Trends</CardTitle>
+  return (
+    <Card className="card-enhanced border border-border/30">
+      <CardHeader>
+        <CardTitle>Productivity Trends</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-72">

@@ -395,9 +395,9 @@ export class CalendarService {
       // Filter events for the user and sort by date
       const userEvents = events
         .filter(event =>
-          event.createdBy === userId ||
-          event.attendees?.includes(userId) ||
-          event.type === 'deadline'
+        event.createdBy === userId ||
+        event.attendees?.includes(userId) ||
+        event.type === 'deadline'
         )
         .sort((a, b) => a.start.getTime() - b.start.getTime());
 

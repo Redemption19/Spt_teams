@@ -139,17 +139,17 @@ export function EventDialogs({
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl shadow-lg">
                       {selectedEvent && getEventTypeIcon(selectedEvent.type)}
                     </div>
-                  </div>
+              </div>
                   <div className="space-y-2">
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
                       {selectedEvent?.title}
                     </h1>
                     <div className="flex items-center space-x-3">
-                      {selectedEvent && (
+                {selectedEvent && (
                         <>
                           <Badge className={`${getEventColor(selectedEvent.type, selectedEvent.status)} border-0 font-medium px-3 py-1 text-xs`}>
-                            {selectedEvent.type}
-                          </Badge>
+                    {selectedEvent.type}
+                  </Badge>
                           <Badge className={cn("border-0 font-medium px-3 py-1 text-xs", {
                             "bg-red-100 text-red-700": selectedEvent.status === 'cancelled',
                             "bg-green-100 text-green-700": selectedEvent.status === 'completed',
@@ -172,7 +172,7 @@ export function EventDialogs({
               {/* Main Content - Left Column */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Description Card */}
-                {selectedEvent.description && (
+              {selectedEvent.description && (
                   <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                     <div className="flex items-center space-x-2 mb-4">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
@@ -181,8 +181,8 @@ export function EventDialogs({
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">Description</h3>
                     </div>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{selectedEvent.description}</p>
-                  </div>
-                )}
+                </div>
+              )}
 
                 {/* Date & Time Card */}
                 <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
@@ -195,11 +195,11 @@ export function EventDialogs({
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
                       <CalendarIcon className="h-5 w-5 text-primary" />
-                      <div>
+                <div>
                         <p className="font-medium text-gray-900 dark:text-gray-100">
                           {format(selectedEvent.start, "EEEE, MMMM do, yyyy")}
                         </p>
-                        {!selectedEvent.allDay && (
+                      {!selectedEvent.allDay && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             {format(selectedEvent.start, "h:mm a")} - {format(selectedEvent.end || selectedEvent.start, "h:mm a")}
                           </p>
@@ -235,7 +235,7 @@ export function EventDialogs({
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notes</h3>
                     </div>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{selectedEvent.notes}</p>
-                  </div>
+                </div>
                 )}
               </div>
 
@@ -279,41 +279,41 @@ export function EventDialogs({
                       <Badge className="bg-indigo-100 text-indigo-700 border-0 font-medium px-3 py-2">
                         {selectedEvent.attendees.length} people invited
                       </Badge>
-                    </div>
-                  </div>
-                )}
+                </div>
+            </div>
+          )}
 
                 {/* Actions Card */}
                 <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Actions</h3>
                   <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsViewEventOpen(false)}
+            <Button
+              variant="outline"
+              onClick={() => setIsViewEventOpen(false)}
                       className="w-full border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-                    >
+            >
                       <X className="h-4 w-4 mr-2" />
-                      Close
-                    </Button>
-                    {canEditEvents && selectedEvent && (
-                      <>
-                        <Button
-                          onClick={() => onEditEvent(selectedEvent)}
+              Close
+            </Button>
+            {canEditEvents && selectedEvent && (
+              <>
+                <Button
+                  onClick={() => onEditEvent(selectedEvent)}
                           className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
+                >
+                  <Edit className="h-4 w-4 mr-2" />
                           Edit Event
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleDelete}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDelete}
                           className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
                           Delete Event
-                        </Button>
-                      </>
-                    )}
+                </Button>
+              </>
+            )}
                   </div>
                 </div>
               </div>

@@ -127,185 +127,177 @@ export default function FolderCardGrid({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  // Create a separate component for folder card to properly use hooks
+  const FolderCard = ({ folder }: { folder: Folder }) => {
+    const permissions = useFolderPermissions(folder);
+    
+    return (
+      <Card 
+        key={folder.id} 
+        className="group cursor-pointer hover:shadow-lg transition-all duration-200 border border-border/30 hover:border-primary/20"
+        onClick={() => onFolderClick(folder)}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-2">
+              <FolderOpen className="h-8 w-8 text-primary" />
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base truncate">{folder.name}</CardTitle>
+              </div>
+            </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  onFolderClick(folder);
+                }}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Folder
+                </DropdownMenuItem>
+                
+                {permissions.canEdit && (
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    onEditFolder(folder);
+                  }}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                
+                {onShareFolder && permissions.canShare && (
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    onShareFolder(folder);
+                  }}>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </DropdownMenuItem>
+                )}
+                
+                {onUploadToFolder && permissions.canUpload && (
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    onUploadToFolder(folder);
+                  }}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Files
+                  </DropdownMenuItem>
+                )}
+                
+                {permissions.canDelete && (
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteFolder(folder);
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0">
+          {folder.description && (
+            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+              {folder.description}
+            </p>
+          )}
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span className="flex items-center space-x-1">
+                <FileText className="h-3 w-3" />
+                <span>{folder.fileCount || 0} files</span>
+              </span>
+              <span>{formatFileSize(folder.totalSize || 0)}</span>
+            </div>
+            
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span className="flex items-center space-x-1">
+                <Users className="h-3 w-3" />
+                <span>{folder.memberCount || 0} members</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <Calendar className="h-3 w-3" />
+                <span>{folder.updatedAt ? new Date(folder.updatedAt).toLocaleDateString() : 'N/A'}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center space-x-2">
+              {folder.visibility === 'public' ? (
+                <Badge variant="secondary" className="text-xs">
+                  <Globe className="h-3 w-3 mr-1" />
+                  Public
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-xs">
+                  <Lock className="h-3 w-3 mr-1" />
+                  Private
+                </Badge>
+              )}
+              
+              {folder.department && (
+                <Badge variant="outline" className="text-xs">
+                  {folder.department}
+                </Badge>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+              <User className="h-3 w-3" />
+              <span>{folder.createdBy}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {folders.map((folder) => {
-        const permissions = useFolderPermissions(folder);
-        
-        return (
-          <Card 
-            key={folder.id} 
-            className="group cursor-pointer hover:shadow-lg transition-all duration-200 border border-border/30 hover:border-primary/20"
-            onClick={() => onFolderClick(folder)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2 min-w-0 flex-1">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                    <FolderOpen className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Badge className={getTypeColor(folder.type)}>
-                      {folder.type}
-                    </Badge>
-                    {folder.isSystemFolder && (
-                      <Badge variant="outline" className="ml-1">
-                        <Shield className="h-3 w-3 mr-1" />
-                        System
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {permissions.canOpen && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onFolderClick(folder); }}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Open
-                      </DropdownMenuItem>
-                    )}
-                    {permissions.canEdit && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditFolder(folder); }}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                    )}
-                    {permissions.canUpload && onUploadToFolder && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUploadToFolder(folder); }}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Files
-                      </DropdownMenuItem>
-                    )}
-                    {permissions.canShare && onShareFolder && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onShareFolder(folder); }}>
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
-                    )}
-                    {permissions.canDownload && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); }}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </DropdownMenuItem>
-                    )}
-                    {permissions.canDelete && (
-                      <DropdownMenuItem 
-                        onClick={(e) => { e.stopPropagation(); onDeleteFolder(folder); }}
-                        className="text-red-600 dark:text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+      {folders.map((folder) => (
+        <FolderCard key={folder.id} folder={folder} />
+      ))}
 
-              <CardTitle className="text-lg text-foreground truncate">
-                {folder.name}
-              </CardTitle>
-              
-              {folder.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {folder.description}
-                </p>
+      {/* Show empty state or create button */}
+      {folders.length === 0 && !loading && (
+        <div className="col-span-full">
+          <Card className="border-dashed border-2 border-muted-foreground/25 bg-muted/5">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <FolderOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                {searchTerm ? 'No folders found' : 'No folders yet'}
+              </h3>
+              <p className="text-sm text-muted-foreground/80 mb-4 max-w-sm">
+                {searchTerm 
+                  ? `No folders match "${searchTerm}". Try adjusting your search.`
+                  : "Get started by creating your first folder or uploading some content."
+                }
+              </p>
+              {!searchTerm && onCreateSampleFolders && (
+                <Button onClick={onCreateSampleFolders} variant="outline" className="mt-2">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Sample Folders
+                </Button>
               )}
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Files</span>
-                  <span className="font-medium text-foreground ml-auto">{folder.fileCount}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  {getVisibilityIcon(folder.visibility)}
-                  <span className="text-muted-foreground capitalize">{folder.visibility}</span>
-                </div>
-              </div>
-
-              {/* Size info */}
-              {folder.totalSize > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  Total size: {formatFileSize(folder.totalSize)}
-                </div>
-              )}
-
-              {/* Tags */}
-              {folder.tags && folder.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {folder.tags.slice(0, 3).map(tag => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                  {folder.tags.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{folder.tags.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-              {/* Footer */}
-              <div className="pt-2 border-t border-border space-y-2">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <User className="h-3 w-3" />
-                    <span>Owner</span>
-                  </div>
-                  <span className="truncate max-w-[120px]">
-                    {folder.ownerId === 'current-user' ? 'You' : 'Team member'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>Modified</span>
-                  </div>
-                  <span>{formatDate(folder.updatedAt)}</span>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="flex space-x-2 pt-2">
-                {permissions.canOpen && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 text-xs"
-                    onClick={(e) => { e.stopPropagation(); onFolderClick(folder); }}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Open
-                  </Button>
-                )}
-                {permissions.canEdit && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 text-xs"
-                    onClick={(e) => { e.stopPropagation(); onEditFolder(folder); }}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                )}
-              </div>
             </CardContent>
           </Card>
-        );
-      })}
+        </div>
+      )}
     </div>
   );
 }

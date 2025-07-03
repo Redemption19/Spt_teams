@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,20 +59,7 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
   const { currentWorkspace } = useWorkspace();
   const isAdminOrOwner = useIsAdminOrOwner();
 
-  // Early return if user is not available
-  if (!user || !userProfile) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Please log in to access report templates.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
+  // All hooks must be called before any conditional returns
   // View state management
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
@@ -127,7 +114,12 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
         onSubmission: true,
         onApproval: true,
         onRejection: true,
-        recipientRoles: ['owner', 'admin'] as ('owner' | 'admin' | 'author')[]
+        recipientRoles: ['admin', 'owner'] as ('owner' | 'admin' | 'author')[],
+        customRecipients: [] as string[],
+        departmentNotifications: [] as {
+          department: string;
+          roles: ('head' | 'admin' | 'all_members')[];
+        }[]
       }
     }
   });
@@ -142,45 +134,89 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
     previewMode: false
   });
 
-  // Load data
-  const loadData = async () => {
-    if (!currentWorkspace?.id || !userProfile) return;
+  // Load data function
+  const loadData = useCallback(async () => {
+    if (!userProfile) return;
 
-    try {
-      setLoading(true);
-      const [templatesData, categoriesData, stats, departments] = await Promise.all([
-        ReportTemplateService.getTemplatesForUser(
-          currentWorkspace.id,
-          userProfile.department || undefined,
-          userProfile.role || 'member',
-          {
-            // Add any necessary options here
+    // Determine workspace IDs to load from
+    const workspaceIds = (showAllWorkspaces && accessibleWorkspaces?.length)
+      ? accessibleWorkspaces.map(w => w.id)
+      : currentWorkspace?.id ? [currentWorkspace.id] : [];
+    if (workspaceIds.length === 0) return;
+
+    let allTemplates: ReportTemplate[] = [];
+    let allCategories: string[] = [];
+    let aggregatedStats = {
+      totalTemplates: 0,
+      activeTemplates: 0,
+      draftTemplates: 0,
+      archivedTemplates: 0,
+      totalReports: 0,
+      recentlyUsed: [] as ReportTemplate[],
+      popularTemplates: [] as ReportTemplate[]
+    };
+    let allDepartments: string[] = [];
+
+    for (const wsId of workspaceIds) {
+      try {
+        const [wsTemplates, wsCategories, wsStats, wsDepartments] = await Promise.all([
+          ReportTemplateService.getTemplatesForUser(wsId, userProfile.department, userProfile.role || 'member'),
+          ReportTemplateService.getTemplateCategories(wsId),
+          ReportTemplateService.getTemplateStatistics(wsId),
+          ReportTemplateService.getAvailableDepartments(wsId)
+        ]);
+        
+        allTemplates.push(...wsTemplates);
+        wsCategories.forEach((cat: string) => {
+          if (!allCategories.includes(cat)) {
+            allCategories.push(cat);
           }
-        ),
-        ReportTemplateService.getTemplateCategories(currentWorkspace.id),
-        ReportTemplateService.getTemplateStatistics(currentWorkspace.id),
-        ReportTemplateService.getAvailableDepartments(currentWorkspace.id)
-      ]);
-
-      setTemplates(templatesData);
-      setCategories(categoriesData);
-      setStatistics(stats);
-      setAvailableDepartments(departments);
-    } catch (error) {
-      console.error('Error loading templates:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load templates. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+        });
+        
+        // Aggregate statistics
+        aggregatedStats.totalTemplates += wsStats.totalTemplates;
+        aggregatedStats.activeTemplates += wsStats.activeTemplates;
+        aggregatedStats.draftTemplates += wsStats.draftTemplates;
+        aggregatedStats.archivedTemplates += wsStats.archivedTemplates;
+        aggregatedStats.totalReports += wsStats.totalReports;
+        aggregatedStats.recentlyUsed.push(...wsStats.recentlyUsed);
+        aggregatedStats.popularTemplates.push(...wsStats.popularTemplates);
+        
+        wsDepartments.forEach((dept: string) => {
+          if (!allDepartments.includes(dept)) {
+            allDepartments.push(dept);
+          }
+        });
+      } catch (err) {
+        console.error('Error loading templates from workspace', wsId, err);
+      }
     }
-  };
 
+    setTemplates(allTemplates);
+    setCategories(allCategories);
+    setStatistics(aggregatedStats);
+    setAvailableDepartments(allDepartments);
+    setLoading(false);
+  }, [userProfile, showAllWorkspaces, accessibleWorkspaces, currentWorkspace?.id]);
+
+  // Effect to load data
   useEffect(() => {
     loadData();
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, loadData]);
+
+  // Early return if user is not available
+  if (!user || !userProfile) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Alert className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please log in to access report templates.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   // Filter templates
   const filteredTemplates = templates.filter(template => {
@@ -227,7 +263,12 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
             onRejection: template.settings.notifications.onRejection,
             recipientRoles: template.settings.notifications.recipientRoles.filter(role => 
               ['owner', 'admin', 'author'].includes(role)
-            ) as ('owner' | 'admin' | 'author')[]
+            ) as ('owner' | 'admin' | 'author')[],
+            customRecipients: (template.settings.notifications.customRecipients || []) as string[],
+            departmentNotifications: (template.settings.notifications.departmentNotifications || []) as {
+              department: string;
+              roles: ('head' | 'admin' | 'all_members')[];
+            }[]
           }
         }
       });
@@ -268,7 +309,12 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
             onSubmission: true,
             onApproval: true,
             onRejection: true,
-            recipientRoles: ['owner', 'admin']
+            recipientRoles: ['owner', 'admin'] as ('owner' | 'admin' | 'author')[],
+            customRecipients: [] as string[],
+            departmentNotifications: [] as {
+              department: string;
+              roles: ('head' | 'admin' | 'all_members')[];
+            }[]
           }
         }
       });

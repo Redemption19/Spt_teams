@@ -212,12 +212,12 @@ export default function TeamDistributionChart({
   }
 
   if (data.length === 0) {
-    return (
-      <Card className="card-enhanced border border-border/30">
-        <CardHeader>
-          <CardTitle>Team Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
+  return (
+    <Card className="card-enhanced border border-border/30">
+      <CardHeader>
+        <CardTitle>Team Distribution</CardTitle>
+      </CardHeader>
+      <CardContent>
           <div className="flex items-center justify-center h-80">
             <div className="text-center">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -257,23 +257,23 @@ export default function TeamDistributionChart({
       <CardContent>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
+          <PieChart>
+            <Pie
                 data={data}
-                cx="50%"
-                cy="50%"
+              cx="50%"
+              cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => 
                   percent > 5 ? `${name} ${(percent * 100).toFixed(0)}%` : ''
                 }
-                outerRadius={80}
+              outerRadius={80}
                 fill="#8884d8"
-                dataKey="value"
-              >
+              dataKey="value"
+            >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
               <Tooltip content={<CustomTooltip />} />
               <Legend 
                 verticalAlign="bottom" 
@@ -283,9 +283,9 @@ export default function TeamDistributionChart({
                     {value} ({entry.payload.tasks} tasks)
                   </span>
                 )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+            />
+          </PieChart>
+        </ResponsiveContainer>
         </div>
         
         {/* Team summary */}
@@ -339,7 +339,7 @@ export default function TeamDistributionChart({
                 })()}
               </div>
             </div>
-          </div>
+        </div>
         )}
       </CardContent>
     </Card>

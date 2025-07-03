@@ -1,6 +1,7 @@
 /**
  * Auto-resize textarea utility functions
  */
+import React from 'react';
 
 /**
  * Auto-resize a textarea element based on its content
@@ -92,11 +93,11 @@ export const useAutoResize = (
     if (ref.current) {
       autoResizeTextarea(ref.current, minHeight, maxHeight);
     }
-  }, [value, minHeight, maxHeight]);
+  }, [ref, value, minHeight, maxHeight]);
   
   React.useEffect(() => {
     if (ref.current) {
       return setupAutoResize(ref.current, minHeight, maxHeight);
     }
-  }, [minHeight, maxHeight]);
+  }, [ref, minHeight, maxHeight]);
 }; 

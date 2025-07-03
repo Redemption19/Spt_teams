@@ -9,6 +9,8 @@ import { Calendar, Activity } from 'lucide-react';
 
 interface SubmissionsByDayChartProps {
   data: SubmissionsByDayData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {
@@ -162,4 +164,4 @@ export function SubmissionsByDayChart({ data }: SubmissionsByDayChartProps) {
       </CardContent>
     </Card>
   );
-} 
+}

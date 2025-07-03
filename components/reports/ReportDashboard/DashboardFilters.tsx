@@ -43,6 +43,8 @@ interface DashboardFiltersProps {
   onFiltersChange: (filters: DashboardFiltersType) => void;
   onRefresh: () => void;
   loading: boolean;
+  showAllWorkspaces?: boolean;
+  accessibleWorkspaces?: any[];
 }
 
 const datePresets: DashboardDatePreset[] = [
@@ -56,7 +58,9 @@ export function DashboardFilters({
   filters, 
   onFiltersChange, 
   onRefresh, 
-  loading 
+  loading,
+  showAllWorkspaces,
+  accessibleWorkspaces 
 }: DashboardFiltersProps) {
   const { currentWorkspace } = useWorkspace();
   const [departments, setDepartments] = useState<any[]>([]);

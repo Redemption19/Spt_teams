@@ -54,35 +54,7 @@ export function CreateEventPage({
   const { currentWorkspace, userRole } = useWorkspace();
   const calendarAccess = useCalendarAccess();
 
-  // Check if user has permission to create events
-  if (!calendarAccess.canCreateEvents) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center space-x-4 mb-6">
-            <Button variant="outline" onClick={onBack} className="flex items-center space-x-2">
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Calendar</span>
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-muted-foreground">Access Denied</h3>
-              <p className="text-sm text-muted-foreground mt-2">
-                You do not have permission to create calendar events.
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Contact your workspace {userRole === 'member' ? 'admin or owner' : 'owner'} for access.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // All hooks must be called before any conditional returns
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -125,6 +97,35 @@ export function CreateEventPage({
     const endTime = new Date(formData.start.getTime() + 60 * 60 * 1000);
     setFormData(prev => ({ ...prev, end: endTime }));
   }, [formData.start]);
+
+  // Check if user has permission to create events
+  if (!calendarAccess.canCreateEvents) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center space-x-4 mb-6">
+            <Button variant="outline" onClick={onBack} className="flex items-center space-x-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Calendar</span>
+            </Button>
+          </div>
+          
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-muted-foreground">Access Denied</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                You do not have permission to create calendar events.
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Contact your workspace {userRole === 'member' ? 'admin or owner' : 'owner'} for access.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

@@ -56,21 +56,21 @@ export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(({
   // Memoize the fullCalendarEvents to prevent recreation on every render
   const fullCalendarEvents = useMemo(() => 
     events.map(event => ({
-      id: event.id,
-      title: event.title,
-      start: event.start,
-      end: event.end,
-      allDay: event.allDay || false,
-      backgroundColor: getEventColor(event.type, event.status),
-      borderColor: getEventBorderColor(event.priority),
-      textColor: getEventTextColor(event.type),
-      extendedProps: {
-        ...event,
-        description: event.description,
-        location: event.location,
-        attendees: event.attendees,
-        notes: event.notes,
-      }
+    id: event.id,
+    title: event.title,
+    start: event.start,
+    end: event.end,
+    allDay: event.allDay || false,
+    backgroundColor: getEventColor(event.type, event.status),
+    borderColor: getEventBorderColor(event.priority),
+    textColor: getEventTextColor(event.type),
+    extendedProps: {
+      ...event,
+      description: event.description,
+      location: event.location,
+      attendees: event.attendees,
+      notes: event.notes,
+    }
     })), [events]);
 
   // Map view names to FullCalendar views
@@ -98,8 +98,8 @@ export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(({
       // Only navigate if the dates are significantly different (more than a day apart)
       if (Math.abs(calendarCurrentDate.getTime() - currentDate.getTime()) > 24 * 60 * 60 * 1000) {
         console.log('Navigating calendar to:', currentDate);
-        calendarApi.gotoDate(currentDate);
-      }
+      calendarApi.gotoDate(currentDate);
+    }
     }
   }, [currentDate.getTime()]);
 

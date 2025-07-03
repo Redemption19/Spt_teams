@@ -63,6 +63,44 @@ export function EditEventPage({
   const canEditEvent = useCanEditCalendarEvent(event, user?.uid);
   const eventPermissions = useCalendarEventPermissions(event, user?.uid);
 
+  // All hooks must be called before any conditional returns
+  // Filter users, teams, and departments by current workspace for security
+  const workspaceUsers = users.filter(user => 
+    user.workspaceId === currentWorkspace?.id || 
+    user.workspaces?.includes(currentWorkspace?.id)
+  );
+  
+  const workspaceTeams = teams.filter(team => 
+    team.workspaceId === currentWorkspace?.id
+  );
+  
+  const workspaceDepartments = departments.filter(dept => 
+    dept.workspaceId === currentWorkspace?.id
+  );
+  
+  const [eventForm, setEventForm] = useState(() => ({
+    title: event.title,
+    description: event.description || '',
+    type: event.type,
+    priority: event.priority,
+    status: event.status,
+    location: event.location || '',
+    start: event.start,
+    end: event.end || event.start,
+    allDay: event.allDay || false,
+    attendees: event.attendees || [],
+    teamId: event.teamId || undefined,
+    departmentId: event.departmentId || undefined,
+    notes: event.notes || '',
+    isRecurring: event.isRecurring || false,
+    visibility: event.visibility || 'public'
+  }));
+
+  const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+  const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
   // Show access denied if user cannot edit this event
   if (!canEditEvent) {
     return (
@@ -116,43 +154,6 @@ export function EditEventPage({
       </div>
     );
   }
-
-  // Filter users, teams, and departments by current workspace for security
-  const workspaceUsers = users.filter(user => 
-    user.workspaceId === currentWorkspace?.id || 
-    user.workspaces?.includes(currentWorkspace?.id)
-  );
-  
-  const workspaceTeams = teams.filter(team => 
-    team.workspaceId === currentWorkspace?.id
-  );
-  
-  const workspaceDepartments = departments.filter(dept => 
-    dept.workspaceId === currentWorkspace?.id
-  );
-  
-  const [eventForm, setEventForm] = useState(() => ({
-    title: event.title,
-    description: event.description || '',
-    type: event.type,
-    priority: event.priority,
-    status: event.status,
-    location: event.location || '',
-    start: event.start,
-    end: event.end || event.start,
-    allDay: event.allDay || false,
-    attendees: event.attendees || [],
-    teamId: event.teamId || undefined,
-    departmentId: event.departmentId || undefined,
-    notes: event.notes || '',
-    isRecurring: event.isRecurring || false,
-    visibility: event.visibility || 'public'
-  }));
-
-  const [isStartDateOpen, setIsStartDateOpen] = useState(false);
-  const [isEndDateOpen, setIsEndDateOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
     const errors: Record<string, string> = {};

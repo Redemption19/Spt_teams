@@ -9,6 +9,8 @@ import { Building } from 'lucide-react';
 
 interface DepartmentReportsChartProps {
   data: DepartmentReportsData[];
+  showAllWorkspaces?: boolean;
+  workspaceCount?: number;
 }
 
 const chartConfig = {
@@ -188,4 +190,4 @@ export function DepartmentReportsChart({ data }: DepartmentReportsChartProps) {
       </CardContent>
     </Card>
   );
-} 
+}
