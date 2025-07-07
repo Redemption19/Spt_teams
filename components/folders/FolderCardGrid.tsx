@@ -28,6 +28,7 @@ import {
 
 import { Folder } from '@/lib/types';
 import { useFolderPermissions } from '@/lib/rbac-hooks';
+import { useUserName } from '@/hooks/use-user-names';
 
 interface FolderCardGridProps {
   folders: Folder[];
@@ -130,6 +131,7 @@ export default function FolderCardGrid({
   // Create a separate component for folder card to properly use hooks
   const FolderCard = ({ folder }: { folder: Folder }) => {
     const permissions = useFolderPermissions(folder);
+    const { userName, loading: userNameLoading } = useUserName(folder.createdBy);
     
     return (
       <Card 
@@ -259,7 +261,7 @@ export default function FolderCardGrid({
             
             <div className="flex items-center space-x-1 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
-              <span>{folder.createdBy}</span>
+              <span>{userNameLoading ? folder.createdBy : userName}</span>
             </div>
           </div>
         </CardContent>

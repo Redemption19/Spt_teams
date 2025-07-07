@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Loader2, Users, Building, AlertCircle, LayoutGrid, List, ArrowUpDown, MoreVertical, Eye, Calendar, FileText, Download } from 'lucide-react';
+import { Loader2, Users, Building, AlertCircle, LayoutGrid, List, ArrowUpDown, MoreVertical, Eye, Calendar, FileText, Download, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
@@ -213,7 +215,7 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, canViewAllReports, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '', toast]);
+  }, [currentWorkspace?.id, user?.uid, canViewAllReports, isOwner, showAllWorkspaces, accessibleWorkspaces, toast]);
 
   useEffect(() => {
     loadData();
@@ -391,7 +393,7 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
           <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground" />
           <h3 className="text-lg font-medium">Access Restricted</h3>
           <p className="text-muted-foreground">
-            You don't have permission to view all reports. Contact your administrator.
+            You don&apos;t have permission to view all reports. Contact your administrator.
           </p>
         </div>
       </div>
@@ -399,31 +401,64 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
-      {/* Stats with cross-workspace indicators */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span>
-              {filteredReports.length} Reports
-              {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-                <span className="ml-1 text-green-600 dark:text-green-400">🌐</span>
-              )}
-            </span>
-          </div>
-          {currentWorkspace && (
-            <div className="flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              <Badge variant="secondary" className="text-xs">
-                {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 
-                  ? `${accessibleWorkspaces.length} Workspaces 🌐`
-                  : currentWorkspace.name
-                }
-              </Badge>
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{reports.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {filteredReports.length} filtered
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+            <AlertCircle className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {reports.filter(r => r.status === 'submitted' || r.status === 'under_review').length}
             </div>
-          )}
-        </div>
+            <p className="text-xs text-muted-foreground">
+              Awaiting approval
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <FileText className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {reports.filter(r => r.status === 'approved').length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Successfully approved
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Templates</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{templates.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Active templates
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Show report review view */}
@@ -455,70 +490,110 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
             </div>
           ) : (
             <>
-              {/* Filter Panel */}
-              <FilterPanel
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={clearFilters}
-                templates={templates}
-                users={users}
-                departments={departments}
-                resultsCount={filteredReports.length}
-              />
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search by report title or author name..."
+                      value={filters.search}
+                      onChange={(e) => handleFilterChange({ search: e.target.value })}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                
+                <Select value={filters.status} onValueChange={(value) => handleFilterChange({ status: value as StatusFilter })}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="under_review">Under Review</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* View Toggle Tabs */}
-              <Tabs value={displayMode} onValueChange={(value) => setDisplayMode(value as DisplayMode)} className="space-y-4">
-                <TabsList className="grid w-full max-w-[200px] grid-cols-2">
-                  <TabsTrigger value="grid" className="flex items-center gap-2">
-                    <LayoutGrid className="h-4 w-4" />
-                    Grid
-                    {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                  </TabsTrigger>
-                  <TabsTrigger value="table" className="flex items-center gap-2">
-                    <List className="h-4 w-4" />
-                    Table
-                    {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                  </TabsTrigger>
-                </TabsList>
+                <Select value={filters.department} onValueChange={(value) => handleFilterChange({ department: value })}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map(dept => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                <TabsContent value="grid" className="space-y-4">
-                  <ReportList
-                    reports={filteredReports}
-                    templates={templates}
-                    users={users}
-                    departments={departments}
-                    onViewReport={handleViewReport}
-                    loading={false}
-                  />
-                </TabsContent>
+                <Select value={filters.template} onValueChange={(value) => handleFilterChange({ template: value })}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="All Templates" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Templates</SelectItem>
+                    {templates.map(template => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <TabsContent value="table" className="space-y-4">
-                  {/* Table View */}
+              {/* View Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-medium">{filteredReports.length} results</span>
+                  {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+                    <Badge variant="outline" className="text-xs">
+                      🌐 Cross-workspace
+                    </Badge>
+                  )}
+                </div>
+                <Tabs value={displayMode} onValueChange={(value) => setDisplayMode(value as DisplayMode)}>
+                  <TabsList className="grid w-full max-w-[180px] grid-cols-2">
+                    <TabsTrigger value="grid" className="flex items-center gap-2 text-xs">
+                      <LayoutGrid className="h-3 w-3" />
+                      Grid
+                    </TabsTrigger>
+                    <TabsTrigger value="table" className="flex items-center gap-2 text-xs">
+                      <List className="h-3 w-3" />
+                      Table
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Content */}
+              {displayMode === 'grid' ? (
+                <ReportList
+                  reports={filteredReports}
+                  templates={templates}
+                  users={users}
+                  departments={departments}
+                  onViewReport={handleViewReport}
+                  loading={false}
+                />
+              ) : (
+                /* Table View */
+                <div className="space-y-4">
                   {filteredReports.length === 0 ? (
-                    <div className="border rounded-lg overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/50">
-                            <TableHead>Report</TableHead>
-                            <TableHead>Template</TableHead>
-                            <TableHead>Author</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Submitted</TableHead>
-                            <TableHead>Files</TableHead>
-                            <TableHead className="w-16">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-center py-12">
-                              <div className="space-y-3">
-                                <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
-                                <p className="text-muted-foreground">No reports found</p>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                    <div className="text-center py-12">
+                      <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">
+                        No reports found
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        Try adjusting your filters to see more results.
+                      </p>
                     </div>
                   ) : (
                     <>
@@ -744,8 +819,8 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
                       </div>
                     </>
                   )}
-                </TabsContent>
-              </Tabs>
+                </div>
+              )}
             </>
           )}
         </>
@@ -764,4 +839,4 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
       />
     </div>
   );
-} 
+}

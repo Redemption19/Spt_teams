@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,7 +19,8 @@ import {
   ClipboardList, 
   CheckSquare, 
   Download,
-  Settings
+  Settings,
+  Plus
 } from 'lucide-react';
 import { useRolePermissions, useIsAdminOrOwner, useIsOwner } from '@/lib/rbac-hooks';
 import { useAuth } from '@/lib/auth-context';
@@ -43,11 +44,18 @@ type ReportView =
 
 export function ReportsDropdown() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const viewParam = searchParams.get('view') as ReportView;
   const [currentView, setCurrentView] = useState<ReportView>(viewParam || 'my-reports');
   const permissions = useRolePermissions();
   const isAdminOrOwner = useIsAdminOrOwner();
   const isOwner = useIsOwner();
+  
+  // Function to update view and URL
+  const updateView = (newView: ReportView) => {
+    setCurrentView(newView);
+    router.push(`/dashboard/reports?view=${newView}`);
+  };
   
   // Cross-workspace management for owners
   const { user } = useAuth();
@@ -110,6 +118,50 @@ export function ReportsDropdown() {
     return baseDescription;
   };
 
+  const getViewActionButton = (view: ReportView) => {
+    switch (view) {
+      case 'report-templates':
+        return isAdminOrOwner ? (
+          <Button 
+            onClick={() => {
+              // This will be handled by the child component through a callback
+              const event = new CustomEvent('createTemplate');
+              window.dispatchEvent(event);
+            }}
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Template
+          </Button>
+        ) : null;
+      case 'submit-report':
+        return (
+          <Button 
+            onClick={() => {
+              const event = new CustomEvent('newReport');
+              window.dispatchEvent(event);
+            }}
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+          >
+            <Edit3 className="h-4 w-4 mr-2" />
+            New Report
+          </Button>
+        );
+      case 'my-reports':
+        return (
+          <Button 
+            onClick={() => updateView('submit-report')}
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Report
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
+
   const renderCurrentView = () => {
     // Pass cross-workspace props to child components
     const crossWorkspaceProps = {
@@ -144,7 +196,7 @@ export function ReportsDropdown() {
         <div className="space-y-4 sm:space-y-6">
           
           {/* Header with Dropdown Navigation */}
-          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
               <div className="space-y-1">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
@@ -157,8 +209,11 @@ export function ReportsDropdown() {
               </div>
             </div>
 
-            {/* Reports Dropdown Menu and Cross-Workspace Toggle */}
+            {/* Action Button, Reports Dropdown Menu and Cross-Workspace Toggle */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0 w-full sm:w-auto">
+              {/* View-specific action button - positioned on same line as dropdown */}
+              {getViewActionButton(currentView)}
+              
               {/* Cross-workspace toggle for owners */}
               {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
                 <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
@@ -200,7 +255,7 @@ export function ReportsDropdown() {
                   </DropdownMenuLabel>
                   
                   <DropdownMenuItem 
-                    onClick={() => setCurrentView('my-reports')}
+                    onClick={() => updateView('my-reports')}
                     className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/20">
@@ -216,7 +271,7 @@ export function ReportsDropdown() {
                   </DropdownMenuItem>
 
                   <DropdownMenuItem 
-                    onClick={() => setCurrentView('submit-report')}
+                    onClick={() => updateView('submit-report')}
                     className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/20">
@@ -240,7 +295,7 @@ export function ReportsDropdown() {
                       </DropdownMenuLabel>
 
                       <DropdownMenuItem 
-                        onClick={() => setCurrentView('all-reports')}
+                        onClick={() => updateView('all-reports')}
                         className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                       >
                         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/20">
@@ -256,7 +311,7 @@ export function ReportsDropdown() {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem 
-                        onClick={() => setCurrentView('report-templates')}
+                        onClick={() => updateView('report-templates')}
                         className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                       >
                         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20">
@@ -272,7 +327,7 @@ export function ReportsDropdown() {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem 
-                        onClick={() => setCurrentView('reports-dashboard')}
+                        onClick={() => updateView('reports-dashboard')}
                         className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                       >
                         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/20">
@@ -288,7 +343,7 @@ export function ReportsDropdown() {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem 
-                        onClick={() => setCurrentView('pending-approvals')}
+                        onClick={() => updateView('pending-approvals')}
                         className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                       >
                         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
@@ -304,7 +359,7 @@ export function ReportsDropdown() {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem 
-                        onClick={() => setCurrentView('export-reports')}
+                        onClick={() => updateView('export-reports')}
                         className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
                       >
                         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/20">

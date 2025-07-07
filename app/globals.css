@@ -232,4 +232,125 @@
 .custom-scrollbar::-webkit-scrollbar-track {
   background: hsl(var(--background));
 }
+
+/* Global custom scrollbar with brand colors */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.3) hsl(var(--background));
+}
+
+/* Webkit scrollbar styling for all elements */
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.6), hsl(var(--accent) / 0.6));
+  border-radius: 10px;
+  border: 2px solid hsl(var(--background));
+  transition: all 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.8), hsl(var(--accent) / 0.8));
+  border: 1px solid hsl(var(--background));
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+}
+
+*::-webkit-scrollbar-corner {
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Enhanced scrollbar for dark mode */
+.dark *::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.2);
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.7), hsl(var(--accent) / 0.7));
+  border: 2px solid hsl(var(--background));
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--accent) / 0.9));
+  border: 1px solid hsl(var(--background));
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.3);
+}
+
+.dark *::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.4);
+}
+
+.dark *::-webkit-scrollbar-corner {
+  background: hsl(var(--muted) / 0.2);
+}
+
+/* Firefox scrollbar colors */
+.dark * {
+  scrollbar-color: hsl(var(--primary) / 0.7) hsl(var(--muted) / 0.2);
+}
+
+/* Subtle scrollbar for input fields and textareas */
+input::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+input::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 6px;
+}
+
+input::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Thin scrollbar for dropdowns and menus */
+.dropdown-content::-webkit-scrollbar,
+.menu-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb,
+.menu-content::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover,
+.menu-content::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.6);
+}
+
+/* Voice chat animations */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes voiceWave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.5); }
+}
+
+.animate-voice-wave {
+  animation: voiceWave 0.8s ease-in-out infinite;
+}
 }

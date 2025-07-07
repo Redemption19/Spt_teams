@@ -204,6 +204,19 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
     loadData();
   }, [currentWorkspace?.id, loadData]);
 
+  // Handle custom event from parent for Create Template button
+  useEffect(() => {
+    const handleCreateTemplate = () => {
+      if (isAdminOrOwner) {
+        initializeForm();
+        setCurrentView('create');
+      }
+    };
+
+    window.addEventListener('createTemplate', handleCreateTemplate);
+    return () => window.removeEventListener('createTemplate', handleCreateTemplate);
+  }, [isAdminOrOwner]);
+
   // Early return if user is not available
   if (!user || !userProfile) {
     return (
@@ -667,25 +680,6 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
   // Default list view
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Report Templates
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Create and manage dynamic report templates for your workspace
-          </p>
-        </div>
-        <Button 
-          onClick={handleCreateTemplate}
-          className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Template
-        </Button>
-      </div>
-
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="card-interactive">

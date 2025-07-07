@@ -107,7 +107,7 @@ export class TaskService {
 
       return tasks;
     } catch (error) {
-      console.error('Error getting workspace tasks:', error);
+      console.error('❌ TaskService - Error getting workspace tasks:', error);
       throw new Error('Failed to get workspace tasks');
     }
   }
@@ -570,7 +570,7 @@ export class TaskService {
 
       return tasks;
     } catch (error) {
-      console.error('Error getting user assigned tasks:', error);
+      console.error('❌ TaskService - Error getting user assigned tasks:', error);
       throw new Error('Failed to get user assigned tasks');
     }
   }

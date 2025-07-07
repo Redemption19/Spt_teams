@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Loader2, Building } from 'lucide-react';
+import { Plus, ArrowLeft, Loader2, Building, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
@@ -164,7 +165,7 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, userProfile, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '', toast]);
+  }, [currentWorkspace?.id, user?.uid, userProfile, isOwner, showAllWorkspaces, accessibleWorkspaces, toast]);
 
   useEffect(() => {
     loadData();
@@ -361,20 +362,22 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
   // Show edit form
   if (viewMode === 'edit' && selectedReport && selectedTemplate) {
     return (
-      <div className="space-y-6 p-4 sm:p-6">
+      <div className="space-y-6">
         {/* Header with back button */}
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to My Reports
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {selectedReport.status === 'rejected' ? 'Resubmit Report' : 'Edit Report'}
-            </h1>
-            <p className="text-muted-foreground">
-              {selectedReport.status === 'rejected' ? 'Make changes and resubmit your report' : 'Update your report details'}
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to My Reports
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                {selectedReport.status === 'rejected' ? 'Resubmit Report' : 'Edit Report'}
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {selectedReport.status === 'rejected' ? 'Make changes and resubmit your report' : 'Update your report details'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -396,38 +399,66 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
 
   // Main reports list view
   return (
-    <div className="space-y-6 p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        {/* Department Badge with cross-workspace indicator */}
-        {userProfile?.departmentId && (
-          <div className="flex items-center gap-2">
-            <Building className="h-4 w-4 text-muted-foreground" />
-            <Badge variant="secondary" className="text-xs">
-              {userProfile.department || 'Department Member'}
-              {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-                <span className="ml-1 text-green-600 dark:text-green-400">🌐</span>
-              )}
-            </Badge>
-          </div>
-        )}
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{reports.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {filteredReports.length} filtered
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Cross-workspace stats indicator */}
-        {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              {filteredReports.length} Reports across {accessibleWorkspaces.length} Workspaces 🌐
-            </Badge>
-          </div>
-        )}
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Draft Reports</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {reports.filter(r => r.status === 'draft').length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pending completion
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Create New Report Button */}
-        <Link href="/dashboard/reports?view=submit-report">
-          <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            New Report
-            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-          </Button>
-        </Link>
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {reports.filter(r => r.status === 'approved').length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Successfully approved
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-interactive">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+            <XCircle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {reports.filter(r => r.status === 'rejected').length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Need attention
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {loading ? (

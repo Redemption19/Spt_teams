@@ -320,10 +320,10 @@ export default function WorkspacePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
-                  You're in a Sub-Workspace
+                  You&apos;re in a Sub-Workspace
                 </h4>
                 <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-400 leading-relaxed">
-                  The <strong>"Allow Admin Workspace Creation"</strong> setting is per-workspace. If you want to create workspaces, ask the owner to enable this setting in <strong>this specific workspace</strong>
+                  The <strong>Allow Admin Workspace Creation</strong> setting is per-workspace. If you want to create workspaces, ask the owner to enable this setting in <strong>this specific workspace</strong>
                 </p>
               </div>
             </div>

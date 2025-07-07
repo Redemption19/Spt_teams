@@ -55,6 +55,14 @@ export interface RolePermissions {
   canManageCalendarSettings: boolean;
   canViewReportDeadlines: boolean;
   canManageReportDeadlines: boolean;
+  
+  // === AI ASSISTANT PERMISSIONS ===
+  canAccessAI: boolean;
+  canUseAIRecommendations: boolean;
+  canApplyAIRecommendations: boolean;
+  canViewAIInsights: boolean;
+  canManageAISettings: boolean;
+  canUseAdvancedAIFeatures: boolean;
 }
 
 export function useRolePermissions(): RolePermissions {
@@ -112,6 +120,14 @@ export function useRolePermissions(): RolePermissions {
     canManageCalendarSettings: userRole === 'owner' || userRole === 'admin',
     canViewReportDeadlines: true, // Everyone can view report deadlines
     canManageReportDeadlines: userRole === 'owner' || userRole === 'admin',
+    
+    // === AI ASSISTANT PERMISSIONS ===
+    canAccessAI: true, // Everyone can access basic AI features
+    canUseAIRecommendations: true, // Everyone can view AI recommendations
+    canApplyAIRecommendations: userRole === 'owner' || userRole === 'admin', // Only admins+ can apply recommendations
+    canViewAIInsights: true, // Everyone can view AI insights
+    canManageAISettings: userRole === 'owner', // Only owners can manage AI settings
+    canUseAdvancedAIFeatures: userRole === 'owner' || userRole === 'admin', // Advanced features for admins+
   };
 
   return permissions;
