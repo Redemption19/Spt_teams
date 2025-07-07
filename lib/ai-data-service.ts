@@ -126,5 +126,6 @@ export type {
   UserActivity,
   TeamInsights,
   WorkspaceAnalytics,
-  CalendarInsights
+  CalendarInsights,
+  MeetingSuggestion
 } from './ai-types/ai-interfaces';
