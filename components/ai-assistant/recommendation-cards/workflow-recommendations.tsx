@@ -50,12 +50,12 @@ export default function WorkflowRecommendations() {
 
       // Transform raw activity data into the expected format for AI context
       const userActivity = rawUserActivity ? {
-        recentTasks: rawUserActivity.filter(a => a.type === 'task').slice(0, 10),
-        completedProjects: rawUserActivity.filter(a => a.type === 'project' && a.action === 'completed'),
-        teamCollaborations: rawUserActivity.filter(a => a.type === 'collaboration'),
-        loginFrequency: personalMetrics?.loginFrequency || 'Regular',
-        activeHours: personalMetrics?.activeHours || [],
-        preferredWorkflows: personalMetrics?.workflowPreferences || []
+        recentTasks: rawUserActivity.filter(a => a.entity === 'task').slice(0, 10),
+        completedProjects: rawUserActivity.filter(a => a.entity === 'project' && a.action === 'completed'),
+        teamCollaborations: rawUserActivity.filter(a => a.entity === 'collaboration'),
+        loginFrequency: 'Regular',
+        activeHours: [],
+        preferredWorkflows: []
       } : undefined;
 
       // Prepare context for AI service

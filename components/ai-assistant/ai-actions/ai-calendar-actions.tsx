@@ -116,7 +116,7 @@ export default function AICalendarActions() {
       type: suggestion.type,
       requiresAdvanced: userRole === 'member' ? false : true,
       suggestions: [{
-        time: suggestion.time,
+        time: suggestion.suggestedTime.toLocaleString(),
         attendees: suggestion.attendees,
         confidence: suggestion.confidence,
         reason: suggestion.reason
@@ -134,7 +134,7 @@ export default function AICalendarActions() {
         type: 'Executive',
         requiresAdvanced: true,
         suggestions: calendarInsights.suggestedMeetingTimes.filter(s => s.type === 'Executive').map(s => ({
-          time: s.time,
+          time: s.suggestedTime.toLocaleString(),
           attendees: s.attendees,
           confidence: s.confidence,
           reason: s.reason
@@ -149,10 +149,10 @@ export default function AICalendarActions() {
         title: 'Team Meeting Optimization',
         description: 'AI-suggested meeting slots based on team availability and productivity patterns',
         icon: Clock,
-        type: 'Team Management',
+        type: 'Team Meeting',
         requiresAdvanced: true,
         suggestions: calendarInsights.suggestedMeetingTimes.filter(s => s.type === 'Team Meeting').map(s => ({
-          time: s.time,
+          time: s.suggestedTime.toLocaleString(),
           attendees: s.attendees,
           confidence: s.confidence,
           reason: s.reason
@@ -376,11 +376,11 @@ export default function AICalendarActions() {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium text-sm">{conflict.title}</span>
                         <Badge variant="destructive" className="text-xs">
-                          {conflict.priority}
+                          Conflict
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {conflict.start.toLocaleString()}
+                        {conflict.start.toLocaleString()} - Conflicts with: {conflict.conflictWith}
                       </div>
                     </div>
                   </div>

@@ -195,7 +195,7 @@ export default function AIReportActions() {
                   }`} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{metric.metric}</p>
+                  <p className="text-sm text-muted-foreground">{metric.name}</p>
                   <div className="flex items-center gap-2">
                     <p className="text-2xl font-bold">{metric.value}</p>
                     <Badge 
@@ -228,7 +228,7 @@ export default function AIReportActions() {
             <p className="text-xs mt-1">Generate reports to see AI analysis</p>
           </Card>
         ) : (
-          reportInsights.generatedReports.map((insight) => {
+          reportInsights.generatedReports.map((insight, index) => {
             const getIconForType = (type: string) => {
               switch (type) {
                 case 'performance': return FileBarChart;
@@ -243,7 +243,7 @@ export default function AIReportActions() {
             const requiresAdvanced = userRole === 'member' && insight.type === 'forecast';
             
             return (
-              <Card key={insight.id} className="border-l-4 border-l-green-500">
+              <Card key={`insight-${index}`} className="border-l-4 border-l-green-500">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -260,7 +260,7 @@ export default function AIReportActions() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {insight.description}
+                          Generated on {insight.date}
                         </p>
                       </div>
                     </div>
@@ -269,58 +269,14 @@ export default function AIReportActions() {
                 </CardHeader>
 
                 <CardContent className="pt-0">
-                  {insight.insights.length > 0 && (
-                    <div className="space-y-3 mb-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {insight.insights.map((metric: any, index: number) => (
-                          <div key={index} className="p-3 bg-muted/50 rounded-lg">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-sm font-medium">{metric.metric}</p>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${
-                                  metric.trend === 'up' 
-                                    ? 'text-green-600 border-green-200' 
-                                    : metric.trend === 'down'
-                                    ? 'text-red-600 border-red-200'
-                                    : 'text-blue-600 border-blue-200'
-                                }`}
-                              >
-                                {metric.change}
-                              </Badge>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{metric.value}</p>
-                            {metric.description && (
-                              <p className="text-xs text-muted-foreground mt-1">{metric.description}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-sm text-blue-800 dark:text-blue-200">
-                          Key Finding
-                        </p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                          {insight.keyFinding}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="mt-4 pt-3 border-t">
                     <Button
-                      onClick={() => handleAction(insight.id, requiresAdvanced)}
-                      disabled={isGenerating === insight.id || (!permissions.canApplyAIRecommendations)}
+                      onClick={() => handleAction(`insight-${index}`, requiresAdvanced)}
+                      disabled={isGenerating === `insight-${index}` || (!permissions.canApplyAIRecommendations)}
                       className="w-full"
                       variant="outline"
                     >
-                      {isGenerating === insight.id ? (
+                      {isGenerating === `insight-${index}` ? (
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Generating...
@@ -375,14 +331,14 @@ export default function AIReportActions() {
                     <Badge 
                       variant="outline" 
                       className={
-                        draft.status === 'ready' 
-                          ? 'bg-green-50 text-green-700 border-green-200' 
-                          : draft.status === 'pending'
+                        draft.priority === 'high' 
+                          ? 'bg-red-50 text-red-700 border-red-200' 
+                          : draft.priority === 'medium'
                           ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                          : 'bg-red-50 text-red-700 border-red-200'
+                          : 'bg-green-50 text-green-700 border-green-200'
                       }
                     >
-                      {draft.status}
+                      {draft.priority} priority
                     </Badge>
                   </div>
                 </CardHeader>
@@ -392,7 +348,7 @@ export default function AIReportActions() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        Last generated: {draft.lastGenerated}
+                        Estimated time: {draft.estimatedTime || 'Unknown'}
                       </div>
                       <div className="flex items-center gap-2">
                         <Target className="h-4 w-4" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RegisterForm } from '@/components/auth/register-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { TeamService } from '@/lib/team-service';
 import { Invitation, Workspace, Team } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
-export default function InvitePage() {
+function InvitePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -199,7 +199,7 @@ export default function InvitePage() {
                 <CheckCircle className="h-5 w-5 text-purple-600" />
                 <div>
                   <p className="font-medium text-gray-900">Role</p>
-                  <p className="text-sm text-gray-600 capitalize">{invitation.role}</p>
+                  <p className="text-sm text-gray-600">{invitation.role}</p>
                 </div>
               </div>
             </div>
@@ -264,5 +264,24 @@ export default function InvitePage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+        <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
+              <p className="text-gray-600">Loading invitation...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <InvitePageContent />
+    </Suspense>
   );
 }
