@@ -6,27 +6,69 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
-import { Chrome, Mail, Lock } from 'lucide-react';
+import { Chrome, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { FirebaseError } from 'firebase/app';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
+
+  const getErrorMessage = (error: FirebaseError): string => {
+    switch (error.code) {
+      case 'auth/user-not-found':
+        return 'No account found with this email address. Please check your email or create a new account.';
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again or use "Forgot your password?" to reset it.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled. Please contact support.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later or reset your password.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your internet connection and try again.';
+      default:
+        return 'An error occurred during sign in. Please try again.';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       await signIn(email, password);
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (error) {
-      toast.error('Invalid email or password');
+      console.error('Login error:', error);
+      
+      if (error instanceof FirebaseError) {
+        const errorMessage = getErrorMessage(error);
+        setError(errorMessage);
+        
+        // Also show toast for immediate feedback
+        if (error.code === 'auth/wrong-password') {
+          toast.error('Incorrect password. Please try again.');
+        } else if (error.code === 'auth/user-not-found') {
+          toast.error('No account found with this email.');
+        } else {
+          toast.error(errorMessage);
+        }
+      } else {
+        const genericError = 'An unexpected error occurred. Please try again.';
+        setError(genericError);
+        toast.error(genericError);
+      }
     } finally {
       setLoading(false);
     }
@@ -34,15 +76,31 @@ export function LoginForm() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
       await signInWithGoogle();
       toast.success('Welcome!');
       router.push('/dashboard');
     } catch (error) {
-      toast.error('Google sign-in failed');
+      console.error('Google sign-in error:', error);
+      
+      if (error instanceof FirebaseError) {
+        const errorMessage = getErrorMessage(error);
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        const genericError = 'Google sign-in failed. Please try again.';
+        setError(genericError);
+        toast.error(genericError);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearError = () => {
+    setError(null);
   };
 
   return (
@@ -62,6 +120,15 @@ export function LoginForm() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {error && (
+            <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-900/20">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Button
             variant="outline"
             className="w-full h-12 border-2 border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
@@ -95,9 +162,13 @@ export function LoginForm() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) clearError();
+                  }}
                   className="pl-10 h-12 transition-all duration-200 focus:border-primary/50"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -109,13 +180,25 @@ export function LoginForm() {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-12 transition-all duration-200 focus:border-primary/50"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) clearError();
+                  }}
+                  className="pl-10 pr-10 h-12 transition-all duration-200 focus:border-primary/50"
                   required
+                  disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
             <Button 
@@ -131,6 +214,7 @@ export function LoginForm() {
             <button 
               onClick={() => router.push('/reset-password')}
               className="text-sm text-primary hover:text-accent font-medium transition-colors duration-200 hover:underline"
+              disabled={loading}
             >
               Forgot your password?
             </button>
@@ -139,6 +223,7 @@ export function LoginForm() {
               <button 
                 onClick={() => router.push('/register')}
                 className="text-primary hover:text-accent font-medium transition-colors duration-200 hover:underline"
+                disabled={loading}
               >
                 Create account
               </button>

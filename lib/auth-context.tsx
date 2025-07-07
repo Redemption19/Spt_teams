@@ -113,30 +113,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    
-    // Log login activity
     try {
-      const { ActivityService } = await import('./activity-service');
-      const { UserService } = await import('./user-service');
+      const result = await signInWithEmailAndPassword(auth, email, password);
       
-      const userProfile = await UserService.getUserById(result.user.uid);
-      if (userProfile) {
-        await ActivityService.logActivity(
-          'user_login',
-          'user',
-          result.user.uid,
-          { 
-            targetName: userProfile.name,
-            email: userProfile.email,
-            loginMethod: 'email'
-          },
-          userProfile.workspaceId,
-          result.user.uid
-        );
+      // Log login activity
+      try {
+        const { ActivityService } = await import('./activity-service');
+        const { UserService } = await import('./user-service');
+        
+        const userProfile = await UserService.getUserById(result.user.uid);
+        if (userProfile) {
+          await ActivityService.logActivity(
+            'user_login',
+            'user',
+            result.user.uid,
+            { 
+              targetName: userProfile.name,
+              email: userProfile.email,
+              loginMethod: 'email'
+            },
+            userProfile.workspaceId,
+            result.user.uid
+          );
+        }
+      } catch (error) {
+        console.warn('Warning: Could not log login activity:', error);
       }
     } catch (error) {
-      console.warn('Warning: Could not log login activity:', error);
+      // Re-throw the error so it can be handled by the login form
+      throw error;
     }
   };
 
@@ -184,34 +189,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    
-    // Check if this is a new user
-    const { UserService } = await import('./user-service');
-    const existingProfile = await UserService.getUserById(result.user.uid);
-    
-    if (!existingProfile) {
-      setIsNewUser(true);
-    } else {
-      // Log login activity for existing users
-      try {
-        const { ActivityService } = await import('./activity-service');
-        await ActivityService.logActivity(
-          'user_login',
-          'user',
-          result.user.uid,
-          { 
-            targetName: existingProfile.name,
-            email: existingProfile.email,
-            loginMethod: 'google'
-          },
-          existingProfile.workspaceId,
-          result.user.uid
-        );
-      } catch (error) {
-        console.warn('Warning: Could not log Google login activity:', error);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Check if this is a new user
+      const { UserService } = await import('./user-service');
+      const existingProfile = await UserService.getUserById(result.user.uid);
+      
+      if (!existingProfile) {
+        setIsNewUser(true);
+      } else {
+        // Log login activity for existing users
+        try {
+          const { ActivityService } = await import('./activity-service');
+          await ActivityService.logActivity(
+            'user_login',
+            'user',
+            result.user.uid,
+            { 
+              targetName: existingProfile.name,
+              email: existingProfile.email,
+              loginMethod: 'google'
+            },
+            existingProfile.workspaceId,
+            result.user.uid
+          );
+        } catch (error) {
+          console.warn('Warning: Could not log Google login activity:', error);
+        }
       }
+    } catch (error) {
+      // Re-throw the error so it can be handled by the login form
+      throw error;
     }
   };
 
