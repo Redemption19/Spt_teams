@@ -58,7 +58,7 @@ export function useUserNames(userIds: string[]) {
 
   useEffect(() => {
     fetchUserNames(userIds);
-  }, [userIds, fetchUserNames]);
+  }, [userIds]); // Removed fetchUserNames from dependencies to prevent infinite loop
 
   return { userNames, loading };
 }

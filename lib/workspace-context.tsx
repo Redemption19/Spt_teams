@@ -23,7 +23,7 @@ interface WorkspaceContextType {
   accessibleWorkspaces: Workspace[];
   
   // Workspace management
-  switchWorkspace: (workspaceId: string) => Promise<void>;
+  switchToWorkspace: (workspaceId: string) => Promise<void>;
   refreshWorkspaces: () => Promise<void>;
   refreshCurrentWorkspace: () => Promise<void>;
   createWorkspace: (data: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
@@ -65,37 +65,32 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
   const [canCreateSubWorkspace, setCanCreateSubWorkspace] = useState(false);
   const [accessibleWorkspaces, setAccessibleWorkspaces] = useState<Workspace[]>([]);
 
-  // Load user workspaces with hierarchical data
+  // Memoize loadUserWorkspaces to prevent infinite loops
   const loadUserWorkspaces = useCallback(async () => {
     if (!userId) return;
     
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // console.log(`DEBUG: WorkspaceContext.loadUserWorkspaces called for userId: ${userId}`);
-      
-      // Load basic workspace relationships
       const workspaces = await WorkspaceService.getUserWorkspaces(userId);
-      // console.log(`DEBUG: getUserWorkspaces returned:`, workspaces);
       setUserWorkspaces(workspaces);
       
-      // Load hierarchical workspace data
-      const hierarchicalData = await WorkspaceService.getUserAccessibleWorkspaces(userId);
-      setMainWorkspaces(hierarchicalData.mainWorkspaces);
-      setSubWorkspaces(hierarchicalData.subWorkspaces);
+      // Extract main and sub workspaces
+      const mains = workspaces.filter(uw => uw.workspace.workspaceType === 'main').map(uw => uw.workspace);
+      const subs: { [parentId: string]: Workspace[] } = {};
       
-      // Create flat list of accessible workspaces
-      const allAccessible: Workspace[] = [
-        ...hierarchicalData.mainWorkspaces,
-        ...Object.values(hierarchicalData.subWorkspaces).flat()
-      ];
-      setAccessibleWorkspaces(allAccessible);
+      workspaces
+        .filter(uw => uw.workspace.workspaceType === 'sub')
+        .forEach(uw => {
+          const parentId = uw.workspace.parentWorkspaceId;
+          if (parentId) {
+            if (!subs[parentId]) subs[parentId] = [];
+            subs[parentId].push(uw.workspace);
+          }
+        });
       
-      console.log('Loaded hierarchical workspace data:', {
-        mainWorkspaces: hierarchicalData.mainWorkspaces.length,
-        subWorkspaces: Object.keys(hierarchicalData.subWorkspaces).length,
-        totalAccessible: allAccessible.length
-      });
+      setMainWorkspaces(mains);
+      setSubWorkspaces(subs);
+      setAccessibleWorkspaces(workspaces.map(uw => uw.workspace));
       
     } catch (error) {
       console.error('Error loading user workspaces:', error);
@@ -123,114 +118,80 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
     }
   }, [userId, loadUserWorkspaces]);
 
-  // Load current workspace and set context
-  useEffect(() => {
-    if (userWorkspaces.length > 0 && accessibleWorkspaces.length > 0) {
-      loadCurrentWorkspaceContext();
-    }
-  }, [userWorkspaces, accessibleWorkspaces]);
-
-  // Update context when current workspace changes
-  useEffect(() => {
-    if (currentWorkspace && userId) {
-      updateWorkspaceContext();
-    }
-  }, [currentWorkspace, userId]);
-
-  // Real-time workspace settings listener
-  useEffect(() => {
-    if (!currentWorkspace?.id) return;
-
-    const workspaceRef = doc(db, 'workspaces', currentWorkspace.id);
-    
-    const unsubscribe = onSnapshot(workspaceRef, (docSnapshot) => {
-      if (docSnapshot.exists()) {
-        const data = docSnapshot.data();
-        const updatedWorkspace = {
-          id: docSnapshot.id,
-          ...data,
-          createdAt: data.createdAt?.toDate?.() || data.createdAt,
-          updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
-        } as Workspace;
-        
-        // Check for changes, especially the critical allowAdminWorkspaceCreation setting
-        const currentSettings = currentWorkspace.settings;
-        const newSettings = updatedWorkspace.settings;
-        
-        const currentAllowAdmin = currentSettings?.allowAdminWorkspaceCreation;
-        const newAllowAdmin = newSettings?.allowAdminWorkspaceCreation;
-        const adminPermissionChanged = currentAllowAdmin !== newAllowAdmin;
-        
-        const settingsChanged = JSON.stringify(currentSettings) !== JSON.stringify(newSettings);
-        
-        // Force update if critical admin permission changed or any settings changed
-        if (settingsChanged || adminPermissionChanged) {
-          // Update the workspace context
-          setCurrentWorkspace(updatedWorkspace);
-          
-          // Notify user of settings change (especially important for admin users)
-          if (typeof window !== 'undefined') {
-            const event = new CustomEvent('workspaceSettingsChanged', {
-              detail: {
-                workspaceId: updatedWorkspace.id,
-                workspaceName: updatedWorkspace.name,
-                newSettings: updatedWorkspace.settings,
-                adminPermissionChanged
-              }
-            });
-            window.dispatchEvent(event);
-          }
-        }
-      }
-    });
-
-    // Cleanup function
-    return () => {
-      unsubscribe();
-    };
-  }, [currentWorkspace?.id]);
-
-  const loadCurrentWorkspaceContext = async () => {
+  // Memoize switchToWorkspace to prevent infinite loops
+  const switchToWorkspace = useCallback(async (workspace: Workspace) => {
     try {
-      // console.log(`DEBUG: loadCurrentWorkspaceContext called`);
-      // console.log(`DEBUG: accessibleWorkspaces.length: ${accessibleWorkspaces.length}`);
-      // console.log(`DEBUG: mainWorkspaces.length: ${mainWorkspaces.length}`);
+      // Find user's role in this workspace
+      const userWorkspace = userWorkspaces.find(uw => uw.workspace.id === workspace.id);
+      const role = userWorkspace?.role || null;
       
+      // Update state
+      setCurrentWorkspace(workspace);
+      setUserRole(role);
+      
+      // Save to localStorage
+      localStorage.setItem('currentWorkspaceId', workspace.id);
+      
+      // Update user's active workspace in database
+      if (userId) {
+        await WorkspaceService.switchUserWorkspace(userId, workspace.id);
+      }
+      
+      console.log(`Switched to workspace: ${workspace.name} (${workspace.workspaceType}) with role: ${role}`);
+    } catch (error) {
+      console.error('Error switching to workspace:', error);
+      throw error;
+    }
+  }, [userWorkspaces, userId]);
+
+  // Helper function to switch to workspace by ID
+  const switchToWorkspaceById = useCallback(async (workspaceId: string) => {
+    const workspace = accessibleWorkspaces.find(w => w.id === workspaceId);
+    if (!workspace) {
+      throw new Error(`Workspace with ID ${workspaceId} not found or not accessible`);
+    }
+    await switchToWorkspace(workspace);
+  }, [accessibleWorkspaces, switchToWorkspace]);
+
+  // Memoize loadCurrentWorkspaceContext to prevent infinite loops
+  const loadCurrentWorkspaceContext = useCallback(async () => {
+    try {
       // Get saved workspace or default to first main workspace
       const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
-      // console.log(`DEBUG: savedWorkspaceId from localStorage: ${savedWorkspaceId}`);
       
       let targetWorkspace: Workspace | null = null;
       
       if (savedWorkspaceId) {
         targetWorkspace = accessibleWorkspaces.find(w => w.id === savedWorkspaceId) || null;
-        // console.log(`DEBUG: Found saved workspace:`, targetWorkspace);
       }
       
       // Default to first main workspace if no saved workspace
       if (!targetWorkspace && mainWorkspaces.length > 0) {
         targetWorkspace = mainWorkspaces[0];
-        // console.log(`DEBUG: Using first main workspace:`, targetWorkspace);
       }
       
       // If no main workspaces, use first accessible workspace
       if (!targetWorkspace && accessibleWorkspaces.length > 0) {
         targetWorkspace = accessibleWorkspaces[0];
-        // console.log(`DEBUG: Using first accessible workspace:`, targetWorkspace);
       }
       
       if (targetWorkspace) {
-        // console.log(`DEBUG: About to call switchToWorkspace with:`, targetWorkspace);
         await switchToWorkspace(targetWorkspace);
-      } else {
-        // console.log(`DEBUG: No target workspace found!`);
       }
     } catch (error) {
       console.error('Error loading current workspace context:', error);
     }
-  };
+  }, [accessibleWorkspaces, mainWorkspaces, switchToWorkspace]);
 
-  const updateWorkspaceContext = async () => {
+  // Load current workspace and set context
+  useEffect(() => {
+    if (userWorkspaces.length > 0 && accessibleWorkspaces.length > 0) {
+      loadCurrentWorkspaceContext();
+    }
+  }, [userWorkspaces.length, accessibleWorkspaces.length, loadCurrentWorkspaceContext]);
+
+  // Memoize updateWorkspaceContext to prevent infinite loops
+  const updateWorkspaceContext = useCallback(async () => {
     if (!currentWorkspace || !userId) return;
     
     try {
@@ -253,66 +214,14 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
     } catch (error) {
       console.error('Error updating workspace context:', error);
     }
-  };
+  }, [currentWorkspace, userId]);
 
-  const switchToWorkspace = async (workspace: Workspace) => {
-    try {
-      // console.log(`DEBUG: switchToWorkspace called for workspace: ${workspace.name} (${workspace.id})`);
-      // console.log(`DEBUG: Available userWorkspaces:`, userWorkspaces);
-      
-      // Find user's role in this workspace
-      const userWorkspace = userWorkspaces.find(uw => uw.workspace.id === workspace.id);
-      // console.log(`DEBUG: Found userWorkspace:`, userWorkspace);
-      
-      const role = userWorkspace?.role || null;
-      // console.log(`DEBUG: Determined role:`, role);
-      
-      // Update state
-      setCurrentWorkspace(workspace);
-      setUserRole(role);
-      
-      // Save to localStorage
-      localStorage.setItem('currentWorkspaceId', workspace.id);
-      
-      // Update user's active workspace in database
-      if (userId) {
-        await WorkspaceService.switchUserWorkspace(userId, workspace.id);
-      }
-      
-      console.log(`Switched to workspace: ${workspace.name} (${workspace.workspaceType}) with role: ${role}`);
-    } catch (error) {
-      console.error('Error switching to workspace:', error);
-      throw error;
+  // Update context when current workspace changes
+  useEffect(() => {
+    if (currentWorkspace && userId) {
+      updateWorkspaceContext();
     }
-  };
-
-  const switchWorkspace = async (workspaceId: string) => {
-    try {
-      let workspace: Workspace | undefined = accessibleWorkspaces.find(w => w.id === workspaceId);
-      
-      // If workspace not found in cache or we need fresh data, fetch from database
-      if (!workspace) {
-        console.log(`Workspace ${workspaceId} not found in cache, fetching from database...`);
-        const fetchedWorkspace = await WorkspaceService.getWorkspace(workspaceId);
-        workspace = fetchedWorkspace ?? undefined;
-        
-        if (!workspace) {
-          throw new Error('Workspace not accessible');
-        }
-        
-        // Verify user has access to this workspace
-        const userRole = await WorkspaceService.getUserRole(userId!, workspaceId);
-        if (!userRole) {
-          throw new Error('User does not have access to this workspace');
-        }
-      }
-      
-      await switchToWorkspace(workspace);
-    } catch (error) {
-      console.error('Error switching workspace:', error);
-      throw error;
-    }
-  };
+  }, [currentWorkspace?.id, userId, updateWorkspaceContext]);
 
   const refreshWorkspaces = async () => {
     await loadUserWorkspaces();
@@ -346,7 +255,7 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
       await refreshWorkspaces();
       
       // Switch to the new workspace
-      await switchWorkspace(workspaceId);
+      await switchToWorkspaceById(workspaceId);
       
       return workspaceId;
     } catch (error) {
@@ -372,7 +281,7 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Switch to the new sub-workspace (this will now fetch fresh data if needed)
-      await switchWorkspace(subWorkspaceId);
+      await switchToWorkspaceById(subWorkspaceId);
       
       return subWorkspaceId;
     } catch (error) {
@@ -418,7 +327,7 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
     accessibleWorkspaces,
     
     // Workspace management
-    switchWorkspace,
+    switchToWorkspace: switchToWorkspaceById,
     refreshWorkspaces,
     refreshCurrentWorkspace,
     createWorkspace,

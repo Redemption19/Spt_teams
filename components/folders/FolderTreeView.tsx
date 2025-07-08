@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react'; // Import memo
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-import { 
+import {
   ChevronRight,
   ChevronDown,
   FolderOpen,
@@ -32,11 +32,201 @@ import {
 import { Folder as FolderType } from '@/lib/types';
 import { useFolderPermissions } from '@/lib/rbac-hooks';
 
+// --- Helper Functions (Moved outside components) ---
+
+const getVisibilityIcon = (visibility: string) => {
+  switch (visibility) {
+    case 'public': return <Globe className="h-3 w-3 text-blue-500" />;
+    case 'team': return <Users className="h-3 w-3 text-green-500" />;
+    case 'project': return <FolderOpen className="h-3 w-3 text-purple-500" />;
+    default: return <Lock className="h-3 w-3 text-gray-500" />;
+  }
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'team': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
+    case 'member': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400';
+    case 'project': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+    case 'shared': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
+    default: return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
+  }
+};
+
+// --- FolderTreeNode Interface ---
 interface FolderTreeNode extends FolderType {
   children: FolderTreeNode[];
   isExpanded: boolean;
   level: number;
 }
+
+// --- TreeNode Component (Moved outside and memoized) ---
+
+interface TreeNodeProps {
+  node: FolderTreeNode;
+  expandedNodes: Set<string>;
+  onToggleExpanded: (nodeId: string) => void;
+  onFolderClick: (folder: FolderType) => void;
+  onEditFolder: (folder: FolderType) => void;
+  onDeleteFolder: (folder: FolderType) => void;
+  onCreateSubfolder?: (parentFolder: FolderType) => void;
+}
+
+const TreeNode = memo(function TreeNode({ // Wrapped with React.memo
+  node,
+  expandedNodes,
+  onToggleExpanded,
+  onFolderClick,
+  onEditFolder,
+  onDeleteFolder,
+  onCreateSubfolder
+}: TreeNodeProps) {
+  const permissions = useFolderPermissions(node);
+  const hasChildren = node.children.length > 0;
+  const isExpanded = expandedNodes.has(node.id);
+
+  return (
+    <div className="select-none">
+      <div
+        className={`group flex items-center space-x-2 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border-l-2 ${
+          node.level > 0 ? 'ml-2 sm:ml-6' : ''
+        } ${
+          node.isSystemFolder ? 'border-l-yellow-400' : 'border-l-transparent'
+        }`}
+        style={{ paddingLeft: `${Math.min(node.level * 16 + 12, 200)}px` }}
+      >
+        {/* Expand/Collapse Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 flex-shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasChildren) {
+              onToggleExpanded(node.id);
+            }
+          }}
+        >
+          {hasChildren ? (
+            isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
+          ) : (
+            <div className="h-4 w-4" />
+          )}
+        </Button>
+
+        {/* Folder Icon */}
+        <div className="flex-shrink-0">
+          {isExpanded ? (
+            <FolderOpen className="h-4 w-4 text-primary" />
+          ) : (
+            <Folder className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+
+        {/* Folder Info */}
+        <div
+          className="flex-1 min-w-0 flex items-center space-x-2"
+          onClick={() => onFolderClick(node)}
+        >
+          <span className="font-medium text-sm truncate">{node.name}</span>
+
+          <Badge className={`${getTypeColor(node.type)} text-xs hidden sm:inline-flex`}>
+            {node.type}
+          </Badge>
+
+          {node.isSystemFolder && (
+            <Badge variant="outline" className="text-xs hidden sm:inline-flex">
+              <Shield className="h-3 w-3 mr-1" />
+              System
+            </Badge>
+          )}
+
+          <div className="hidden sm:block">
+            {getVisibilityIcon(node.visibility)}
+          </div>
+        </div>
+
+        {/* File Count */}
+        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+          <FileText className="h-3 w-3" />
+          <span className="hidden sm:inline">{node.fileCount}</span>
+        </div>
+
+        {/* Actions */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {permissions.canOpen && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onFolderClick(node); }}>
+                <Eye className="h-4 w-4 mr-2" />
+                Open
+              </DropdownMenuItem>
+            )}
+            {permissions.canEdit && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditFolder(node); }}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+            )}
+            {permissions.canUpload && onCreateSubfolder && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateSubfolder(node); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Subfolder
+              </DropdownMenuItem>
+            )}
+            {permissions.canShare && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); }}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </DropdownMenuItem>
+            )}
+            {permissions.canDelete && (
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onDeleteFolder(node); }}
+                className="text-red-600 dark:text-red-400"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Render Children */}
+      {hasChildren && isExpanded && (
+        <div className="ml-2 sm:ml-4">
+          {node.children.map((child) => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              expandedNodes={expandedNodes}
+              onToggleExpanded={onToggleExpanded}
+              onFolderClick={onFolderClick}
+              onEditFolder={onEditFolder}
+              onDeleteFolder={onDeleteFolder}
+              onCreateSubfolder={onCreateSubfolder}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+// --- FolderTreeView Component ---
 
 interface FolderTreeViewProps {
   folders: FolderType[];
@@ -73,7 +263,7 @@ export default function FolderTreeView({
       const node: FolderTreeNode = {
         ...folder,
         children: [],
-        isExpanded: expandedNodes.has(folder.id),
+        isExpanded: expandedNodes.has(folder.id), // Initialize expanded state
         level: 0
       };
       nodeMap.set(folder.id, node);
@@ -101,30 +291,36 @@ export default function FolderTreeView({
     sortNodes(rootNodes);
 
     return rootNodes;
-  }, [folders, expandedNodes]);
+  }, [folders, expandedNodes]); // `expandedNodes` is a dependency because `isExpanded` is derived from it
 
-  // Filter tree based on search term
+  // Filter tree based on search term (corrected logic)
   const filteredTreeData = useMemo(() => {
     if (!searchTerm.trim()) return treeData;
 
-    const filterNodes = (nodes: FolderTreeNode[]): FolderTreeNode[] => {
-      return nodes.filter(node => {
-        const matchesSearch = node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             node.description?.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const filteredChildren = filterNodes(node.children);
-        
-        return matchesSearch || filteredChildren.length > 0;
-      }).map(node => ({
-        ...node,
-        children: filterNodes(node.children)
-      }));
+    const filterNodesRecursive = (nodes: FolderTreeNode[]): FolderTreeNode[] => {
+      const filtered: FolderTreeNode[] = [];
+      for (const node of nodes) {
+        const matchesNode = node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            node.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchedChildren = filterNodesRecursive(node.children); // Recursively filter children
+
+        if (matchesNode || matchedChildren.length > 0) {
+          filtered.push({
+            ...node,
+            children: matchedChildren,
+            // If a node or its children match, ensure its path is expanded
+            isExpanded: node.isExpanded || matchesNode || matchedChildren.length > 0,
+          });
+        }
+      }
+      return filtered;
     };
 
-    return filterNodes(treeData);
+    return filterNodesRecursive(treeData);
   }, [treeData, searchTerm]);
 
-  const toggleExpanded = (nodeId: string) => {
+  const toggleExpanded = useCallback((nodeId: string) => {
     setExpandedNodes(prev => {
       const newSet = new Set(prev);
       if (newSet.has(nodeId)) {
@@ -134,9 +330,9 @@ export default function FolderTreeView({
       }
       return newSet;
     });
-  };
+  }, []); // No dependencies needed as `prev` is used for state update
 
-  const expandAll = () => {
+  const expandAll = useCallback(() => {
     const allIds = new Set<string>();
     const collectIds = (nodes: FolderTreeNode[]) => {
       nodes.forEach(node => {
@@ -146,165 +342,11 @@ export default function FolderTreeView({
     };
     collectIds(treeData);
     setExpandedNodes(allIds);
-  };
+  }, [treeData]); // `treeData` is a dependency here
 
-  const collapseAll = () => {
+  const collapseAll = useCallback(() => {
     setExpandedNodes(new Set());
-  };
-
-  const getVisibilityIcon = (visibility: string) => {
-    switch (visibility) {
-      case 'public': return <Globe className="h-3 w-3 text-blue-500" />;
-      case 'team': return <Users className="h-3 w-3 text-green-500" />;
-      case 'project': return <FolderOpen className="h-3 w-3 text-purple-500" />;
-      default: return <Lock className="h-3 w-3 text-gray-500" />;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'team': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-      case 'member': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400';
-      case 'project': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-      case 'shared': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
-    }
-  };
-
-  const renderTreeNode = (node: FolderTreeNode, index: number) => {
-    const permissions = useFolderPermissions(node);
-    const hasChildren = node.children.length > 0;
-    const isExpanded = expandedNodes.has(node.id);
-
-    return (
-      <div key={node.id} className="select-none">
-        <div 
-          className={`group flex items-center space-x-2 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border-l-2 ${
-            node.level > 0 ? 'ml-2 sm:ml-6' : ''
-          } ${
-            node.isSystemFolder ? 'border-l-yellow-400' : 'border-l-transparent'
-          }`}
-          style={{ paddingLeft: `${Math.min(node.level * 16 + 12, 200)}px` }}
-        >
-          {/* Expand/Collapse Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 flex-shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (hasChildren) {
-                toggleExpanded(node.id);
-              }
-            }}
-          >
-            {hasChildren ? (
-              isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )
-            ) : (
-              <div className="h-4 w-4" />
-            )}
-          </Button>
-
-          {/* Folder Icon */}
-          <div className="flex-shrink-0">
-            {isExpanded ? (
-              <FolderOpen className="h-4 w-4 text-primary" />
-            ) : (
-              <Folder className="h-4 w-4 text-muted-foreground" />
-            )}
-          </div>
-
-          {/* Folder Info */}
-          <div 
-            className="flex-1 min-w-0 flex items-center space-x-2"
-            onClick={() => onFolderClick(node)}
-          >
-            <span className="font-medium text-sm truncate">{node.name}</span>
-            
-            <Badge className={`${getTypeColor(node.type)} text-xs hidden sm:inline-flex`}>
-              {node.type}
-            </Badge>
-            
-            {node.isSystemFolder && (
-              <Badge variant="outline" className="text-xs hidden sm:inline-flex">
-                <Shield className="h-3 w-3 mr-1" />
-                System
-              </Badge>
-            )}
-            
-            <div className="hidden sm:block">
-              {getVisibilityIcon(node.visibility)}
-            </div>
-          </div>
-
-          {/* File Count */}
-          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-            <FileText className="h-3 w-3" />
-            <span className="hidden sm:inline">{node.fileCount}</span>
-          </div>
-
-          {/* Actions */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {permissions.canOpen && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onFolderClick(node); }}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Open
-                </DropdownMenuItem>
-              )}
-              {permissions.canEdit && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditFolder(node); }}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-              )}
-              {permissions.canUpload && onCreateSubfolder && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateSubfolder(node); }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Subfolder
-                </DropdownMenuItem>
-              )}
-              {permissions.canShare && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); }}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </DropdownMenuItem>
-              )}
-              {permissions.canDelete && (
-                <DropdownMenuItem 
-                  onClick={(e) => { e.stopPropagation(); onDeleteFolder(node); }}
-                  className="text-red-600 dark:text-red-400"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Render Children */}
-        {hasChildren && isExpanded && (
-          <div className="ml-2 sm:ml-4">
-            {node.children.map((child, childIndex) => renderTreeNode(child, childIndex))}
-          </div>
-        )}
-      </div>
-    );
-  };
+  }, []); // No dependencies needed
 
   if (loading) {
     return (
@@ -338,7 +380,7 @@ export default function FolderTreeView({
               {folders.length} folders
             </Badge>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -359,7 +401,7 @@ export default function FolderTreeView({
           </div>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Search */}
         <div className="relative">
@@ -383,7 +425,18 @@ export default function FolderTreeView({
               </p>
             </div>
           ) : (
-            filteredTreeData.map((node, index) => renderTreeNode(node, index))
+            filteredTreeData.map((node) => ( // Removed `index` as it's not used in TreeNodeProps
+              <TreeNode
+                key={node.id}
+                node={node}
+                expandedNodes={expandedNodes}
+                onToggleExpanded={toggleExpanded}
+                onFolderClick={onFolderClick}
+                onEditFolder={onEditFolder}
+                onDeleteFolder={onDeleteFolder}
+                onCreateSubfolder={onCreateSubfolder}
+              />
+            ))
           )}
         </div>
 
@@ -399,4 +452,4 @@ export default function FolderTreeView({
       </CardContent>
     </Card>
   );
-} 
+}

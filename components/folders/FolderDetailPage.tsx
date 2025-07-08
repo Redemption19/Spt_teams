@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Import useMemo
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,7 +50,7 @@ import {
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { Folder, FolderFile, User as UserType, Report } from '@/lib/types';
-import { 
+import {
   useCanAccessFolder,
   useCanEditFolder,
   useCanUploadToFolder,
@@ -58,17 +58,17 @@ import {
   useCanManageFolderPermissions
 } from '@/lib/rbac-hooks';
 import { FolderService } from '@/lib/folder-service';
-import { 
-  ref, 
-  uploadBytesResumable, 
-  getDownloadURL, 
-  deleteObject 
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject
 } from 'firebase/storage';
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  updateDoc, 
+import {
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
   deleteDoc,
   getDoc
 } from 'firebase/firestore';
@@ -92,6 +92,81 @@ type ReportsData = {
   }>;
 };
 
+// --- Helper Functions (Moved outside component) ---
+
+const getFileType = (mimeType: string): FolderFile['type'] => {
+  if (mimeType.startsWith('image/')) return 'image';
+  if (mimeType.startsWith('video/')) return 'video';
+  if (mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text')) return 'document';
+  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('tar')) return 'archive';
+  return 'document';
+};
+
+const getFileIcon = (file: FolderFile) => {
+  switch (file.type) {
+    case 'image': return <Image className="h-4 w-4" />;
+    case 'video': return <Video className="h-4 w-4" />;
+    case 'archive': return <Archive className="h-4 w-4" />;
+    default: return <FileText className="h-4 w-4" />;
+  }
+};
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'team': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
+    case 'member-assigned': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400';
+    case 'project': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+    case 'shared': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
+    default: return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
+  }
+};
+
+const validateFile = (file: File): { isValid: boolean; error?: string } => {
+  const maxSize = 50 * 1024 * 1024; // 50MB
+  if (file.size > maxSize) {
+    return { isValid: false, error: `File size exceeds maximum limit of ${maxSize / 1024 / 1024}MB` };
+  }
+  const allowedTypes = [
+    'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain', 'text/csv', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+    'video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/wmv',
+    'application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed', 'application/gzip', 'application/x-tar'
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    return { isValid: false, error: `File type '${file.type}' is not allowed` };
+  }
+  return { isValid: true };
+};
+
+const sanitizeFileName = (fileName: string): string => {
+  return fileName
+    .replace(/[^a-zA-Z0-9.-]/g, '_')
+    .replace(/_{2,}/g, '_')
+    .toLowerCase();
+};
+
+// --- FolderDetailPage Component ---
+
 interface FolderDetailPageProps {
   folder: Folder;
   onBack: () => void;
@@ -99,15 +174,15 @@ interface FolderDetailPageProps {
   onDelete: () => void;
 }
 
-export default function FolderDetailPage({ 
-  folder, 
-  onBack, 
-  onEdit, 
-  onDelete 
+export default function FolderDetailPage({
+  folder,
+  onBack,
+  onEdit,
+  onDelete
 }: FolderDetailPageProps) {
   const { userProfile } = useAuth();
   const { userRole } = useWorkspace();
-  
+
   // RBAC permissions
   const canAccess = useCanAccessFolder(folder);
   const canEdit = useCanEditFolder(folder);
@@ -126,21 +201,7 @@ export default function FolderDetailPage({
   const [filterType, setFilterType] = useState<'all' | 'documents' | 'images' | 'videos' | 'archives'>('all');
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
-  const [reports, setReports] = useState<{
-    totalReports: number;
-    pendingReports: number;
-    approvedReports: number;
-    rejectedReports: number;
-    recentReports: Array<{
-      id: string;
-      title: string;
-      authorId: string;
-      authorName: string;
-      submittedAt: Date;
-      status: 'pending' | 'approved' | 'rejected';
-      type: 'weekly' | 'monthly' | 'project' | 'custom';
-    }>;
-  }>({
+  const [reports, setReports] = useState<ReportsData>({
     totalReports: 0,
     pendingReports: 0,
     approvedReports: 0,
@@ -148,397 +209,43 @@ export default function FolderDetailPage({
     recentReports: []
   });
 
-  // Load folder files
-  const loadFiles = useCallback(async () => {
-    if (!folder.id) return;
-    
+  // Helper for updating folder stats (now a standalone function within the component scope)
+  const updateFolderStats = useCallback(async (folderId: string, fileCountDelta: number, sizeDelta: number): Promise<void> => {
     try {
-      setLoading(true);
-      console.log('🔍 Loading real data for folder:', {
-        folderId: folder.id,
-        userId: userProfile?.id,
-        userRole
-      });
-      
-      // REAL DATA FETCHING - No mock data fallback
-      const [filesData, reportsData] = await Promise.all([
-        // Fetch actual files from folder service
-        FolderService.getFolderFiles(folder.id, userProfile?.id || '', userRole || 'member'),
-        // Since reports aren't implemented yet, we'll skip this for now and set empty data
-        Promise.resolve({
-          totalReports: 0,
-          pendingReports: 0,
-          approvedReports: 0,
-          rejectedReports: 0,
-          recentReports: []
-        })
-      ]);
-      
-      console.log('✅ Successfully loaded real data:', {
-        filesCount: filesData.length,
-        reportsCount: reportsData.totalReports,
-        files: filesData.map(f => ({ id: f.id, name: f.name, size: f.size }))
-      });
-      
-      setFiles(filesData);
-      setReports(reportsData);
-      
-      // Show message only if folder is empty
-      if (filesData.length === 0) {
-        toast({
-          title: 'ℹ️ No Files Found',
-          description: 'This folder is empty. Upload some files to get started!',
-          variant: 'default',
+      const folderRef = doc(db, 'folders', folderId);
+      const folderDoc = await getDoc(folderRef);
+
+      if (folderDoc.exists()) {
+        const currentData = folderDoc.data();
+        const newFileCount = Math.max(0, (currentData.fileCount || 0) + fileCountDelta);
+        const newTotalSize = Math.max(0, (currentData.totalSize || 0) + sizeDelta);
+
+        await updateDoc(folderRef, {
+          fileCount: newFileCount,
+          totalSize: newTotalSize,
+          updatedAt: new Date()
+        });
+
+        console.log('📊 Folder stats updated:', {
+          folderId,
+          newFileCount,
+          newTotalSize: `${(newTotalSize / 1024 / 1024).toFixed(2)} MB`
         });
       }
-      
     } catch (error) {
-      console.error('❌ Error loading folder data:', error);
-      
-      // Set empty data instead of mock data
-      setFiles([]);
-      setReports({
-        totalReports: 0,
-        pendingReports: 0,
-        approvedReports: 0,
-        rejectedReports: 0,
-        recentReports: []
-      });
-      
-      // Show the actual error to help debug
-      toast({
-        title: '❌ Error Loading Data',
-        description: error instanceof Error ? error.message : 'Failed to load folder data. Check console for details.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+      console.warn('⚠️ Failed to update folder stats:', error);
     }
-  }, [folder.id, userProfile?.id, userRole]);
+  }, []); // No dependencies needed as it uses `db` and `doc` directly, and `Math.max`
 
-  useEffect(() => {
-    if (canAccess) {
-      loadFiles();
-    }
-  }, [canAccess, loadFiles]);
-
-  // File operations
-  const handleFileUpload = async (uploadedFiles: FileList) => {
-    if (!canUpload) {
-      toast({
-        title: '❌ Upload Denied',
-        description: 'You do not have permission to upload files to this folder.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      setUploading(true);
-      
-      // Process each file
-      for (let i = 0; i < uploadedFiles.length; i++) {
-        const file = uploadedFiles[i];
-        
-        // Validate file
-        const validation = validateFile(file);
-        if (!validation.isValid) {
-          toast({
-            title: '❌ Invalid File',
-            description: validation.error,
-            variant: 'destructive',
-          });
-          continue;
-        }
-        
-        // Upload to Firebase Storage
-        const fileId = await uploadFileToStorage(file, folder.id, userProfile?.id || '');
-        
-        // File upload successful - it's already been added to state via the storage upload
-        console.log('✅ File uploaded successfully:', fileId);
-      }
-
-      toast({
-        title: '✅ Upload Successful',
-        description: `Successfully uploaded ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`,
-        className: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-none',
-      });
-      
-      // Refresh file list to show updated data
-      loadFiles();
-      
-    } catch (error) {
-      console.error('Error uploading files:', error);
-      toast({
-        title: '❌ Upload Failed',
-        description: error instanceof Error ? error.message : 'Failed to upload files. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleFileDelete = async (fileId: string) => {
-    try {
-      // Get file data first
-      const fileDoc = await getDoc(doc(db, 'files', fileId));
-      if (!fileDoc.exists()) {
-        throw new Error('File not found');
-      }
-      
-      const fileData = fileDoc.data() as FolderFile;
-      
-      // Check permissions
-      if (fileData.ownerId !== userProfile?.id && userRole !== 'owner' && userRole !== 'admin') {
-        toast({
-          title: '❌ Delete Denied',
-          description: 'You do not have permission to delete this file.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      // Delete from Firebase Storage
-      if (fileData.storagePath) {
-        const storageRef = ref(storage, fileData.storagePath);
-        try {
-          await deleteObject(storageRef);
-          console.log('🗑️ File deleted from storage:', fileData.storagePath);
-        } catch (storageError) {
-          console.warn('⚠️ Storage deletion failed (file may not exist):', storageError);
-          // Continue with database deletion even if storage deletion fails
-        }
-      }
-      
-      // Delete from Firestore
-      await deleteDoc(doc(db, 'files', fileId));
-      
-      // Update folder stats
-      await updateFolderStats(folder.id, -1, -fileData.size);
-      
-      // Remove from local state
-      setFiles(prev => prev.filter(f => f.id !== fileId));
-      
-      toast({
-        title: '✅ File Deleted',
-        description: 'File has been successfully deleted',
-        className: 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-none',
-      });
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      toast({
-        title: '❌ Delete Failed',
-        description: error instanceof Error ? error.message : 'Failed to delete file. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedFiles.length === 0) return;
-    
-    try {
-      // In a real app, you'd batch delete from your file service
-      setFiles(prev => prev.filter(f => !selectedFiles.includes(f.id)));
-      setSelectedFiles([]);
-      
-      toast({
-        title: '✅ Files Deleted',
-        description: `Successfully deleted ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}`,
-        className: 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-none',
-      });
-    } catch (error) {
-      console.error('Error deleting files:', error);
-      toast({
-        title: '❌ Delete Failed',
-        description: 'Failed to delete files. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    
-    const droppedFiles = e.dataTransfer.files;
-    if (droppedFiles.length > 0) {
-      handleFileUpload(droppedFiles);
-    }
-  };
-
-  // Helper functions
-  const getFileType = (mimeType: string): FolderFile['type'] => {
-    if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text')) return 'document';
-    if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('tar')) return 'archive';
-    return 'document';
-  };
-
-  const getFileIcon = (file: FolderFile) => {
-    switch (file.type) {
-      case 'image': return <Image className="h-4 w-4" />;
-      case 'video': return <Video className="h-4 w-4" />;
-      case 'archive': return <Archive className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'team': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-      case 'member-assigned': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400';
-      case 'project': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-      case 'shared': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
-    }
-  };
-
-  // Filter and sort files
-  const filteredAndSortedFiles = files
-    .filter(file => {
-      const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          file.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesType = filterType === 'all' || 
-                         (filterType === 'documents' && file.type === 'document') ||
-                         (filterType === 'images' && file.type === 'image') ||
-                         (filterType === 'videos' && file.type === 'video') ||
-                         (filterType === 'archives' && file.type === 'archive');
-      
-      return matchesSearch && matchesType;
-    })
-    .sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'date':
-          comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
-          break;
-        case 'size':
-          comparison = a.size - b.size;
-          break;
-        case 'type':
-          comparison = a.type.localeCompare(b.type);
-          break;
-      }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-  // Firebase Storage helper functions
-  
-  /**
-   * Validate file before upload
-   */
-  const validateFile = (file: File): { isValid: boolean; error?: string } => {
-    // File size validation (50MB max)
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      return {
-        isValid: false,
-        error: `File size exceeds maximum limit of ${maxSize / 1024 / 1024}MB`
-      };
-    }
-    
-    // File type validation
-    const allowedTypes = [
-      // Documents
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'text/plain',
-      'text/csv',
-      
-      // Images
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/svg+xml',
-      
-      // Videos
-      'video/mp4',
-      'video/webm',
-      'video/ogg',
-      'video/avi',
-      'video/mov',
-      'video/wmv',
-      
-      // Archives
-      'application/zip',
-      'application/x-rar-compressed',
-      'application/x-7z-compressed',
-      'application/gzip',
-      'application/x-tar'
-    ];
-    
-    if (!allowedTypes.includes(file.type)) {
-      return {
-        isValid: false,
-        error: `File type '${file.type}' is not allowed`
-      };
-    }
-    
-    return { isValid: true };
-  };
-
-  /**
-   * Upload file to Firebase Storage and create database record
-   */
-  const uploadFileToStorage = async (file: File, folderId: string, userId: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
+  // Helper for uploading file to Firebase Storage (now a standalone function within the component scope)
+  const uploadFileToStorage = useCallback(async (file: File, folderId: string, userId: string): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
       try {
-        // Generate unique file path
         const fileId = doc(collection(db, 'files')).id;
         const timestamp = Date.now();
         const sanitizedFileName = sanitizeFileName(file.name);
         const filePath = `folders/${folderId}/${timestamp}_${fileId}_${sanitizedFileName}`;
-        
-        // Create Firebase Storage reference
         const storageRef = ref(storage, filePath);
-        
-        // Set custom metadata
         const metadata = {
           contentType: file.type,
           customMetadata: {
@@ -550,66 +257,34 @@ export default function FolderDetailPage({
             tags: ''
           }
         };
-        
-        console.log('📤 Starting file upload:', {
-          fileName: file.name,
-          size: file.size,
-          type: file.type,
-          path: filePath
-        });
-        
-        // Upload with progress tracking
+
+        console.log('📤 Starting file upload:', { fileName: file.name, size: file.size, type: file.type, path: filePath });
+
         const uploadTask = uploadBytesResumable(storageRef, file, metadata);
-        
+
         uploadTask.on('state_changed',
           (snapshot) => {
-            // Progress updates
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             console.log('📊 Upload progress:', `${progress.toFixed(1)}%`);
           },
           (error) => {
-            // Error handling
             console.error('❌ Upload failed:', error);
             reject(new Error(`Upload failed: ${error.message}`));
           },
           async () => {
             try {
-              // Upload completed successfully
               console.log('✅ Upload completed');
-              
-              // Get download URL
               const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              
-              // Generate thumbnail URL for images
               let thumbnailUrl: string | undefined;
               if (file.type.startsWith('image/')) {
                 thumbnailUrl = downloadUrl;
               }
-              
-              // Create file record in Firestore
               const fileData: FolderFile = {
-                id: fileId,
-                name: file.name,
-                originalName: file.name,
-                folderId,
-                ownerId: userId,
-                size: file.size,
-                type: getFileType(file.type),
-                mimeType: file.type,
-                downloadUrl,
-                thumbnailUrl,
-                uploadedAt: new Date(),
-                uploadedBy: userId,
-                lastModified: new Date(),
-                lastModifiedBy: userId,
-                status: 'active',
-                version: 1,
-                isEncrypted: false,
-                requiresApproval: false,
-                tags: [],
-                description: '',
-                
-                // Storage metadata
+                id: fileId, name: file.name, originalName: file.name, folderId, ownerId: userId,
+                size: file.size, type: getFileType(file.type), mimeType: file.type, downloadUrl,
+                thumbnailUrl, uploadedAt: new Date(), uploadedBy: userId, lastModified: new Date(),
+                lastModifiedBy: userId, status: 'active', version: 1, isEncrypted: false,
+                requiresApproval: false, tags: [], description: '',
                 storagePath: filePath,
                 storageMetadata: {
                   fullPath: uploadTask.snapshot.metadata.fullPath,
@@ -618,19 +293,11 @@ export default function FolderDetailPage({
                   timeCreated: uploadTask.snapshot.metadata.timeCreated
                 }
               };
-              
-              // Save to Firestore
               await setDoc(doc(db, 'files', fileId), cleanFirestoreData(fileData));
               console.log('💾 File record saved to Firestore:', fileId);
-              
-              // Update folder stats
               await updateFolderStats(folderId, 1, file.size);
-              
-              // Add to local state immediately
-              setFiles(prev => [fileData, ...prev]);
-              
+              setFiles(prev => [fileData, ...prev]); // Optimistic update
               resolve(fileId);
-              
             } catch (error) {
               console.error('❌ Post-upload processing failed:', error);
               const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -638,53 +305,205 @@ export default function FolderDetailPage({
             }
           }
         );
-        
       } catch (error) {
         reject(error);
       }
     });
-  };
+  }, [updateFolderStats]); // Dependencies for useCallback: updateFolderStats
 
-  /**
-   * Update folder statistics
-   */
-  const updateFolderStats = async (folderId: string, fileCountDelta: number, sizeDelta: number): Promise<void> => {
+  // Load folder files
+  const loadFiles = useCallback(async () => {
+    if (!folder.id) return;
+
     try {
-      const folderRef = doc(db, 'folders', folderId);
-      const folderDoc = await getDoc(folderRef);
-      
-      if (folderDoc.exists()) {
-        const currentData = folderDoc.data();
-        const newFileCount = Math.max(0, (currentData.fileCount || 0) + fileCountDelta);
-        const newTotalSize = Math.max(0, (currentData.totalSize || 0) + sizeDelta);
-        
-        await updateDoc(folderRef, {
-          fileCount: newFileCount,
-          totalSize: newTotalSize,
-          updatedAt: new Date()
-        });
-        
-        console.log('📊 Folder stats updated:', {
-          folderId,
-          newFileCount,
-          newTotalSize: `${(newTotalSize / 1024 / 1024).toFixed(2)} MB`
+      setLoading(true);
+      console.log('🔍 Loading real data for folder:', {
+        folderId: folder.id,
+        userId: userProfile?.id,
+        userRole
+      });
+
+      const [filesData, reportsData] = await Promise.all([
+        FolderService.getFolderFiles(folder.id, userProfile?.id || '', userRole || 'member'),
+        Promise.resolve({
+          totalReports: 0, pendingReports: 0, approvedReports: 0, rejectedReports: 0, recentReports: []
+        })
+      ]);
+
+      console.log('✅ Successfully loaded real data:', {
+        filesCount: filesData.length,
+        reportsCount: reportsData.totalReports,
+        files: filesData.map(f => ({ id: f.id, name: f.name, size: f.size }))
+      });
+
+      setFiles(filesData);
+      setReports(reportsData);
+
+      if (filesData.length === 0) {
+        toast({
+          title: 'ℹ️ No Files Found',
+          description: 'This folder is empty. Upload some files to get started!',
+          variant: 'default',
         });
       }
-    } catch (error) {
-      console.warn('⚠️ Failed to update folder stats:', error);
-      // Don't throw - this is not critical
-    }
-  };
 
-  /**
-   * Sanitize filename for storage
-   */
-  const sanitizeFileName = (fileName: string): string => {
-    return fileName
-      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
-      .replace(/_{2,}/g, '_') // Replace multiple underscores with single
-      .toLowerCase();
-  };
+    } catch (error) {
+      console.error('❌ Error loading folder data:', error);
+      setFiles([]);
+      setReports({ totalReports: 0, pendingReports: 0, approvedReports: 0, rejectedReports: 0, recentReports: [] });
+      toast({
+        title: '❌ Error Loading Data',
+        description: error instanceof Error ? error.message : 'Failed to load folder data. Check console for details.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [folder.id, userProfile?.id, userRole]); // Dependencies for useCallback
+
+  useEffect(() => {
+    if (canAccess) {
+      loadFiles();
+    }
+  }, [canAccess, loadFiles]);
+
+  // File operations (wrapped in useCallback)
+  const handleFileUpload = useCallback(async (uploadedFiles: FileList) => {
+    if (!canUpload) {
+      toast({
+        title: '❌ Upload Denied',
+        description: 'You do not have permission to upload files to this folder.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i];
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+          toast({ title: '❌ Invalid File', description: validation.error, variant: 'destructive' });
+          continue;
+        }
+        await uploadFileToStorage(file, folder.id, userProfile?.id || '');
+        console.log('✅ File uploaded successfully:', file.name);
+      }
+      toast({
+        title: '✅ Upload Successful',
+        description: `Successfully uploaded ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`,
+        className: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-none',
+      });
+      // No need to call loadFiles() here immediately after optimistic update
+      // The `setFiles` in `uploadFileToStorage` handles local state update.
+      // A full reload might be desired for consistency after all uploads complete,
+      // but not necessarily after each individual file.
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: '❌ Upload Failed',
+        description: error instanceof Error ? error.message : 'Failed to upload files. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  }, [canUpload, uploadFileToStorage, folder.id, userProfile?.id]); // Dependencies for useCallback
+
+  const handleFileDelete = useCallback(async (fileId: string) => {
+    try {
+      const fileDoc = await getDoc(doc(db, 'files', fileId));
+      if (!fileDoc.exists()) { throw new Error('File not found'); }
+      const fileData = fileDoc.data() as FolderFile;
+
+      if (fileData.ownerId !== userProfile?.id && userRole !== 'owner' && userRole !== 'admin') {
+        toast({ title: '❌ Delete Denied', description: 'You do not have permission to delete this file.', variant: 'destructive' });
+        return;
+      }
+
+      if (fileData.storagePath) {
+        const storageRef = ref(storage, fileData.storagePath);
+        try { await deleteObject(storageRef); console.log('🗑️ File deleted from storage:', fileData.storagePath); }
+        catch (storageError) { console.warn('⚠️ Storage deletion failed (file may not exist):', storageError); }
+      }
+      await deleteDoc(doc(db, 'files', fileId));
+      await updateFolderStats(folder.id, -1, -fileData.size);
+      setFiles(prev => prev.filter(f => f.id !== fileId)); // Optimistic update
+      toast({ title: '✅ File Deleted', description: 'File has been successfully deleted', className: 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-none' });
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      toast({ title: '❌ Delete Failed', description: error instanceof Error ? error.message : 'Failed to delete file. Please try again.', variant: 'destructive' });
+    }
+  }, [userProfile?.id, userRole, folder.id, updateFolderStats]); // Dependencies for useCallback
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedFiles.length === 0) return;
+    try {
+      // In a real app, you'd batch delete from your file service
+      // For now, simulate deletion from local state and update folder stats for each
+      for (const fileId of selectedFiles) {
+        const fileToDelete = files.find(f => f.id === fileId);
+        if (fileToDelete) {
+          // This will trigger individual file delete logic including storage and Firestore
+          await handleFileDelete(fileId);
+        }
+      }
+      setSelectedFiles([]); // Clear selection after bulk operation
+      toast({ title: '✅ Files Deleted', description: `Successfully deleted ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}`, className: 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-none' });
+    } catch (error) {
+      console.error('Error deleting files:', error);
+      toast({ title: '❌ Delete Failed', description: 'Failed to delete files. Please try again.', variant: 'destructive' });
+    }
+  }, [selectedFiles, files, handleFileDelete]); // Dependencies for useCallback
+
+  // Drag and drop handlers (wrapped in useCallback)
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles.length > 0) {
+      handleFileUpload(droppedFiles);
+    }
+  }, [handleFileUpload]);
+
+  // Filter and sort files (memoized)
+  const filteredAndSortedFiles = useMemo(() => {
+    return files
+      .filter(file => {
+        const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            file.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesType = filterType === 'all' ||
+                           (filterType === 'documents' && file.type === 'document') ||
+                           (filterType === 'images' && file.type === 'image') ||
+                           (filterType === 'videos' && file.type === 'video') ||
+                           (filterType === 'archives' && file.type === 'archive');
+
+        return matchesSearch && matchesType;
+      })
+      .sort((a, b) => {
+        let comparison = 0;
+        switch (sortBy) {
+          case 'name': comparison = a.name.localeCompare(b.name); break;
+          case 'date': comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime(); break;
+          case 'size': comparison = a.size - b.size; break;
+          case 'type': comparison = a.type.localeCompare(b.type); break;
+        }
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+  }, [files, searchTerm, filterType, sortBy, sortOrder]);
 
   if (!canAccess) {
     return (
@@ -705,9 +524,9 @@ export default function FolderDetailPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onBack}
             className="h-9 px-3"
           >
@@ -733,7 +552,7 @@ export default function FolderDetailPage({
               Edit Folder
             </Button>
           )}
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -761,7 +580,7 @@ export default function FolderDetailPage({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Column 1: Folder Info & Upload */}
         <div className="space-y-6">
           {/* Folder Information */}
@@ -779,7 +598,7 @@ export default function FolderDetailPage({
                   <p className="text-sm mt-1">{folder.description}</p>
                 </div>
               )}
-              
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Files</label>
@@ -831,8 +650,8 @@ export default function FolderDetailPage({
               <CardContent>
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    dragOver 
-                      ? 'border-primary bg-primary/5' 
+                    dragOver
+                      ? 'border-primary bg-primary/5'
                       : 'border-border hover:border-primary/50'
                   }`}
                   onDragOver={handleDragOver}
@@ -889,7 +708,7 @@ export default function FolderDetailPage({
                   <File className="h-5 w-5 text-primary" />
                   <span>Files ({filteredAndSortedFiles.length})</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -920,7 +739,7 @@ export default function FolderDetailPage({
                     className="pl-10"
                   />
                 </div>
-                
+
                 <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
                   <SelectTrigger className="w-full sm:w-32">
                     <SelectValue />
@@ -933,7 +752,7 @@ export default function FolderDetailPage({
                     <SelectItem value="archives">Archives</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
                   <SelectTrigger className="w-full sm:w-32">
                     <SelectValue />
@@ -945,7 +764,7 @@ export default function FolderDetailPage({
                     <SelectItem value="type">Type</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -1003,8 +822,8 @@ export default function FolderDetailPage({
                     <div
                       key={file.id}
                       className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedFiles.includes(file.id) 
-                          ? 'border-primary bg-primary/5' 
+                        selectedFiles.includes(file.id)
+                          ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                       onClick={() => {
@@ -1046,8 +865,8 @@ export default function FolderDetailPage({
                     <div
                       key={file.id}
                       className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedFiles.includes(file.id) 
-                          ? 'border-primary bg-primary/5' 
+                        selectedFiles.includes(file.id)
+                          ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                       onClick={() => {
@@ -1159,4 +978,4 @@ export default function FolderDetailPage({
       </div>
     </div>
   );
-} 
+}

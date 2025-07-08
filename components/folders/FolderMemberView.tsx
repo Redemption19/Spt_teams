@@ -1,6 +1,7 @@
+// FolderMemberView.tsx
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react'; // Import memo
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +19,7 @@ import { toast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
-import { 
+import {
   Users,
   UserPlus,
   UserCheck,
@@ -57,6 +58,33 @@ import { FolderService } from '@/lib/folder-service';
 import { UserService } from '@/lib/user-service';
 import { useFolderPermissions } from '@/lib/rbac-hooks';
 
+// --- Helper Functions (Moved outside components) ---
+
+const getStatusColor = (currentFolder: FolderType) => {
+  const daysSinceUpdate = Math.floor((Date.now() - currentFolder.updatedAt.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSinceUpdate <= 7) return 'text-green-600';
+  if (daysSinceUpdate <= 30) return 'text-yellow-600';
+  return 'text-red-600';
+};
+
+const getStatusIcon = (currentFolder: FolderType) => {
+  const daysSinceUpdate = Math.floor((Date.now() - currentFolder.updatedAt.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSinceUpdate <= 7) return <CheckCircle className="h-4 w-4" />;
+  if (daysSinceUpdate <= 30) return <Clock className="h-4 w-4" />;
+  return <AlertCircle className="h-4 w-4" />;
+};
+
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+};
+
+// --- MemberFolderStats Interface ---
 interface MemberFolderStats {
   totalMembers: number;
   membersWithFolders: number;
@@ -70,6 +98,153 @@ interface MemberFolderStats {
     timestamp: Date;
   }>;
 }
+
+// --- FolderMemberCard Component (Moved outside and memoized) ---
+
+interface FolderMemberCardProps {
+  folder: FolderType;
+  onFolderClick: (folder: FolderType) => void;
+  onEditFolder: (folder: FolderType) => void;
+  onDeleteFolder: (folder: FolderType) => void;
+  userRole?: string | null;
+  settingsForm: any; // Ideally, define a more specific type
+  selectedFolders: string[];
+  handleSelectFolder: (folderId: string, checked: boolean) => void;
+  getMemberName: (memberId: string) => string;
+  getMemberAvatar: (memberId: string) => string | undefined;
+}
+
+const FolderMemberCard = memo(function FolderMemberCard({ // Wrapped with React.memo
+  folder,
+  onFolderClick,
+  onEditFolder,
+  onDeleteFolder,
+  userRole,
+  settingsForm,
+  selectedFolders,
+  handleSelectFolder,
+  getMemberName,
+  getMemberAvatar
+}: FolderMemberCardProps) {
+  const permissions = useFolderPermissions(folder);
+  const memberName = getMemberName(folder.assignedMemberId || folder.ownerId || '');
+  const memberAvatar = getMemberAvatar(folder.assignedMemberId || folder.ownerId || '');
+  const isSelected = selectedFolders.includes(folder.id);
+
+  return (
+    <Card className="group hover:shadow-md transition-all cursor-pointer relative">
+      {/* Selection Checkbox */}
+      {(userRole === 'owner' || userRole === 'admin') && settingsForm.allowBulkOperations && (
+        <div className="absolute top-2 left-2 z-10">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => handleSelectFolder(folder.id, checked as boolean)}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-sm"
+          />
+        </div>
+      )}
+
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+              <FolderOpen className="h-5 w-5 text-white" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-sm truncate">{folder.name}</h3>
+              <div className="flex items-center space-x-2 mt-1">
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={memberAvatar} />
+                  <AvatarFallback className="text-xs">
+                    {memberName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs text-muted-foreground truncate">
+                  {memberName}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {permissions.canOpen && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onFolderClick(folder); }}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Open
+                </DropdownMenuItem>
+              )}
+              {permissions.canEdit && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditFolder(folder); }}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {permissions.canShare && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); }}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </DropdownMenuItem>
+              )}
+              {permissions.canDelete && (
+                <DropdownMenuItem
+                  onClick={(e) => { e.stopPropagation(); onDeleteFolder(folder); }}
+                  className="text-red-600 dark:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+
+      <CardContent
+        className="space-y-3"
+        onClick={() => onFolderClick(folder)}
+      >
+        {folder.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {folder.description}
+          </p>
+        )}
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4 text-xs">
+          <div className="flex items-center space-x-1">
+            <FileText className="h-3 w-3 text-muted-foreground" />
+            <span className="text-muted-foreground">Files</span>
+            <span className="font-medium ml-auto">{folder.fileCount}</span>
+          </div>
+
+          <div className={`flex items-center space-x-1 ${getStatusColor(folder)}`}>
+            {getStatusIcon(folder)}
+            <span className="text-muted-foreground">Status</span>
+          </div>
+        </div>
+
+        {/* Last Activity */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+          <div className="flex items-center space-x-1">
+            <Calendar className="h-3 w-3" />
+            <span>Updated</span>
+          </div>
+          <span>{formatDate(folder.updatedAt)}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+// --- FolderMemberView Component ---
 
 interface FolderMemberViewProps {
   folders: FolderType[];
@@ -96,7 +271,7 @@ export default function FolderMemberView({
 }: FolderMemberViewProps) {
   const { userProfile } = useAuth();
   const { currentWorkspace } = useWorkspace();
-  
+
   const [activeTab, setActiveTab] = useState('assigned');
   const [members, setMembers] = useState<User[]>([]);
   const [memberStructures, setMemberStructures] = useState<MemberFolderStructure[]>([]);
@@ -137,7 +312,6 @@ export default function FolderMemberView({
 
   // Bulk selection and actions state
   const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
-  const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
   const [showFolderSettings, setShowFolderSettings] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [archivingFolders, setArchivingFolders] = useState(false);
@@ -152,14 +326,25 @@ export default function FolderMemberView({
     allowBulkOperations: true
   });
 
+  // Memoize member name and avatar getters
+  const memoizedGetMemberName = useCallback((memberId: string) => {
+    const member = members.find(m => m.id === memberId);
+    return member?.name || 'Unknown Member';
+  }, [members]);
+
+  const memoizedGetMemberAvatar = useCallback((memberId: string) => {
+    const member = members.find(m => m.id === memberId);
+    return member?.avatar;
+  }, [members]);
+
   // Load workspace members and member folder structures
   useEffect(() => {
     const loadMembersData = async () => {
       if (!currentWorkspace || !userProfile) return;
-      
+
       try {
         setLoadingMembers(true);
-        
+
         // Load workspace members
         const workspaceMembers = await UserService.getUsersByWorkspace(currentWorkspace.id);
         setMembers(workspaceMembers.filter(m => m.role === 'member'));
@@ -167,10 +352,10 @@ export default function FolderMemberView({
         // Load member folder structures if user can view them
         if (userRole === 'owner' || userRole === 'admin') {
           const structures: MemberFolderStructure[] = [];
-          
+
           // Get all projects to check for member folder structures
           const projectFolders = folders.filter(f => f.type === 'project');
-          
+
           for (const projectFolder of projectFolders) {
             if (projectFolder.projectId) {
               const structure = await FolderService.getMemberFolderStructure(
@@ -183,19 +368,19 @@ export default function FolderMemberView({
               }
             }
           }
-          
+
           setMemberStructures(structures);
         }
 
         // Calculate stats
-        const memberFolders = folders.filter(f => f.type === 'member' || f.type === 'member-assigned');
-        const totalFiles = memberFolders.reduce((acc, f) => acc + f.fileCount, 0);
-        const membersWithFolders = new Set(memberFolders.map(f => f.ownerId || f.assignedMemberId)).size;
+        const memberFoldersCalculated = folders.filter(f => f.type === 'member' || f.type === 'member-assigned');
+        const totalFiles = memberFoldersCalculated.reduce((acc, f) => acc + f.fileCount, 0);
+        const membersWithFolders = new Set(memberFoldersCalculated.map(f => f.ownerId || f.assignedMemberId)).size;
 
         setStats({
           totalMembers: workspaceMembers.filter(m => m.role === 'member').length,
           membersWithFolders,
-          totalMemberFolders: memberFolders.length,
+          totalMemberFolders: memberFoldersCalculated.length,
           totalFiles,
           recentActivity: []
         });
@@ -213,11 +398,11 @@ export default function FolderMemberView({
     };
 
     loadMembersData();
-  }, [currentWorkspace, userProfile, userRole, folders]);
+  }, [currentWorkspace, userProfile, userRole, folders]); // Add 'folders' as a dependency
 
   // Filter member-assigned folders
   const assignedFolders = useMemo(() => {
-    return folders.filter(folder => 
+    return folders.filter(folder =>
       folder.type === 'member-assigned' &&
       (selectedMember === 'all' || folder.assignedMemberId === selectedMember) &&
       (folder.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -234,7 +419,7 @@ export default function FolderMemberView({
 
   // Filter member folders (personal folders created automatically)
   const memberFolders = useMemo(() => {
-    return folders.filter(folder => 
+    return folders.filter(folder =>
       folder.type === 'member' &&
       (selectedMember === 'all' || folder.ownerId === selectedMember) &&
       (folder.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -248,159 +433,6 @@ export default function FolderMemberView({
       }
     });
   }, [folders, selectedMember, searchTerm, sortBy]);
-
-  const getMemberName = (memberId: string) => {
-    const member = members.find(m => m.id === memberId);
-    return member?.name || 'Unknown Member';
-  };
-
-  const getMemberAvatar = (memberId: string) => {
-    const member = members.find(m => m.id === memberId);
-    return member?.avatar;
-  };
-
-  const getStatusColor = (folder: FolderType) => {
-    const daysSinceUpdate = Math.floor((Date.now() - folder.updatedAt.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysSinceUpdate <= 7) return 'text-green-600';
-    if (daysSinceUpdate <= 30) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getStatusIcon = (folder: FolderType) => {
-    const daysSinceUpdate = Math.floor((Date.now() - folder.updatedAt.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysSinceUpdate <= 7) return <CheckCircle className="h-4 w-4" />;
-    if (daysSinceUpdate <= 30) return <Clock className="h-4 w-4" />;
-    return <AlertCircle className="h-4 w-4" />;
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  const renderFolderCard = (folder: FolderType) => {
-    const permissions = useFolderPermissions(folder);
-    const memberName = getMemberName(folder.assignedMemberId || folder.ownerId || '');
-    const memberAvatar = getMemberAvatar(folder.assignedMemberId || folder.ownerId || '');
-    const isSelected = selectedFolders.includes(folder.id);
-
-    return (
-      <Card key={folder.id} className="group hover:shadow-md transition-all cursor-pointer relative">
-        {/* Selection Checkbox */}
-        {(userRole === 'owner' || userRole === 'admin') && settingsForm.allowBulkOperations && (
-          <div className="absolute top-2 left-2 z-10">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={(checked) => handleSelectFolder(folder.id, checked as boolean)}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-sm"
-            />
-          </div>
-        )}
-
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                <FolderOpen className="h-5 w-5 text-white" />
-              </div>
-              
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm truncate">{folder.name}</h3>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={memberAvatar} />
-                    <AvatarFallback className="text-xs">
-                      {memberName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {memberName}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {permissions.canOpen && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onFolderClick(folder); }}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Open
-                  </DropdownMenuItem>
-                )}
-                {permissions.canEdit && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditFolder(folder); }}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                )}
-                {permissions.canShare && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); }}>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </DropdownMenuItem>
-                )}
-                {permissions.canDelete && (
-                  <DropdownMenuItem 
-                    onClick={(e) => { e.stopPropagation(); onDeleteFolder(folder); }}
-                    className="text-red-600 dark:text-red-400"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
-        
-        <CardContent 
-          className="space-y-3"
-          onClick={() => onFolderClick(folder)}
-        >
-          {folder.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {folder.description}
-            </p>
-          )}
-          
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="flex items-center space-x-1">
-              <FileText className="h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">Files</span>
-              <span className="font-medium ml-auto">{folder.fileCount}</span>
-            </div>
-            
-            <div className={`flex items-center space-x-1 ${getStatusColor(folder)}`}>
-              {getStatusIcon(folder)}
-              <span className="text-muted-foreground">Status</span>
-            </div>
-          </div>
-
-          {/* Last Activity */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-            <div className="flex items-center space-x-1">
-              <Calendar className="h-3 w-3" />
-              <span>Updated</span>
-            </div>
-            <span>{formatDate(folder.updatedAt)}</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
 
   const handleAssignFolder = async () => {
     if (!assignForm.memberId) {
@@ -441,7 +473,7 @@ export default function FolderMemberView({
 
     try {
       setAssigningFolder(true);
-      
+
       const selectedMemberData = members.find(m => m.id === assignForm.memberId);
       const selectedFolderData = folders.find(f => f.id === assignForm.folderId);
 
@@ -478,13 +510,13 @@ export default function FolderMemberView({
             allowSubfolders: assignForm.settings.allowSubfolders,
             maxSubfolders: 50,
             notifyOnUpload: assignForm.settings.notifyMember,
-            requireApproval: assignForm.settings.requireApproval,
-            autoArchive: false
+            requireApproval: false, // Ensure this is explicitly set if not coming from form
+            autoArchive: false // Ensure this is explicitly set if not coming from form
           }
         };
 
         await FolderService.createFolder(newFolderData, userProfile.id);
-        
+
         toast({
           title: '✅ Folder Assigned Successfully',
           description: `"${assignForm.folderName}" has been created and assigned to ${selectedMemberData?.name}.`,
@@ -497,7 +529,7 @@ export default function FolderMemberView({
           type: 'member-assigned' as const,
           permissions: {
             read: [...(selectedFolderData?.permissions?.read || []), assignForm.memberId],
-            write: assignForm.permissions.canUpload 
+            write: assignForm.permissions.canUpload
               ? [...(selectedFolderData?.permissions?.write || []), assignForm.memberId]
               : selectedFolderData?.permissions?.write || [],
             admin: assignForm.permissions.canEdit
@@ -508,7 +540,7 @@ export default function FolderMemberView({
         };
 
         await FolderService.updateFolder(assignForm.folderId, updateData, userProfile.id, userRole || 'member');
-        
+
         toast({
           title: '✅ Folder Assigned Successfully',
           description: `"${selectedFolderData?.name}" has been assigned to ${selectedMemberData?.name}.`,
@@ -540,8 +572,10 @@ export default function FolderMemberView({
       setAssignmentType('new');
 
       // Refresh data
-      window.location.reload(); // Simple refresh for now
-      
+      // Consider calling a prop to trigger data reload in parent FolderManagement
+      // For now, will keep window.location.reload() for simplicity, but a prop-based refresh is better.
+      window.location.reload();
+
     } catch (error) {
       console.error('Error assigning folder:', error);
       toast({
@@ -554,17 +588,27 @@ export default function FolderMemberView({
     }
   };
 
-  const filteredMembersForAssign = members.filter(member =>
-    member.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(memberSearchTerm.toLowerCase())
-  );
+  const filteredMembersForAssign = useMemo(() => {
+    return members.filter(member =>
+      member.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(memberSearchTerm.toLowerCase())
+    );
+  }, [members, memberSearchTerm]);
 
-  const availableFoldersForAssign = folders.filter(folder => 
-    folder.type === 'team' || folder.type === 'project' || folder.type === 'shared'
-  );
+  const availableFoldersForAssign = useMemo(() => {
+    return folders.filter(folder =>
+      folder.type === 'team' || folder.type === 'project' || folder.type === 'shared'
+    );
+  }, [folders]);
 
-  const selectedMemberForAssign = members.find(m => m.id === assignForm.memberId);
-  const selectedFolderForAssign = folders.find(f => f.id === assignForm.folderId);
+  const selectedMemberForAssign = useMemo(() => {
+    return members.find(m => m.id === assignForm.memberId);
+  }, [members, assignForm.memberId]);
+
+  const selectedFolderForAssign = useMemo(() => {
+    return folders.find(f => f.id === assignForm.folderId);
+  }, [folders, assignForm.folderId]);
+
 
   // Bulk operations handlers
   const handleSelectAll = useCallback(() => {
@@ -574,8 +618,8 @@ export default function FolderMemberView({
   }, [activeTab, assignedFolders, memberFolders, selectedFolders.length]);
 
   const handleSelectFolder = useCallback((folderId: string, checked: boolean) => {
-    setSelectedFolders(prev => 
-      checked 
+    setSelectedFolders(prev =>
+      checked
         ? [...prev, folderId]
         : prev.filter(id => id !== folderId)
     );
@@ -608,9 +652,9 @@ export default function FolderMemberView({
         const folder = folders.find(f => f.id === folderId);
         if (folder) {
           await FolderService.updateFolder(
-            folderId, 
-            { status: 'archived' as const }, 
-            userProfile.id, 
+            folderId,
+            { status: 'archived' as const },
+            userProfile.id,
             userRole || 'member'
           );
         }
@@ -625,7 +669,7 @@ export default function FolderMemberView({
       // Clear selection and refresh
       setSelectedFolders([]);
       setShowArchiveDialog(false);
-      window.location.reload();
+      window.location.reload(); // Consider prop-based refresh
 
     } catch (error) {
       console.error('Error archiving folders:', error);
@@ -652,7 +696,7 @@ export default function FolderMemberView({
     try {
       // Save folder settings to workspace settings or user preferences
       // This would typically be saved to a workspace settings collection
-      
+
       toast({
         title: '✅ Settings Saved',
         description: 'Folder settings have been updated successfully.',
@@ -707,7 +751,7 @@ export default function FolderMemberView({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -719,7 +763,7 @@ export default function FolderMemberView({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -731,7 +775,7 @@ export default function FolderMemberView({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -753,7 +797,7 @@ export default function FolderMemberView({
               <Users className="h-5 w-5 text-primary" />
               <span>Member Folders</span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               {(userRole === 'owner' || userRole === 'admin') && onCreateMemberFolder && (
                 <Button size="sm" onClick={() => setShowAssignDialog(true)}>
@@ -776,7 +820,7 @@ export default function FolderMemberView({
                       Folder Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => setShowArchiveDialog(true)}
                       disabled={selectedFolders.length === 0}
                     >
@@ -793,7 +837,7 @@ export default function FolderMemberView({
             </div>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Filters */}
           <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:space-x-4">
@@ -807,7 +851,7 @@ export default function FolderMemberView({
                   className="pl-10"
                 />
               </div>
-              
+
               <Select value={selectedMember} onValueChange={setSelectedMember}>
                 <SelectTrigger className="w-full sm:w-48">
                   <SelectValue />
@@ -829,7 +873,7 @@ export default function FolderMemberView({
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
                 <SelectTrigger className="w-full sm:w-32">
                   <SelectValue />
@@ -853,7 +897,7 @@ export default function FolderMemberView({
                 Member Folders ({memberFolders.length})
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="assigned" className="space-y-4">
               {assignedFolders.length === 0 ? (
                 <div className="text-center py-8 space-y-2">
@@ -865,11 +909,25 @@ export default function FolderMemberView({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {assignedFolders.map(renderFolderCard)}
+                  {assignedFolders.map(folder => (
+                    <FolderMemberCard
+                      key={folder.id}
+                      folder={folder}
+                      onFolderClick={onFolderClick}
+                      onEditFolder={onEditFolder}
+                      onDeleteFolder={onDeleteFolder}
+                      userRole={userRole}
+                      settingsForm={settingsForm}
+                      selectedFolders={selectedFolders}
+                      handleSelectFolder={handleSelectFolder}
+                      getMemberName={memoizedGetMemberName}
+                      getMemberAvatar={memoizedGetMemberAvatar}
+                    />
+                  ))}
                 </div>
               )}
             </TabsContent>
-            
+
             <TabsContent value="member" className="space-y-4">
               {memberFolders.length === 0 ? (
                 <div className="text-center py-8 space-y-2">
@@ -881,7 +939,21 @@ export default function FolderMemberView({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {memberFolders.map(renderFolderCard)}
+                  {memberFolders.map(folder => (
+                    <FolderMemberCard
+                      key={folder.id}
+                      folder={folder}
+                      onFolderClick={onFolderClick}
+                      onEditFolder={onEditFolder}
+                      onDeleteFolder={onDeleteFolder}
+                      userRole={userRole}
+                      settingsForm={settingsForm}
+                      selectedFolders={selectedFolders}
+                      handleSelectFolder={handleSelectFolder}
+                      getMemberName={memoizedGetMemberName}
+                      getMemberAvatar={memoizedGetMemberAvatar}
+                    />
+                  ))}
                 </div>
               )}
             </TabsContent>
@@ -901,14 +973,14 @@ export default function FolderMemberView({
 
           <div className="h-full flex flex-col">
             <div className="flex-1 grid grid-cols-3 gap-4 overflow-hidden">
-              
+
               {/* Column 1: Member Selection */}
               <div className="space-y-4 overflow-y-auto">
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-primary border-b border-border pb-1">
                     Select Member
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -951,13 +1023,13 @@ export default function FolderMemberView({
 
               {/* Column 2: Assignment Type & Folder Selection/Creation */}
               <div className="space-y-4 overflow-y-auto">
-                
+
                 {/* Assignment Type */}
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-primary border-b border-border pb-1">
                     Assignment Type
                   </h3>
-                  
+
                   <RadioGroup value={assignmentType} onValueChange={(value: any) => setAssignmentType(value)}>
                     <div className="flex items-center space-x-2 p-3 border rounded-lg">
                       <RadioGroupItem value="existing" id="existing" />
@@ -971,7 +1043,7 @@ export default function FolderMemberView({
                         </p>
                       </Label>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2 p-3 border rounded-lg">
                       <RadioGroupItem value="new" id="new" />
                       <Label htmlFor="new" className="cursor-pointer flex-1">
@@ -992,7 +1064,7 @@ export default function FolderMemberView({
                   <h3 className="text-lg font-semibold text-primary border-b border-border pb-1">
                     {assignmentType === 'existing' ? 'Select Folder' : 'Create Folder'}
                   </h3>
-                  
+
                   {assignmentType === 'existing' ? (
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Available Folders</Label>
@@ -1036,7 +1108,7 @@ export default function FolderMemberView({
                           className="h-10"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Description</Label>
                         <Textarea
@@ -1068,13 +1140,13 @@ export default function FolderMemberView({
 
               {/* Column 3: Member Permissions & Assignment Summary */}
               <div className="space-y-4 overflow-y-auto">
-                
+
                 {/* Permissions */}
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-primary border-b border-border pb-1">
                     Member Permissions
                   </h4>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                       <div className="space-y-0.5">
@@ -1083,9 +1155,9 @@ export default function FolderMemberView({
                       </div>
                       <Switch
                         checked={assignForm.permissions.canUpload}
-                        onCheckedChange={(checked) => 
-                          setAssignForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setAssignForm(prev => ({
+                            ...prev,
                             permissions: { ...prev.permissions, canUpload: checked }
                           }))
                         }
@@ -1099,9 +1171,9 @@ export default function FolderMemberView({
                       </div>
                       <Switch
                         checked={assignForm.permissions.canEdit}
-                        onCheckedChange={(checked) => 
-                          setAssignForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setAssignForm(prev => ({
+                            ...prev,
                             permissions: { ...prev.permissions, canEdit: checked }
                           }))
                         }
@@ -1115,9 +1187,9 @@ export default function FolderMemberView({
                       </div>
                       <Switch
                         checked={assignForm.permissions.canShare}
-                        onCheckedChange={(checked) => 
-                          setAssignForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setAssignForm(prev => ({
+                            ...prev,
                             permissions: { ...prev.permissions, canShare: checked }
                           }))
                         }
@@ -1132,13 +1204,13 @@ export default function FolderMemberView({
                     <h4 className="text-lg font-semibold text-primary border-b border-border pb-1">
                       Assignment Summary
                     </h4>
-                    
+
                     <div className="p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border border-primary/20">
                       <div className="flex items-center space-x-2 mb-3">
                         <CheckCircle className="h-5 w-5 text-primary" />
                         <span className="font-semibold text-primary">Ready to Assign</span>
                       </div>
-                      
+
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Member:</span>
@@ -1152,14 +1224,14 @@ export default function FolderMemberView({
                             <span className="font-medium">{selectedMemberForAssign.name}</span>
                           </div>
                         </div>
-                        
+
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Type:</span>
                           <Badge variant="outline" className="text-xs">
                             {assignmentType === 'existing' ? 'Existing Folder' : 'New Folder'}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Permissions:</span>
                           <span className="text-xs">
@@ -1196,7 +1268,7 @@ export default function FolderMemberView({
               <Button type="button" variant="outline" onClick={() => setShowAssignDialog(false)} className="h-10 px-6">
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleAssignFolder}
                 disabled={assigningFolder || !assignForm.memberId}
                 className="h-10 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
@@ -1222,15 +1294,15 @@ export default function FolderMemberView({
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Default Folder Settings</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="space-y-0.5">
                     <Label className="text-sm font-medium">Default Visibility</Label>
                     <p className="text-xs text-muted-foreground">Default visibility for new member folders</p>
                   </div>
-                  <Select 
-                    value={settingsForm.defaultVisibility} 
+                  <Select
+                    value={settingsForm.defaultVisibility}
                     onValueChange={(value: any) => setSettingsForm(prev => ({ ...prev, defaultVisibility: value }))}
                   >
                     <SelectTrigger className="w-32">
@@ -1251,7 +1323,7 @@ export default function FolderMemberView({
                   </div>
                   <Switch
                     checked={settingsForm.autoArchiveInactive}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setSettingsForm(prev => ({ ...prev, autoArchiveInactive: checked }))
                     }
                   />
@@ -1268,10 +1340,10 @@ export default function FolderMemberView({
                       min="1"
                       max="365"
                       value={settingsForm.autoArchiveDays}
-                      onChange={(e) => 
-                        setSettingsForm(prev => ({ 
-                          ...prev, 
-                          autoArchiveDays: parseInt(e.target.value) || 90 
+                      onChange={(e) =>
+                        setSettingsForm(prev => ({
+                          ...prev,
+                          autoArchiveDays: parseInt(e.target.value) || 90
                         }))
                       }
                       className="w-20 h-8"
@@ -1286,7 +1358,7 @@ export default function FolderMemberView({
                   </div>
                   <Switch
                     checked={settingsForm.requireApprovalForUploads}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setSettingsForm(prev => ({ ...prev, requireApprovalForUploads: checked }))
                     }
                   />
@@ -1299,7 +1371,7 @@ export default function FolderMemberView({
                   </div>
                   <Switch
                     checked={settingsForm.allowMemberSubfolders}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setSettingsForm(prev => ({ ...prev, allowMemberSubfolders: checked }))
                     }
                   />
@@ -1316,10 +1388,10 @@ export default function FolderMemberView({
                       min="1"
                       max="50"
                       value={settingsForm.maxSubfoldersPerMember}
-                      onChange={(e) => 
-                        setSettingsForm(prev => ({ 
-                          ...prev, 
-                          maxSubfoldersPerMember: parseInt(e.target.value) || 10 
+                      onChange={(e) =>
+                        setSettingsForm(prev => ({
+                          ...prev,
+                          maxSubfoldersPerMember: parseInt(e.target.value) || 10
                         }))
                       }
                       className="w-20 h-8"
@@ -1334,7 +1406,7 @@ export default function FolderMemberView({
                   </div>
                   <Switch
                     checked={settingsForm.notifyOnNewAssignment}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setSettingsForm(prev => ({ ...prev, notifyOnNewAssignment: checked }))
                     }
                   />
@@ -1347,7 +1419,7 @@ export default function FolderMemberView({
                   </div>
                   <Switch
                     checked={settingsForm.allowBulkOperations}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setSettingsForm(prev => ({ ...prev, allowBulkOperations: checked }))
                     }
                   />
@@ -1377,9 +1449,9 @@ export default function FolderMemberView({
               <span>Archive Selected Folders</span>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to archive {selectedFolders.length} folder{selectedFolders.length > 1 ? 's' : ''}. 
+              You are about to archive {selectedFolders.length} folder{selectedFolders.length > 1 ? 's' : ''}.
               Archived folders will be hidden from the main view but can be restored later.
-              
+
               <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
@@ -1442,4 +1514,4 @@ export default function FolderMemberView({
       </AlertDialog>
     </div>
   );
-} 
+}

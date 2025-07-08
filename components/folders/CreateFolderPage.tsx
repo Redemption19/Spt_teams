@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,13 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Loader2, 
-  FolderOpen, 
-  Shield, 
-  Users, 
-  Globe, 
-  Lock, 
+import {
+  Loader2,
+  FolderOpen,
+  Shield,
+  Users,
+  Globe,
+  Lock,
   ArrowLeft,
   Save,
   X,
@@ -29,6 +29,31 @@ import { Folder, Team } from '@/lib/types';
 import { useAllowedFolderTypes, useFolderCreationLimits } from '@/lib/rbac-hooks';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
+
+// --- Helper Functions (Moved outside component) ---
+
+const getVisibilityIcon = (visibility: string) => {
+  switch (visibility) {
+    case 'public': return <Globe className="h-4 w-4" />;
+    case 'team': return <Users className="h-4 w-4" />;
+    case 'project': return <FolderOpen className="h-4 w-4" />;
+    default: return <Lock className="h-4 w-4" />;
+  }
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'team': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+    case 'personal': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+    case 'project': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
+    case 'shared': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300';
+    case 'member': return 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300';
+    case 'member-assigned': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300';
+    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+  }
+};
+
+// --- CreateFolderPage Component ---
 
 interface CreateFolderPageProps {
   onBack: () => void;
@@ -86,6 +111,7 @@ export default function CreateFolderPage({
         }
       });
     } else {
+      // Reset form when no folder is being edited
       setForm({
         name: '',
         description: '',
@@ -102,14 +128,14 @@ export default function CreateFolderPage({
         }
       });
     }
-  }, [folder]);
+  }, [folder]); // Dependency on 'folder' prop to reset/load form data
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     await onSubmit(form);
-  };
+  }, [onSubmit, form]); // Dependencies: onSubmit prop and current form state
 
-  const addTag = () => {
+  const addTag = useCallback(() => {
     if (newTag.trim() && !form.tags.includes(newTag.trim())) {
       setForm(prev => ({
         ...prev,
@@ -117,45 +143,25 @@ export default function CreateFolderPage({
       }));
       setNewTag('');
     }
-  };
+  }, [newTag, form.tags]); // Dependencies: newTag state and form.tags array
 
-  const removeTag = (tagToRemove: string) => {
+  const removeTag = useCallback((tagToRemove: string) => {
     setForm(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
-  };
-
-  const getVisibilityIcon = () => {
-    switch (form.visibility) {
-      case 'public': return <Globe className="h-4 w-4" />;
-      case 'team': return <Users className="h-4 w-4" />;
-      case 'project': return <FolderOpen className="h-4 w-4" />;
-      default: return <Lock className="h-4 w-4" />;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'team': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
-      case 'personal': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-      case 'project': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
-      case 'shared': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300';
-      case 'member': return 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
-  };
+  }, []); // No dependencies needed as `prev` is used for state update
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 max-w-7xl">
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onBack}
               className="h-9 px-3"
             >
@@ -171,7 +177,7 @@ export default function CreateFolderPage({
               </h1>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button variant="outline" onClick={onBack}>
               <X className="h-4 w-4 mr-2" />
@@ -182,7 +188,7 @@ export default function CreateFolderPage({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            
+
             {/* Column 1: Basic Information */}
             <div className="space-y-6">
               <Card>
@@ -207,8 +213,8 @@ export default function CreateFolderPage({
 
                   <div className="space-y-2">
                     <Label htmlFor="type" className="text-sm font-medium">Folder Type *</Label>
-                    <Select 
-                      value={form.type} 
+                    <Select
+                      value={form.type}
                       onValueChange={(value) => setForm(prev => ({ ...prev, type: value as any }))}
                     >
                       <SelectTrigger className="h-10">
@@ -264,13 +270,13 @@ export default function CreateFolderPage({
                         Add
                       </Button>
                     </div>
-                    
+
                     {form.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {form.tags.map(tag => (
-                          <Badge 
-                            key={tag} 
-                            variant="secondary" 
+                          <Badge
+                            key={tag}
+                            variant="secondary"
                             className="cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 text-xs"
                             onClick={() => removeTag(tag)}
                           >
@@ -297,8 +303,8 @@ export default function CreateFolderPage({
                   {teams.length > 0 && (form.type === 'team' || form.type === 'project') && (
                     <div className="space-y-2">
                       <Label htmlFor="team" className="text-sm font-medium">Team Assignment</Label>
-                      <Select 
-                        value={form.teamId} 
+                      <Select
+                        value={form.teamId}
                         onValueChange={(value) => setForm(prev => ({ ...prev, teamId: value }))}
                       >
                         <SelectTrigger className="h-10">
@@ -320,8 +326,8 @@ export default function CreateFolderPage({
 
                   <div className="space-y-2">
                     <Label htmlFor="visibility" className="text-sm font-medium">Visibility Level</Label>
-                    <Select 
-                      value={form.visibility} 
+                    <Select
+                      value={form.visibility}
                       onValueChange={(value) => setForm(prev => ({ ...prev, visibility: value as any }))}
                     >
                       <SelectTrigger className="h-10">
@@ -360,7 +366,7 @@ export default function CreateFolderPage({
 
                   <div className="p-4 bg-muted rounded-lg border">
                     <div className="flex items-center space-x-2 mb-2">
-                      {getVisibilityIcon()}
+                      {getVisibilityIcon(form.visibility)}
                       <span className="font-medium capitalize">{form.visibility} Folder</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -383,7 +389,7 @@ export default function CreateFolderPage({
                         <span className="font-medium">Folder Limits</span>
                       </div>
                       <p className="text-sm text-blue-600 dark:text-blue-300">
-                        You can create {folderLimits.remaining} more folders 
+                        You can create {folderLimits.remaining} more folders
                         ({folderLimits.currentCount}/{folderLimits.maxFolders} used)
                       </p>
                     </div>
@@ -412,9 +418,9 @@ export default function CreateFolderPage({
                       </div>
                       <Switch
                         checked={form.settings.allowSubfolders}
-                        onCheckedChange={(checked) => 
-                          setForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setForm(prev => ({
+                            ...prev,
                             settings: { ...prev.settings, allowSubfolders: checked }
                           }))
                         }
@@ -430,9 +436,9 @@ export default function CreateFolderPage({
                       </div>
                       <Switch
                         checked={form.settings.notifyOnUpload}
-                        onCheckedChange={(checked) => 
-                          setForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setForm(prev => ({
+                            ...prev,
                             settings: { ...prev.settings, notifyOnUpload: checked }
                           }))
                         }
@@ -448,9 +454,9 @@ export default function CreateFolderPage({
                       </div>
                       <Switch
                         checked={form.settings.requireApproval}
-                        onCheckedChange={(checked) => 
-                          setForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setForm(prev => ({
+                            ...prev,
                             settings: { ...prev.settings, requireApproval: checked }
                           }))
                         }
@@ -466,9 +472,9 @@ export default function CreateFolderPage({
                       </div>
                       <Switch
                         checked={form.settings.autoArchive}
-                        onCheckedChange={(checked) => 
-                          setForm(prev => ({ 
-                            ...prev, 
+                        onCheckedChange={(checked) =>
+                          setForm(prev => ({
+                            ...prev,
                             settings: { ...prev.settings, autoArchive: checked }
                           }))
                         }
@@ -483,9 +489,9 @@ export default function CreateFolderPage({
                           min="1"
                           max="100"
                           value={form.settings.maxSubfolders}
-                          onChange={(e) => 
-                            setForm(prev => ({ 
-                              ...prev, 
+                          onChange={(e) =>
+                            setForm(prev => ({
+                              ...prev,
                               settings: { ...prev.settings, maxSubfolders: parseInt(e.target.value) || 50 }
                             }))
                           }
@@ -519,7 +525,7 @@ export default function CreateFolderPage({
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Visibility:</span>
                         <div className="flex items-center space-x-1">
-                          {getVisibilityIcon()}
+                          {getVisibilityIcon(form.visibility)}
                           <span className="capitalize text-sm">{form.visibility}</span>
                         </div>
                       </div>
@@ -543,8 +549,8 @@ export default function CreateFolderPage({
             <Button type="button" variant="outline" onClick={onBack} className="h-11 px-6 order-2 sm:order-1">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={submitting || !form.name || (!folder && !folderLimits.canCreateMore)}
               className="h-11 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 order-1 sm:order-2"
             >
@@ -557,4 +563,4 @@ export default function CreateFolderPage({
       </div>
     </div>
   );
-} 
+}

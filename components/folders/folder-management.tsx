@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -41,12 +41,12 @@ import { useWorkspace } from '@/lib/workspace-context';
 import { FolderService } from '@/lib/folder-service';
 import { TeamService } from '@/lib/team-service';
 import { UserService } from '@/lib/user-service';
-import { 
-  Folder as FolderType, 
+import {
+  Folder as FolderType,
   Team,
   User
 } from '@/lib/types';
-import { 
+import {
   useCanCreateFolders,
   useCanViewMemberFolders,
   useAccessibleFolders,
@@ -65,7 +65,7 @@ import FolderMemberView from './FolderMemberView';
 const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspaceMembers }: any) => {
   const { userProfile } = useAuth();
   const { userRole } = useWorkspace();
-  
+
   // Enhanced folder types based on user role
   const getAllowedFolderTypes = () => {
     const baseTypes = ['personal', 'team', 'project', 'shared'];
@@ -169,9 +169,9 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onBack}
             className="h-9 px-3"
           >
@@ -188,7 +188,7 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Column 1: Basic Information */}
           <div className="space-y-6">
             <div className="bg-card border rounded-lg p-6">
@@ -210,8 +210,8 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Folder Type *</label>
-                  <Select 
-                    value={form.type} 
+                  <Select
+                    value={form.type}
                     onValueChange={(value) => setForm(prev => ({ ...prev, type: value as any }))}
                   >
                     <SelectTrigger className="h-10">
@@ -234,8 +234,8 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                 {(userRole === 'owner' || userRole === 'admin') && form.type === 'member-assigned' && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Assign to Member *</label>
-                    <Select 
-                      value={form.assignedMemberId} 
+                    <Select
+                      value={form.assignedMemberId}
                       onValueChange={(value) => setForm(prev => ({ ...prev, assignedMemberId: value }))}
                     >
                       <SelectTrigger className="h-10">
@@ -291,13 +291,13 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                       Add
                     </Button>
                   </div>
-                  
+
                   {form.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {form.tags.map(tag => (
-                        <Badge 
-                          key={tag} 
-                          variant="secondary" 
+                        <Badge
+                          key={tag}
+                          variant="secondary"
                           className="cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 text-xs"
                           onClick={() => removeTag(tag)}
                         >
@@ -322,8 +322,8 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                 {teams.length > 0 && (form.type === 'team' || form.type === 'project') && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Team Assignment</label>
-                    <Select 
-                      value={form.teamId} 
+                    <Select
+                      value={form.teamId}
                       onValueChange={(value) => setForm(prev => ({ ...prev, teamId: value }))}
                     >
                       <SelectTrigger className="h-10">
@@ -347,8 +347,8 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                 {form.type !== 'member-assigned' && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Visibility Level</label>
-                    <Select 
-                      value={form.visibility} 
+                    <Select
+                      value={form.visibility}
                       onValueChange={(value) => setForm(prev => ({ ...prev, visibility: value as any }))}
                     >
                       <SelectTrigger className="h-10">
@@ -432,9 +432,9 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                     <input
                       type="checkbox"
                       checked={form.settings.allowSubfolders}
-                      onChange={(e) => 
-                        setForm(prev => ({ 
-                          ...prev, 
+                      onChange={(e) =>
+                        setForm(prev => ({
+                          ...prev,
                           settings: { ...prev.settings, allowSubfolders: e.target.checked }
                         }))
                       }
@@ -451,9 +451,9 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                     <input
                       type="checkbox"
                       checked={form.settings.notifyOnUpload}
-                      onChange={(e) => 
-                        setForm(prev => ({ 
-                          ...prev, 
+                      onChange={(e) =>
+                        setForm(prev => ({
+                          ...prev,
                           settings: { ...prev.settings, notifyOnUpload: e.target.checked }
                         }))
                       }
@@ -470,9 +470,9 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                     <input
                       type="checkbox"
                       checked={form.settings.requireApproval}
-                      onChange={(e) => 
-                        setForm(prev => ({ 
-                          ...prev, 
+                      onChange={(e) =>
+                        setForm(prev => ({
+                          ...prev,
                           settings: { ...prev.settings, requireApproval: e.target.checked }
                         }))
                       }
@@ -489,9 +489,9 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
                     <input
                       type="checkbox"
                       checked={form.settings.autoArchive}
-                      onChange={(e) => 
-                        setForm(prev => ({ 
-                          ...prev, 
+                      onChange={(e) =>
+                        setForm(prev => ({
+                          ...prev,
                           settings: { ...prev.settings, autoArchive: e.target.checked }
                         }))
                       }
@@ -550,8 +550,8 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
           <Button type="button" variant="outline" onClick={onBack} className="h-11 px-6">
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={submitting || !form.name || (form.type === 'member-assigned' && !form.assignedMemberId)}
             className="h-11 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
           >
@@ -566,11 +566,17 @@ const CreateFolderPage = ({ onBack, onSubmit, teams, submitting, folder, workspa
 
 export default function FolderManagement() {
   const { userProfile } = useAuth();
-  const { 
-    currentWorkspace, 
+  const {
+    currentWorkspace,
     userRole,
-    accessibleWorkspaces  // Add this to get all accessible workspaces
+    accessibleWorkspaces
   } = useWorkspace();
+
+  // Memoize workspace IDs for stable dependency
+  const accessibleWorkspaceIds = useMemo(
+    () => accessibleWorkspaces.map(w => w.id).join(','),
+    [accessibleWorkspaces]
+  );
 
   // State management
   const [folders, setFolders] = useState<FolderType[]>([]);
@@ -587,7 +593,7 @@ export default function FolderManagement() {
   const [deletingFolder, setDeletingFolder] = useState<FolderType | null>(null);
   const [isDeleteFolderOpen, setIsDeleteFolderOpen] = useState(false);
   const [viewingFolder, setViewingFolder] = useState<FolderType | null>(null);
-  
+
   // Cross-workspace management for owners
   const [showAllWorkspaces, setShowAllWorkspaces] = useState(false);
   const [selectedWorkspaceFilter, setSelectedWorkspaceFilter] = useState('all');
@@ -607,7 +613,7 @@ export default function FolderManagement() {
     notifyOnNewAssignment: true,
     allowBulkOperations: true
   });
-  
+
   // RBAC hooks
   const canCreateFolders = useCanCreateFolders();
   const canViewMemberFolders = useCanViewMemberFolders();
@@ -621,7 +627,7 @@ export default function FolderManagement() {
 
     try {
       setLoading(true);
-      
+
       let allFoldersData: FolderType[] = [];
       let allTeamsData: Team[] = [];
       let allMembersData: User[] = [];
@@ -635,14 +641,14 @@ export default function FolderManagement() {
               TeamService.getWorkspaceTeams(workspace.id),
               UserService.getUsersByWorkspace(workspace.id)
             ]);
-            
+
             // Add workspace info to folders for identification
             const foldersWithWorkspace = foldersData.map(folder => ({
               ...folder,
               workspaceName: workspace.name,
               workspaceType: workspace.workspaceType || 'main'
             }));
-            
+
             return {
               folders: foldersWithWorkspace,
               teams: teamsData,
@@ -656,20 +662,20 @@ export default function FolderManagement() {
         });
 
         const workspaceResults = await Promise.all(workspacePromises);
-        
+
         // Combine all data
         allFoldersData = workspaceResults.flatMap(result => result.folders);
         allTeamsData = workspaceResults.flatMap(result => result.teams);
         allMembersData = workspaceResults.flatMap(result => result.members);
-        
+
         // Remove duplicates from teams and members
-        allTeamsData = allTeamsData.filter((team, index, self) => 
+        allTeamsData = allTeamsData.filter((team, index, self) =>
           self.findIndex(t => t.id === team.id) === index
         );
-        allMembersData = allMembersData.filter((member, index, self) => 
+        allMembersData = allMembersData.filter((member, index, self) =>
           self.findIndex(m => m.id === member.id) === index
         );
-        
+
       } else {
         // Standard single workspace loading
         const [foldersData, teamsData, membersData] = await Promise.all([
@@ -701,7 +707,7 @@ export default function FolderManagement() {
     } finally {
       setLoading(false);
     }
-  }, [userProfile, currentWorkspace, userRole, showAllWorkspaces, accessibleWorkspaces]);
+  }, [userProfile, currentWorkspace, userRole, showAllWorkspaces, accessibleWorkspaces]); // Dependencies for useCallback
 
   useEffect(() => {
     loadData();
@@ -713,7 +719,10 @@ export default function FolderManagement() {
                          folder.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || folder.type === selectedType;
     const matchesTeam = selectedTeam === 'all' || folder.teamId === selectedTeam;
-    return matchesSearch && matchesType && matchesTeam;
+    // Apply workspace filter if showAllWorkspaces is true and a specific workspace is selected
+    const matchesWorkspace = !showAllWorkspaces || selectedWorkspaceFilter === 'all' || folder.workspaceId === selectedWorkspaceFilter;
+
+    return matchesSearch && matchesType && matchesTeam && matchesWorkspace;
   });
 
   // Enhanced folder creation with member assignment
@@ -770,7 +779,7 @@ export default function FolderManagement() {
       await FolderService.createFolder(folderPayload, userProfile.id);
 
       // Enhanced success message
-      const successMessage = folderData.type === 'member-assigned' 
+      const successMessage = folderData.type === 'member-assigned'
         ? `Successfully created folder "${folderData.name}" and assigned to member`
         : `Successfully created folder "${folderData.name}"`;
 
@@ -885,7 +894,7 @@ export default function FolderManagement() {
   // Get role badge component
   const getRoleBadge = () => {
     if (!userProfile) return null;
-    
+
     switch (userRole) {
       case 'owner':
         return (
@@ -915,15 +924,15 @@ export default function FolderManagement() {
   const handleSelectAll = useCallback(() => {
     const allIds = filteredFolders.map(f => f.id);
     setSelectedFolders(selectedFolders.length === allIds.length ? [] : allIds);
-  }, [filteredFolders, selectedFolders.length]);
+  }, [filteredFolders, selectedFolders.length]); // Dependencies for useCallback
 
   const handleSelectFolder = useCallback((folderId: string, checked: boolean) => {
-    setSelectedFolders(prev => 
-      checked 
+    setSelectedFolders(prev =>
+      checked
         ? [...prev, folderId]
         : prev.filter(id => id !== folderId)
     );
-  }, []);
+  }, []); // Dependencies for useCallback
 
   const handleArchiveSelected = async () => {
     if (selectedFolders.length === 0) {
@@ -952,9 +961,9 @@ export default function FolderManagement() {
         const folder = folders.find(f => f.id === folderId);
         if (folder) {
           await FolderService.updateFolder(
-            folderId, 
-            { status: 'archived' as const }, 
-            userProfile.id, 
+            folderId,
+            { status: 'archived' as const },
+            userProfile.id,
             userRole || 'member'
           );
         }
@@ -996,7 +1005,7 @@ export default function FolderManagement() {
     try {
       // Save folder settings to workspace settings or user preferences
       // This would typically be saved to a workspace settings collection
-      
+
       toast({
         title: '✅ Settings Saved',
         description: 'Folder settings have been updated successfully.',
@@ -1078,7 +1087,7 @@ export default function FolderManagement() {
               Organize files with advanced permissions, member folders, and team collaboration
             </p>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center space-x-2">
               <FolderOpen className="h-4 w-4 text-primary" />
@@ -1100,7 +1109,7 @@ export default function FolderManagement() {
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           {canCreateFolders && folderLimits.canCreateMore && (
-            <Button 
+            <Button
               onClick={() => setCurrentPage('create')}
               className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
             >
@@ -1123,7 +1132,7 @@ export default function FolderManagement() {
                   Folder Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setShowArchiveDialog(true)}
                   disabled={selectedFolders.length === 0}
                 >
@@ -1152,7 +1161,7 @@ export default function FolderManagement() {
               className="pl-10 border-border bg-background"
             />
           </div>
-          
+
           {/* Cross-Workspace Toggle for Owners */}
           {userRole === 'owner' && accessibleWorkspaces.length > 1 && (
             <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -1306,21 +1315,21 @@ export default function FolderManagement() {
           <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center mb-4">
             <FolderOpen className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
           </div>
-          
+
           <div className="space-y-2 max-w-md">
             <h3 className="text-xl sm:text-2xl font-semibold text-foreground">
               No folders found
             </h3>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {searchTerm ? 
-                `No folders match "${searchTerm}". Try adjusting your search or filters.` : 
+              {searchTerm ?
+                `No folders match "${searchTerm}". Try adjusting your search or filters.` :
                 'Get started by creating your first folder'
               }
             </p>
           </div>
 
           {canCreateFolders && folderLimits.canCreateMore && (
-            <Button 
+            <Button
               onClick={() => setCurrentPage('create')}
               className="h-11 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
             >
@@ -1356,15 +1365,15 @@ export default function FolderManagement() {
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Default Folder Settings</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="space-y-0.5">
                     <Label className="text-sm font-medium">Default Visibility</Label>
                     <p className="text-xs text-muted-foreground">Default visibility for new folders</p>
                   </div>
-                  <Select 
-                    value={settingsForm.defaultVisibility} 
+                  <Select
+                    value={settingsForm.defaultVisibility}
                     onValueChange={(value: any) => setSettingsForm(prev => ({ ...prev, defaultVisibility: value }))}
                   >
                     <SelectTrigger className="w-32">
@@ -1385,7 +1394,7 @@ export default function FolderManagement() {
                   </div>
                   <Switch
                     checked={settingsForm.autoArchiveInactive}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setSettingsForm(prev => ({ ...prev, autoArchiveInactive: checked }))
                     }
                   />
@@ -1432,7 +1441,7 @@ export default function FolderManagement() {
               <span>Archive Selected Folders</span>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to archive {selectedFolders.length} folder(s)? 
+              Are you sure you want to archive {selectedFolders.length} folder(s)?
               Archived folders will be hidden from the main view but can be restored later.
             </AlertDialogDescription>
           </AlertDialogHeader>
