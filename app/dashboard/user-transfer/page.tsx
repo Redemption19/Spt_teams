@@ -192,7 +192,7 @@ export default function UserTransferPage() {
 
   if (!isOwner) {
     return (
-      <div className="container max-w-4xl mx-auto p-6">
+      <div className="space-y-6">
         <Alert className="border-yellow-200">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
@@ -205,7 +205,7 @@ export default function UserTransferPage() {
 
   if (loading) {
     return (
-      <div className="container max-w-4xl mx-auto p-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <RefreshCw className="h-8 w-8 animate-spin" />
           <span className="ml-2">Loading transfer data...</span>
@@ -218,7 +218,7 @@ export default function UserTransferPage() {
   const selectedTransferableCount = selectedUsers.length;
 
   return (
-    <div className="container max-w-6xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Settings className="h-8 w-8" />
         <div>

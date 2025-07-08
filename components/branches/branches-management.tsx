@@ -45,6 +45,25 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 // Assuming you have a Tabs component in your UI library
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'; // Adjust import based on your actual UI library
 
+import { BranchCard } from './branch-card';
+import { RegionCard } from './region-card';
+import { ManagerCard } from './manager-card';
+import { CreateBranchDialog } from './create-branch-dialog';
+import { CreateRegionDialog } from './create-region-dialog';
+import { CreateManagerDialog } from './create-manager-dialog';
+import { EditBranchDialog } from './edit-branch-dialog';
+import { EditRegionDialog } from './edit-region-dialog';
+import { EditManagerDialog } from './edit-manager-dialog';
+import { ViewBranchDetailsDialog } from './view-branch-details-dialog';
+import { ViewRegionDetailsDialog } from './view-region-details-dialog';
+import { DeleteBranchDialog } from './delete-branch-dialog';
+import { DeleteRegionDialog } from './delete-region-dialog';
+import { DeleteManagerDialog } from './delete-manager-dialog';
+import { EmptyStateBranches } from './empty-state-branches';
+import { EmptyStateRegions } from './empty-state-regions';
+import { EmptyStateManagers } from './empty-state-managers';
+import { BranchesTabsNavigation } from './branches-tabs-navigation';
+
 // Form data interfaces
 interface BranchFormData {
   name: string;
@@ -256,10 +275,12 @@ export default function BranchesManagement() {
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace]);
+  }, [currentWorkspace, userProfile]);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
+
   // Sync function for fixing existing data
   const syncBranchAssignments = async () => {
     if (!currentWorkspace) return;
@@ -322,6 +343,7 @@ export default function BranchesManagement() {
     const mailtoLink = `mailto:${manager.email}?subject=${subject}&body=${body}`;
     window.open(mailtoLink, '_blank');
   };
+
   // Branch operations
   const handleCreateBranch = async () => {
     if (!currentWorkspace) {
@@ -334,7 +356,8 @@ export default function BranchesManagement() {
 
       if (!branchForm.name || !branchForm.regionId) {
         throw new Error('Name and region are required');
-      } const branchData = {
+      } 
+      const branchData = {
         ...branchForm,
         status: 'active' as const,
         workspaceId: currentWorkspace.id,
@@ -359,7 +382,8 @@ export default function BranchesManagement() {
       console.error('Error creating branch:', err);
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to create branch"
+        description: err instanceof Error ? err.message : "Failed to create branch",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
@@ -367,7 +391,8 @@ export default function BranchesManagement() {
   };
 
   const handleEditBranch = async () => {
-    if (!editingBranch) return; try {
+    if (!editingBranch) return; 
+    try {
       setSubmitting(true);
 
       await BranchService.updateBranch(editingBranch.id, branchForm, user?.uid);
@@ -387,16 +412,15 @@ export default function BranchesManagement() {
       console.error('Error updating branch:', err);
       toast({
         title: "Error",
-        description: "Failed to update branch"
+        description: "Failed to update branch",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
     }
   };
-  const handleDeleteBranch = async (branchId: string) => {
-    const branch = branches.find(b => b.id === branchId);
-    if (!branch) return;
 
+  const handleDeleteBranch = (branch: Branch) => {
     setDeletingBranch(branch);
     setIsDeleteBranchOpen(true);
   };
@@ -418,14 +442,17 @@ export default function BranchesManagement() {
       console.error('Error deleting branch:', err);
       toast({
         title: "Error",
-        description: "Failed to delete branch"
+        description: "Failed to delete branch",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
       setIsDeleteBranchOpen(false);
       setDeletingBranch(null);
     }
-  };  // Region operations
+  };  
+
+  // Region operations
   const handleCreateRegion = async () => {
     if (!currentWorkspace) {
       toast({ title: "Error", description: "No workspace selected", variant: "destructive" });
@@ -442,7 +469,8 @@ export default function BranchesManagement() {
 
       if (!regionForm.name) {
         throw new Error('Name is required');
-      } const regionData = {
+      } 
+      const regionData = {
         ...regionForm,
         workspaceId: currentWorkspace.id,
         branches: [],
@@ -465,7 +493,8 @@ export default function BranchesManagement() {
       console.error('Error creating region:', err);
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to create region"
+        description: err instanceof Error ? err.message : "Failed to create region",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
@@ -473,10 +502,11 @@ export default function BranchesManagement() {
   };
 
   const handleEditRegion = async () => {
-    if (!editingRegion) return; try {
+    if (!editingRegion) return; 
+    try {
       setSubmitting(true);
 
-      await BranchService.updateRegion(editingRegion.id, regionForm, user?.uid);
+      await RegionService.updateRegion(editingRegion.id, regionForm, user?.uid); // Corrected service
 
       // Reload data to get the updated region
       await loadData();
@@ -493,16 +523,15 @@ export default function BranchesManagement() {
       console.error('Error updating region:', err);
       toast({
         title: "Error",
-        description: "Failed to update region"
+        description: "Failed to update region",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
     }
   };
-  const handleDeleteRegion = async (regionId: string) => {
-    const region = regions.find(r => r.id === regionId);
-    if (!region) return;
 
+  const handleDeleteRegion = (region: Region) => {
     setDeletingRegion(region);
     setIsDeleteRegionOpen(true);
   };
@@ -512,7 +541,7 @@ export default function BranchesManagement() {
 
     try {
       setSubmitting(true);
-      await BranchService.deleteRegion(deletingRegion.id, user?.uid);
+      await RegionService.deleteRegion(deletingRegion.id, user?.uid); // Corrected service
       // Reload data to reflect the deletion
       await loadData();
 
@@ -524,7 +553,8 @@ export default function BranchesManagement() {
       console.error('Error deleting region:', err);
       toast({
         title: "Error",
-        description: "Failed to delete region"
+        description: "Failed to delete region",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
@@ -532,6 +562,7 @@ export default function BranchesManagement() {
       setDeletingRegion(null);
     }
   };
+
   // Edit handlers
   const startEditBranch = (branch: Branch) => {
     setEditingBranch(branch);
@@ -586,6 +617,7 @@ export default function BranchesManagement() {
     setViewingRegion(region);
     setIsViewRegionOpen(true);
   };
+
   // Create sample data
   const createSampleData = async () => {
     try {
@@ -600,7 +632,8 @@ export default function BranchesManagement() {
       console.error('Error creating sample data:', err);
       toast({
         title: "Error",
-        description: "Failed to create sample data"
+        description: "Failed to create sample data",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
@@ -620,12 +653,14 @@ export default function BranchesManagement() {
       console.error('Error creating sample managers:', err);
       toast({
         title: "Error",
-        description: "Failed to create sample managers"
+        description: "Failed to create sample managers",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
     }
   };
+
   // Manager operations
   const handleCreateManager = async () => {
     if (!currentWorkspace) {
@@ -678,12 +713,14 @@ export default function BranchesManagement() {
       console.error('Error creating manager:', err);
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to create manager"
+        description: err instanceof Error ? err.message : "Failed to create manager",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
     }
   };
+
   const handleEditManager = async () => {
     try {
       setSubmitting(true);
@@ -725,7 +762,8 @@ export default function BranchesManagement() {
       console.error('Error updating manager:', err);
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to update manager"
+        description: err instanceof Error ? err.message : "Failed to update manager",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
@@ -758,7 +796,8 @@ export default function BranchesManagement() {
       console.error('Error deleting manager:', err);
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to delete manager"
+        description: err instanceof Error ? err.message : "Failed to delete manager",
+        variant: "destructive"
       });
     } finally {
       setSubmitting(false);
@@ -841,7 +880,6 @@ export default function BranchesManagement() {
     );
   }
 
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -853,784 +891,119 @@ export default function BranchesManagement() {
         </div>
         <div className="flex items-center space-x-3">
           {(isOwner || permissions.canManageBranches) && (
-            <Dialog open={isCreateRegionOpen} onOpenChange={setIsCreateRegionOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="border-border hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  New Region
-                </Button>
-              </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New Region</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="region-name">Name</Label>
-                  <Input
-                    id="region-name"
-                    value={regionForm.name}
-                    onChange={(e) => setRegionForm(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter region name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="region-description">Description</Label>
-                  <Textarea
-                    id="region-description"
-                    value={regionForm.description}
-                    onChange={(e) => setRegionForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter region description"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-3">
-                  <Button variant="outline" onClick={() => setIsCreateRegionOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateRegion} disabled={submitting}>
-                    {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Region
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <CreateRegionDialog
+              isOpen={isCreateRegionOpen}
+              setIsOpen={setIsCreateRegionOpen}
+              regionForm={regionForm}
+              setRegionForm={setRegionForm}
+              handleCreateRegion={handleCreateRegion}
+              submitting={submitting}
+            />
           )}
 
           {(isOwner || permissions.canManageBranches) && (
-            <Dialog open={isCreateBranchOpen} onOpenChange={setIsCreateBranchOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-primary to-accent text-white border-0">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Branch
-                </Button>
-              </DialogTrigger>            <DialogContent className="sm:max-w-4xl">
-              <DialogHeader>
-                <DialogTitle>Create New Branch</DialogTitle>
-              </DialogHeader>
-
-              {regions.length === 0 && (
-                <Alert className="mb-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    You need to create a region first before creating a branch.
-                    <Dialog open={isCreateRegionOpen} onOpenChange={setIsCreateRegionOpen}>
-                      <DialogTrigger asChild>
-                        <Button variant="link" className="px-2 py-0 h-auto text-primary">
-                          Create a region now
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
-                  </AlertDescription>
-                </Alert>
-              )}              <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="branch-name">Name *</Label>
-                    <Input
-                      id="branch-name"
-                      value={branchForm.name}
-                      onChange={(e) => setBranchForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Enter branch name"
-                    />
-                  </div>                  <div className="space-y-2">
-                    <Label htmlFor="branch-region">Region *</Label>
-                    <Select
-                      value={branchForm.regionId}
-                      onValueChange={(value) => setBranchForm(prev => ({ ...prev, regionId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a region" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {regions.length === 0 ? (
-                          <SelectItem value="no-regions" disabled>
-                            No regions available - Create a region first
-                          </SelectItem>
-                        ) : (
-                          regions.map((region) => (
-                            <SelectItem key={region.id} value={region.id}>
-                              {region.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="branch-manager">Manager</Label>
-                    <Select
-                      value={branchForm.managerId}
-                      onValueChange={(value) => setBranchForm(prev => ({ ...prev, managerId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a manager" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {managers.map((manager) => (
-                          <SelectItem key={manager.id} value={manager.id}>
-                            {manager.name} ({manager.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>                <div className="space-y-2">
-                  <Label htmlFor="branch-description">Description</Label>
-                  <Textarea
-                    id="branch-description"
-                    value={branchForm.description}
-                    onChange={(e) => setBranchForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter branch description"
-                    rows={3}
-                  />
-                </div>                <div className="space-y-4">
-                  <Label>Address & Contact</Label>
-                  <div className="grid grid-cols-3 gap-4">                    <div className="space-y-2">
-                      <Label htmlFor="branch-street">Street</Label>
-                      <Input
-                        id="branch-street"
-                        value={branchForm.address.street}
-                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          address: { ...prev.address, street: e.target.value }
-                        }))}
-                        placeholder="Street address"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="branch-city">City</Label>
-                      <Input
-                        id="branch-city"
-                        value={branchForm.address.city}
-                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          address: { ...prev.address, city: e.target.value }
-                        }))}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="branch-state">State</Label>
-                      <Input
-                        id="branch-state"
-                        value={branchForm.address.state}
-                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          address: { ...prev.address, state: e.target.value }
-                        }))}
-                        placeholder="State"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="branch-country">Country</Label>
-                      <Input
-                        id="branch-country"
-                        value={branchForm.address.country}
-                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          address: { ...prev.address, country: e.target.value }
-                        }))}
-                        placeholder="Country"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="branch-postal">Postal Code</Label>
-                      <Input
-                        id="branch-postal"
-                        value={branchForm.address.postalCode}
-                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          address: { ...prev.address, postalCode: e.target.value }
-                        }))}
-                        placeholder="Postal code"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="branch-phone">Phone</Label>
-                      <Input
-                        id="branch-phone"
-                        value={branchForm.contact.phone}                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          contact: { ...prev.contact, phone: e.target.value }
-                        }))}
-                        placeholder="Phone number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="branch-email">Email</Label>
-                      <Input
-                        id="branch-email"
-                        type="email"
-                        value={branchForm.contact.email}
-                        onChange={(e) => setBranchForm(prev => ({
-                          ...prev,
-                          contact: { ...prev.contact, email: e.target.value }
-                        }))}
-                        placeholder="Email address"
-                      />
-                    </div>
-                  </div>                </div>
-
-                <div className="flex justify-end space-x-3">
-                  <Button variant="outline" onClick={() => setIsCreateBranchOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateBranch} disabled={submitting}>
-                    {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Branch
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <CreateBranchDialog
+              isOpen={isCreateBranchOpen}
+              setIsOpen={setIsCreateBranchOpen}
+              branchForm={branchForm}
+              setBranchForm={setBranchForm}
+              regions={regions}
+              managers={managers}
+              handleCreateBranch={handleCreateBranch}
+              submitting={submitting}
+              setIsCreateRegionOpen={setIsCreateRegionOpen}
+            />
           )}
         </div>
       </div>
-      {/* Tab Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between mb-4">
-          <TabsList className="grid w-fit grid-cols-3">
-            <TabsTrigger value="branches">
-              <Building2 className="h-4 w-4 mr-2" /> Branches ({branches.length})
-            </TabsTrigger>
-            <TabsTrigger value="regions">
-              <MapPin className="h-4 w-4 mr-2" /> Regions ({regions.length})
-            </TabsTrigger>
-            <TabsTrigger value="managers">
-              <Users className="h-4 w-4 mr-2" /> Managers ({managers.length})
-            </TabsTrigger>          </TabsList>          <Button 
-            onClick={syncBranchAssignments} 
-            disabled={submitting}
-            variant="outline"
-            size="sm"
-            className="ml-4"
-          >
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sync Data
-          </Button>
-          <div className="relative flex-1 max-w-md ml-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={`Search ${activeTab}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-border bg-background"
-            />
-          </div>
-          {activeTab === 'branches' && (
-            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-              <SelectTrigger className="w-48 border-border ml-4">
-                <SelectValue placeholder="Filter by region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Regions</SelectItem>
-                {regions.map((region) => (
-                  <SelectItem key={region.id} value={region.id}>
-                    {region.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          {activeTab === 'managers' && (isOwner || permissions.canManageBranches) && (
-            <Dialog open={isCreateManagerOpen} onOpenChange={setIsCreateManagerOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-primary to-accent text-white border-0 ml-4">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Manager
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Manager</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="manager-name-tab">Full Name *</Label>
-                      <Input
-                        id="manager-name-tab"
-                        value={managerForm.name}
-                        onChange={(e) => setManagerForm(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Enter full name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="manager-email-tab">Email *</Label>
-                      <Input
-                        id="manager-email-tab"
-                        type="email"
-                        value={managerForm.email}
-                        onChange={(e) => setManagerForm(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="Enter email address"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="manager-phone-tab">Phone</Label>
-                      <Input
-                        id="manager-phone-tab"
-                        value={managerForm.phone}
-                        onChange={(e) => setManagerForm(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="manager-jobTitle-tab">Job Title</Label>
-                      <Input
-                        id="manager-jobTitle-tab"
-                        value={managerForm.jobTitle}
-                        onChange={(e) => setManagerForm(prev => ({ ...prev, jobTitle: e.target.value }))}
-                        placeholder="e.g., Branch Manager"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="manager-department-tab">Department</Label>
-                    <Input
-                      id="manager-department-tab"
-                      value={managerForm.department}
-                      onChange={(e) => setManagerForm(prev => ({ ...prev, department: e.target.value }))}
-                      placeholder="e.g., Operations, Sales"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-3">
-                    <Button variant="outline" onClick={() => setIsCreateManagerOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleCreateManager} disabled={submitting}>
-                      {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Create Manager
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <BranchesTabsNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          branchesLength={branches.length}
+          regionsLength={regions.length}
+          managersLength={managers.length}
+          syncBranchAssignments={syncBranchAssignments}
+          submitting={submitting}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+          regions={regions}
+          isOwner={isOwner}
+          canManageBranches={permissions.canManageBranches}
+          isCreateManagerOpen={isCreateManagerOpen}
+          setIsCreateManagerOpen={setIsCreateManagerOpen}
+          managerForm={managerForm}
+          setManagerForm={setManagerForm}
+          handleCreateManager={handleCreateManager}
+        />
 
         <TabsContent value="branches" className="mt-0">
-          {filteredBranches.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-muted/20 rounded-lg p-6">
-              <Building2 className="h-10 w-10 text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-muted-foreground">No Branches Found</h3>
-              <p className="text-sm text-muted-foreground">
-                {searchTerm || selectedRegion !== 'all' ? "No branches match your search/filter." : (isOwner || permissions.canManageBranches) ? "Start by creating a new branch." : "No branches assigned to you. Contact your administrator to get assigned to a branch."}
-              </p>
-              {!searchTerm && selectedRegion === 'all' && (isOwner || permissions.canManageBranches) && (
-                <Dialog open={isCreateBranchOpen} onOpenChange={setIsCreateBranchOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" /> Create Branch
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-4xl">
-                    <DialogHeader>
-                      <DialogTitle>Create New Branch</DialogTitle>
-                    </DialogHeader>
-                    {regions.length === 0 && (
-                      <Alert className="mb-4">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                          You need to create a region first before creating a branch.
-                          <Button variant="link" className="px-2 py-0 h-auto text-primary" onClick={() => {
-                            setIsCreateBranchOpen(false);
-                            setIsCreateRegionOpen(true);
-                          }}>
-                            Create a region now
-                          </Button>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="branch-name-empty">Name *</Label>
-                          <Input
-                            id="branch-name-empty"
-                            value={branchForm.name}
-                            onChange={(e) => setBranchForm(prev => ({ ...prev, name: e.target.value }))}
-                            placeholder="Enter branch name"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="branch-region-empty">Region *</Label>
-                          <Select
-                            value={branchForm.regionId}
-                            onValueChange={(value) => setBranchForm(prev => ({ ...prev, regionId: value }))}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a region" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {regions.length === 0 ? (
-                                <SelectItem value="no-regions" disabled>
-                                  No regions available - Create a region first
-                                </SelectItem>
-                              ) : (
-                                regions.map((region) => (
-                                  <SelectItem key={region.id} value={region.id}>
-                                    {region.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="branch-manager-empty">Manager</Label>
-                          <Select
-                            value={branchForm.managerId}
-                            onValueChange={(value) => setBranchForm(prev => ({ ...prev, managerId: value }))}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a manager" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {managers.map((manager) => (
-                                <SelectItem key={manager.id} value={manager.id}>
-                                  {manager.name} ({manager.email})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="branch-description-empty">Description</Label>
-                        <Textarea
-                          id="branch-description-empty"
-                          value={branchForm.description}
-                          onChange={(e) => setBranchForm(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="Enter branch description"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="space-y-4">
-                        <Label>Address & Contact</Label>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-street-empty">Street</Label>
-                            <Input
-                              id="branch-street-empty"
-                              value={branchForm.address.street}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                address: { ...prev.address, street: e.target.value }
-                              }))}
-                              placeholder="Street address"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-city-empty">City</Label>
-                            <Input
-                              id="branch-city-empty"
-                              value={branchForm.address.city}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                address: { ...prev.address, city: e.target.value }
-                              }))}
-                              placeholder="City"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-state-empty">State</Label>
-                            <Input
-                              id="branch-state-empty"
-                              value={branchForm.address.state}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                address: { ...prev.address, state: e.target.value }
-                              }))}
-                              placeholder="State"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-country-empty">Country</Label>
-                            <Input
-                              id="branch-country-empty"
-                              value={branchForm.address.country}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                address: { ...prev.address, country: e.target.value }
-                              }))}
-                              placeholder="Country"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-postal-empty">Postal Code</Label>
-                            <Input
-                              id="branch-postal-empty"
-                              value={branchForm.address.postalCode}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                address: { ...prev.address, postalCode: e.target.value }
-                              }))}
-                              placeholder="Postal code"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-phone-empty">Phone</Label>
-                            <Input
-                              id="branch-phone-empty"
-                              value={branchForm.contact.phone}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                contact: { ...prev.contact, phone: e.target.value }
-                              }))}
-                              placeholder="Phone number"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="branch-email-empty">Email</Label>
-                            <Input
-                              id="branch-email-empty"
-                              type="email"
-                              value={branchForm.contact.email}
-                              onChange={(e) => setBranchForm(prev => ({
-                                ...prev,
-                                contact: { ...prev.contact, email: e.target.value }
-                              }))}
-                              placeholder="Email address"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-end space-x-3">
-                        <Button variant="outline" onClick={() => setIsCreateBranchOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleCreateBranch} disabled={submitting}>
-                          {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Create Branch
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+          {filteredBranches.length === 0 ? (
+            <EmptyStateBranches
+              searchTerm={searchTerm}
+              selectedRegion={selectedRegion}
+              isOwner={isOwner}
+              canManageBranches={permissions.canManageBranches}
+              setIsCreateBranchOpen={setIsCreateBranchOpen}
+              setIsCreateRegionOpen={setIsCreateRegionOpen}
+              branchForm={branchForm}
+              setBranchForm={setBranchForm}
+              regions={regions}
+              managers={managers}
+              handleCreateBranch={handleCreateBranch}
+              submitting={submitting}
+            />
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredBranches.map((branch) => (
+                <BranchCard
+                  key={branch.id}
+                  branch={branch}
+                  getRegionName={getRegionName}
+                  getManagerName={getManagerName}
+                  users={users}
+                  teams={teams}
+                  viewBranchDetails={viewBranchDetails}
+                  startEditBranch={startEditBranch}
+                  handleDeleteBranch={handleDeleteBranch}
+                  isOwner={isOwner}
+                  canManageBranches={permissions.canManageBranches}
+                />
+              ))}
             </div>
           )}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredBranches.map((branch) => (
-              <Card key={branch.id} className="card-interactive border border-border/30">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                        <Building2 className="h-4 w-4 text-white" />
-                      </div>
-                      <Badge className={`${
-                        branch.status === 'active'
-                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
-                          : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800'
-                      }`}>
-                        {branch.status}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => viewBranchDetails(branch)}
-                        className="h-8 w-8 p-0"
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {(isOwner || permissions.canManageBranches) && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => startEditBranch(branch)}
-                            className="h-8 w-8 p-0"
-                            title="Edit Branch"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteBranch(branch.id)}
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                            title="Delete Branch"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{branch.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{getRegionName(branch.regionId)}</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {branch.description || 'No description available'}
-                  </p>                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-1 text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{users.filter(u => u.branchId === branch.id).length} users</span>
-                    </div>
-                    <div className="flex items-center space-x-1 text-muted-foreground">
-                      <Settings className="h-4 w-4" />
-                      <span>{teams.filter(t => t.branchId === branch.id).length} teams</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-xs">
-                        {getManagerName(branch.managerId || '').charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-muted-foreground">
-                      {getManagerName(branch.managerId || '')}
-                    </span>
-                  </div>
-
-                  {branch.contact && (
-                    <div className="space-y-1">
-                      {branch.contact.phone && (
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" />
-                          <span>{branch.contact.phone}</span>
-                        </div>
-                      )}
-                      {branch.contact.email && (
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          <span>{branch.contact.email}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="regions" className="mt-0">
-          {filteredRegions.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-muted/20 rounded-lg p-6">
-              <MapPin className="h-10 w-10 text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-muted-foreground">No Regions Found</h3>
-              <p className="text-sm text-muted-foreground">
-                {searchTerm ? "No regions match your search." : (isOwner || permissions.canManageBranches) ? "Start by creating a new region." : "No regions assigned to you. Contact your administrator to get assigned to a region."}
-              </p>
-              {!searchTerm && (isOwner || permissions.canManageBranches) && (
-                <Dialog open={isCreateRegionOpen} onOpenChange={setIsCreateRegionOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" /> Create Region
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Create New Region</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="region-name-empty">Name</Label>
-                        <Input
-                          id="region-name-empty"
-                          value={regionForm.name}
-                          onChange={(e) => setRegionForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Enter region name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="region-description-empty">Description</Label>
-                        <Textarea
-                          id="region-description-empty"
-                          value={regionForm.description}
-                          onChange={(e) => setRegionForm(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="Enter region description"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="flex justify-end space-x-3">
-                        <Button variant="outline" onClick={() => setIsCreateRegionOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleCreateRegion} disabled={submitting}>
-                          {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Create Region
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+          {filteredRegions.length === 0 ? (
+            <EmptyStateRegions
+              searchTerm={searchTerm}
+              isOwner={isOwner}
+              canManageBranches={permissions.canManageBranches}
+              setIsCreateRegionOpen={setIsCreateRegionOpen}
+              regionForm={regionForm}
+              setRegionForm={setRegionForm}
+              handleCreateRegion={handleCreateRegion}
+              submitting={submitting}
+            />
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredRegions.map((region) => (
+                <RegionCard
+                  key={region.id}
+                  region={region}
+                  viewRegionDetails={viewRegionDetails}
+                  startEditRegion={startEditRegion}
+                  handleDeleteRegion={handleDeleteRegion}
+                  isOwner={isOwner}
+                  canManageBranches={permissions.canManageBranches}
+                />
+              ))}
             </div>
           )}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredRegions.map((region) => (
-              <Card key={region.id} className="card-interactive border border-border/30">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                        <MapPin className="h-4 w-4 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => viewRegionDetails(region)}
-                        className="h-8 w-8 p-0"
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {(isOwner || permissions.canManageBranches) && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => startEditRegion(region)}
-                            className="h-8 w-8 p-0"
-                            title="Edit Region"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteRegion(region.id)}
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                            title="Delete Region"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>                  <div>
-                    <CardTitle className="text-lg">{region.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">Region</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {region.description || 'No description available'}
-                  </p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-1 text-muted-foreground">
-                      <Building2 className="h-4 w-4" />
-                      <span>{region.branches?.length || 0} branches</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="managers" className="mt-0">
@@ -1664,794 +1037,114 @@ export default function BranchesManagement() {
             </div>
           )}
           
-          {filteredManagers.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-muted/20 rounded-lg p-6">
-              <Users className="h-10 w-10 text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-muted-foreground">No Managers Found</h3>
-              <p className="text-sm text-muted-foreground">
-                {searchTerm ? "No managers match your search." : "Start by creating a new manager or generating sample managers."}
-              </p>
-              {!searchTerm && (isOwner || permissions.canManageBranches) && (
-                <div className="flex gap-3 justify-center mt-4">
-                  <Dialog open={isCreateManagerOpen} onOpenChange={setIsCreateManagerOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" /> Create Manager
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Create New Manager</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="manager-name-empty">Full Name *</Label>
-                            <Input
-                              id="manager-name-empty"
-                              value={managerForm.name}
-                              onChange={(e) => setManagerForm(prev => ({ ...prev, name: e.target.value }))}
-                              placeholder="Enter full name"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="manager-email-empty">Email *</Label>
-                            <Input
-                              id="manager-email-empty"
-                              type="email"
-                              value={managerForm.email}
-                              onChange={(e) => setManagerForm(prev => ({ ...prev, email: e.target.value }))}
-                              placeholder="Enter email address"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="manager-phone-empty">Phone</Label>
-                            <Input
-                              id="manager-phone-empty"
-                              value={managerForm.phone}
-                              onChange={(e) => setManagerForm(prev => ({ ...prev, phone: e.target.value }))}
-                              placeholder="Enter phone number"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="manager-jobTitle-empty">Job Title</Label>
-                            <Input
-                              id="manager-jobTitle-empty"
-                              value={managerForm.jobTitle}
-                              onChange={(e) => setManagerForm(prev => ({ ...prev, jobTitle: e.target.value }))}
-                              placeholder="e.g., Branch Manager"
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="manager-department-empty">Department</Label>
-                          <Input
-                            id="manager-department-empty"
-                            value={managerForm.department}
-                            onChange={(e) => setManagerForm(prev => ({ ...prev, department: e.target.value }))}
-                            placeholder="e.g., Operations, Sales"
-                          />
-                        </div>
-                        <div className="flex justify-end space-x-3">
-                          <Button variant="outline" onClick={() => setIsCreateManagerOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleCreateManager} disabled={submitting}>
-                            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create Manager
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Button onClick={createSampleManagers} disabled={submitting} variant="outline">
-                    {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Sample Managers
-                  </Button>
-                </div>
-              )}
+          {filteredManagers.length === 0 ? (
+            <EmptyStateManagers
+              searchTerm={searchTerm}
+              isOwner={isOwner}
+              canManageBranches={permissions.canManageBranches}
+              setIsCreateManagerOpen={setIsCreateManagerOpen}
+              managerForm={managerForm}
+              setManagerForm={setManagerForm}
+              handleCreateManager={handleCreateManager}
+              createSampleManagers={createSampleManagers}
+              submitting={submitting}
+            />
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredManagers.map((manager) => (
+                <ManagerCard
+                  key={manager.id}
+                  manager={manager}
+                  handleEmailManager={handleEmailManager}
+                  startEditManager={startEditManager}
+                  handleDeleteManager={handleDeleteManager}
+                  isOwner={isOwner}
+                  canManageBranches={permissions.canManageBranches}
+                />
+              ))}
             </div>
           )}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredManagers.map((manager) => {
-              // Helper function to get role badge styling
-              const getRoleBadgeStyle = (role: string) => {
-                switch (role) {
-                  case 'admin':
-                    return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
-                  case 'team_lead':
-                    return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800';
-                  case 'manager':
-                    return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
-                  default:
-                    return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
-                }
-              };
-
-              // Helper function to get role display name
-              const getRoleDisplayName = (role: string) => {
-                switch (role) {
-                  case 'admin':
-                    return 'Admin';
-                  case 'team_lead':
-                    return 'Team Lead';
-                  case 'manager':
-                    return 'Manager';
-                  default:
-                    return role;
-                }
-              };
-
-              // Get border color based on role
-              const getCardBorderStyle = (role: string) => {
-                switch (role) {
-                  case 'admin':
-                    return 'border-blue-200 dark:border-blue-800/50 bg-blue-50/30 dark:bg-blue-900/5';
-                  case 'team_lead':
-                    return 'border-purple-200 dark:border-purple-800/50 bg-purple-50/30 dark:bg-purple-900/5';
-                  case 'manager':
-                    return 'border-orange-200 dark:border-orange-800/50 bg-orange-50/30 dark:bg-orange-900/5';
-                  default:
-                    return 'border-border/30';
-                }
-              };
-
-              return (
-                <Card key={manager.id} className={`border ${getCardBorderStyle(manager.workspaceRole || 'member')}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
-                            {manager.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h4 className="font-medium">{manager.name}</h4>
-                          <p className="text-sm text-muted-foreground">{manager.jobTitle || 'Manager'}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        {/* Email button for all users */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEmailManager(manager)}
-                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
-                          title="Send Email"
-                        >
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        {/* Edit/Delete buttons only for owners and admins */}
-                        {(isOwner || permissions.canManageBranches) && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => startEditManager(manager)}
-                              className="h-8 w-8 p-0"
-                              title="Edit Manager"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteManager(manager)}
-                              className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                              title="Delete Manager"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center space-x-2 text-muted-foreground">
-                        <Mail className="h-4 w-4" />
-                        <span>{manager.email}</span>
-                      </div>
-                      {manager.phone && (
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{manager.phone}</span>
-                        </div>
-                      )}
-                      {manager.department && (
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Building2 className="h-4 w-4" />
-                          <span>{manager.department}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-                      <div className="space-y-1">
-                        {/* Workspace Role Badge */}
-                        {manager.workspaceRole && (
-                          <Badge className={getRoleBadgeStyle(manager.workspaceRole)}>
-                            {getRoleDisplayName(manager.workspaceRole)}
-                          </Badge>
-                        )}
-                        {/* Global Role Badge (if different from workspace role) */}
-                        {manager.role && manager.role !== manager.workspaceRole && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            Global: {manager.role}
-                          </Badge>
-                        )}
-                      </div>
-                      {/* Status Badge */}
-                      <Badge className={`${
-                        manager.status === 'active'
-                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
-                          : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800'
-                      }`}>
-                        {manager.status}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
         </TabsContent>
       </Tabs>
 
+      <EditBranchDialog
+        isOpen={isEditBranchOpen}
+        setIsOpen={setIsEditBranchOpen}
+        editingBranch={editingBranch}
+        branchForm={branchForm}
+        setBranchForm={setBranchForm}
+        regions={regions}
+        managers={managers}
+        handleEditBranch={handleEditBranch}
+        submitting={submitting}
+        resetBranchForm={resetBranchForm}
+        setEditingBranch={setEditingBranch}
+      />
 
-      {/* Edit Branch Dialog */}
-      <Dialog open={isEditBranchOpen} onOpenChange={setIsEditBranchOpen}>
-        <DialogContent className="sm:max-w-5xl">
-          <DialogHeader>
-            <DialogTitle>Edit Branch</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-branch-name">Name *</Label>
-                <Input
-                  id="edit-branch-name"
-                  value={branchForm.name}
-                  onChange={(e) => setBranchForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter branch name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-branch-region">Region *</Label>
-                <Select
-                  value={branchForm.regionId}
-                  onValueChange={(value) => setBranchForm(prev => ({ ...prev, regionId: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((region) => (
-                      <SelectItem key={region.id} value={region.id}>
-                        {region.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-branch-manager">Manager</Label>
-                <Select
-                  value={branchForm.managerId}
-                  onValueChange={(value) => setBranchForm(prev => ({ ...prev, managerId: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a manager" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {managers.map((manager) => (
-                      <SelectItem key={manager.id} value={manager.id}>
-                        {manager.name} ({manager.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+      <EditRegionDialog
+        isOpen={isEditRegionOpen}
+        setIsOpen={setIsEditRegionOpen}
+        editingRegion={editingRegion}
+        regionForm={regionForm}
+        setRegionForm={setRegionForm}
+        handleEditRegion={handleEditRegion}
+        submitting={submitting}
+        resetRegionForm={resetRegionForm}
+        setEditingRegion={setEditingRegion}
+      />
+      
+      <ViewBranchDetailsDialog
+        isOpen={isViewBranchOpen}
+        setIsOpen={setIsViewBranchOpen}
+        viewingBranch={viewingBranch}
+        getRegionName={getRegionName}
+        getManagerName={getManagerName}
+      />
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-branch-description">Description</Label>
-              <Textarea
-                id="edit-branch-description"
-                value={branchForm.description}
-                onChange={(e) => setBranchForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter branch description"
-                rows={3}
-              />
-            </div>
+      <ViewRegionDetailsDialog
+        isOpen={isViewRegionOpen}
+        setIsOpen={setIsViewRegionOpen}
+        viewingRegion={viewingRegion}
+      />
 
-            <div className="space-y-4">
-              <Label>Address & Contact</Label>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-street">Street</Label>
-                  <Input
-                    id="edit-branch-street"
-                    value={branchForm.address.street}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      address: { ...prev.address, street: e.target.value }
-                    }))}
-                    placeholder="Street address"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-city">City</Label>
-                  <Input
-                    id="edit-branch-city"
-                    value={branchForm.address.city}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      address: { ...prev.address, city: e.target.value }
-                    }))}
-                    placeholder="City"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-state">State</Label>
-                  <Input
-                    id="edit-branch-state"
-                    value={branchForm.address.state}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      address: { ...prev.address, state: e.target.value }
-                    }))}
-                    placeholder="State"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-country">Country</Label>
-                  <Input
-                    id="edit-branch-country"
-                    value={branchForm.address.country}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      address: { ...prev.address, country: e.target.value }
-                    }))}
-                    placeholder="Country"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-postal">Postal Code</Label>
-                  <Input
-                    id="edit-branch-postal"
-                    value={branchForm.address.postalCode}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      address: { ...prev.address, postalCode: e.target.value }
-                    }))}
-                    placeholder="Postal code"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-phone">Phone</Label>
-                  <Input
-                    id="edit-branch-phone"
-                    value={branchForm.contact.phone}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      contact: { ...prev.contact, phone: e.target.value }
-                    }))}
-                    placeholder="Phone number"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-branch-email">Email</Label>
-                  <Input
-                    id="edit-branch-email"
-                    type="email"
-                    value={branchForm.contact.email}
-                    onChange={(e) => setBranchForm(prev => ({
-                      ...prev,
-                      contact: { ...prev.contact, email: e.target.value }
-                    }))}
-                    placeholder="Email address"
-                  />
-                </div>
-              </div>
-            </div>
+      <DeleteBranchDialog
+        isOpen={isDeleteBranchOpen}
+        setIsOpen={setIsDeleteBranchOpen}
+        deletingBranch={deletingBranch}
+        confirmDeleteBranch={confirmDeleteBranch}
+        submitting={submitting}
+        setDeletingBranch={setDeletingBranch}
+      />
 
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setIsEditBranchOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleEditBranch} disabled={submitting}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Branch
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DeleteRegionDialog
+        isOpen={isDeleteRegionOpen}
+        setIsOpen={setIsDeleteRegionOpen}
+        deletingRegion={deletingRegion}
+        confirmDeleteRegion={confirmDeleteRegion}
+        submitting={submitting}
+        setDeletingRegion={setDeletingRegion}
+      />
 
-      {/* Edit Region Dialog */}
-      <Dialog open={isEditRegionOpen} onOpenChange={setIsEditRegionOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Region</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-region-name">Name</Label>
-              <Input
-                id="edit-region-name"
-                value={regionForm.name}
-                onChange={(e) => setRegionForm(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter region name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-region-description">Description</Label>
-              <Textarea
-                id="edit-region-description"
-                value={regionForm.description}
-                onChange={(e) => setRegionForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter region description"
-                rows={3}
-              />
-            </div>
+      <EditManagerDialog
+        isOpen={isEditManagerOpen}
+        setIsOpen={setIsEditManagerOpen}
+        editingManager={editingManager}
+        managerForm={managerForm}
+        setManagerForm={setManagerForm}
+        handleEditManager={handleEditManager}
+        submitting={submitting}
+        INITIAL_MANAGER_FORM={INITIAL_MANAGER_FORM}
+        setEditingManager={setEditingManager}
+      />
 
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setIsEditRegionOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleEditRegion} disabled={submitting}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Region
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>      {/* View Branch Details Dialog */}
-      <Dialog open={isViewBranchOpen} onOpenChange={setIsViewBranchOpen}>
-        <DialogContent className="sm:max-w-2xl bg-background border-border">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Branch Details</DialogTitle>
-          </DialogHeader>
-          {viewingBranch && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Name</Label>
-                  <p className="text-lg font-semibold text-foreground">{viewingBranch.name}</p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Region</Label>
-                  <p className="text-lg text-foreground">{getRegionName(viewingBranch.regionId)}</p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                  <Badge variant={viewingBranch.status === 'active' ? 'default' : 'secondary'}>
-                    {viewingBranch.status}
-                  </Badge>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Manager</Label>
-                  <p className="text-lg text-foreground">{getManagerName(viewingBranch.managerId || '')}</p>
-                </div>
-              </div>
-              {viewingBranch.description && (
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-                  <p className="mt-1 text-foreground bg-muted/50 p-3 rounded-md border">{viewingBranch.description}</p>
-                </div>
-              )}              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Teams</Label>
-                  <p className="text-2xl font-bold text-primary">{viewingBranch.teamIds?.length || 0}</p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Users</Label>
-                  <p className="text-2xl font-bold text-primary">{viewingBranch.userIds?.length || 0}</p>
-                </div>
-                           </div>
-
-              {viewingBranch.address && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-muted-foreground">Address</Label>
-                  <div className="bg-muted/50 p-3 rounded-md border space-y-1">
-                    {viewingBranch.address.street && <p className="text-foreground">{viewingBranch.address.street}</p>}
-                    <p className="text-foreground">
-                      {[viewingBranch.address.city, viewingBranch.address.state, viewingBranch.address.postalCode]
-                        .filter(Boolean).join(', ')}
-                    </p>
-                    {viewingBranch.address.country && <p className="text-foreground">{viewingBranch.address.country}</p>}
-                  </div>
-                </div>
-              )}
-
-              {viewingBranch.contact && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-muted-foreground">Contact</Label>
-                  <div className="bg-muted/50 p-3 rounded-md border space-y-2">
-                    {viewingBranch.contact.phone && (
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">{viewingBranch.contact.phone}</span>
-                      </div>
-                    )}
-                    {viewingBranch.contact.email && (
-                      <div className="flex items-center space-x-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">{viewingBranch.contact.email}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>      {/* View Region Details Dialog */}
-      <Dialog open={isViewRegionOpen} onOpenChange={setIsViewRegionOpen}>
-        <DialogContent className="sm:max-w-md bg-background border-border">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Region Details</DialogTitle>
-          </DialogHeader>
-          {viewingRegion && (            <div className="space-y-6">
-              <div className="space-y-1">
-                <Label className="text-sm font-medium text-muted-foreground">Name</Label>
-                <p className="text-lg font-semibold text-foreground">{viewingRegion.name}</p>
-              </div>
-
-              {viewingRegion.description && (
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-                  <p className="mt-1 text-foreground bg-muted/50 p-3 rounded-md border">{viewingRegion.description}</p>
-                </div>
-              )}              <div className="space-y-1">
-                <Label className="text-sm font-medium text-muted-foreground">Branches</Label>
-                <p className="text-2xl font-bold text-primary">{viewingRegion.branches?.length || 0}</p>
-              </div>
-            </div>          )}        </DialogContent>
-      </Dialog>
-
-      {/* Delete Branch Confirmation Dialog */}
-      <Dialog open={isDeleteBranchOpen} onOpenChange={setIsDeleteBranchOpen}>
-        <DialogContent className="sm:max-w-md bg-background border-border">
-          <DialogHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-foreground">Delete Branch</DialogTitle>
-          </DialogHeader>
-          {deletingBranch && (
-            <div className="space-y-4">
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Are you sure you want to delete the following branch?
-                </p>
-                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="font-medium text-foreground">{deletingBranch.name}</p>
-                  {deletingBranch.address && (
-                    <p className="text-sm text-muted-foreground">
-                      {deletingBranch.address.city}, {deletingBranch.address.state}
-                    </p>
-                  )}
-                </div>
-                <p className="text-xs text-red-600 dark:text-red-400 font-medium">
-                  This action cannot be undone. All associated data will be permanently removed.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsDeleteBranchOpen(false);
-                    setDeletingBranch(null);
-                  }}
-                  disabled={submitting}
-                  className="border-border"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={confirmDeleteBranch}
-                  disabled={submitting}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Delete Branch
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Region Confirmation Dialog */}
-      <Dialog open={isDeleteRegionOpen} onOpenChange={setIsDeleteRegionOpen}>
-        <DialogContent className="sm:max-w-md bg-background border-border">
-          <DialogHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-foreground">Delete Region</DialogTitle>
-          </DialogHeader>
-          {deletingRegion && (
-            <div className="space-y-4">
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Are you sure you want to delete the following region?
-                </p>
-                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="font-medium text-foreground">{deletingRegion.name}</p>
-                  {deletingRegion.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {deletingRegion.description}
-                    </p>
-                  )}
-                </div>
-                <p className="text-xs text-red-600 dark:text-red-400 font-medium">
-                  This action cannot be undone. All branches in this region will need to be reassigned.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsDeleteRegionOpen(false);
-                    setDeletingRegion(null);
-                  }}
-                  disabled={submitting}
-                  className="border-border"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={confirmDeleteRegion}
-                  disabled={submitting}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Delete Region
-                </Button>
-              </div>
-            </div>          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Manager Dialog */}
-      <Dialog open={isEditManagerOpen} onOpenChange={setIsEditManagerOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Manager</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-manager-name">Full Name *</Label>
-                <Input
-                  id="edit-manager-name"
-                  value={managerForm.name}
-                  onChange={(e) => setManagerForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter full name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-manager-email">Email *</Label>
-                <Input
-                  id="edit-manager-email"
-                  type="email"
-                  value={managerForm.email}
-                  onChange={(e) => setManagerForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter email address"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-manager-phone">Phone</Label>
-                <Input
-                  id="edit-manager-phone"
-                  value={managerForm.phone}
-                  onChange={(e) => setManagerForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-manager-jobTitle">Job Title</Label>
-                <Input
-                  id="edit-manager-jobTitle"
-                  value={managerForm.jobTitle}
-                  onChange={(e) => setManagerForm(prev => ({ ...prev, jobTitle: e.target.value }))}
-                  placeholder="e.g., Branch Manager"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-manager-department">Department</Label>
-              <Input
-                id="edit-manager-department"
-                value={managerForm.department}
-                onChange={(e) => setManagerForm(prev => ({ ...prev, department: e.target.value }))}
-                placeholder="e.g., Operations, Sales"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => {
-                setIsEditManagerOpen(false);
-                setEditingManager(null);
-                setManagerForm(INITIAL_MANAGER_FORM);
-              }}>
-                Cancel
-              </Button>
-              <Button onClick={handleEditManager} disabled={submitting}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Manager
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Manager Dialog */}
-      <Dialog open={isDeleteManagerOpen} onOpenChange={setIsDeleteManagerOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
-              <AlertTriangle className="h-5 w-5" />
-              <span>Delete Manager</span>
-            </DialogTitle>
-          </DialogHeader>
-          {deletingManager && (
-            <div className="space-y-4">
-              <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-2">                    <h4 className="font-medium text-red-800 dark:text-red-300">
-                      Are you sure you want to delete &ldquo;{deletingManager.name}&rdquo;?
-                    </h4>
-                    <div className="text-sm text-red-700 dark:text-red-400 space-y-1">
-                      <p><strong>Email:</strong> {deletingManager.email}</p>
-                      {deletingManager.jobTitle && (
-                        <p><strong>Job Title:</strong> {deletingManager.jobTitle}</p>
-                      )}
-                      {deletingManager.department && (
-                        <p><strong>Department:</strong> {deletingManager.department}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-3">
-                  This action cannot be undone. Any branches assigned to this manager will need to be reassigned.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsDeleteManagerOpen(false);
-                    setDeletingManager(null);
-                  }}
-                  disabled={submitting}
-                  className="border-border"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={confirmDeleteManager}
-                  disabled={submitting}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Delete Manager
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <DeleteManagerDialog
+        isOpen={isDeleteManagerOpen}
+        setIsOpen={setIsDeleteManagerOpen}
+        deletingManager={deletingManager}
+        confirmDeleteManager={confirmDeleteManager}
+        submitting={submitting}
+        setDeletingManager={setDeletingManager}
+      />
     </div>
   );
 }

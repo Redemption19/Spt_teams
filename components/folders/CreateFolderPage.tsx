@@ -151,8 +151,8 @@ export default function CreateFolderPage({
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 max-w-7xl">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button 
               variant="ghost" 
               size="sm" 
@@ -160,12 +160,13 @@ export default function CreateFolderPage({
               className="h-9 px-3"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Folders
+              <span className="hidden sm:inline">Back to Folders</span>
+              <span className="sm:hidden">Back</span>
             </Button>
-            <Separator orientation="vertical" className="h-6" />
+            <Separator orientation="vertical" className="h-6 hidden sm:block" />
             <div className="flex items-center space-x-2">
               <FolderOpen className="h-5 w-5 text-primary" />
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 {folder ? 'Edit Folder' : 'Create New Folder'}
               </h1>
             </div>
@@ -180,7 +181,7 @@ export default function CreateFolderPage({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             
             {/* Column 1: Basic Information */}
             <div className="space-y-6">
@@ -251,7 +252,7 @@ export default function CreateFolderPage({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                       <Input
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
@@ -538,14 +539,14 @@ export default function CreateFolderPage({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-border">
-            <Button type="button" variant="outline" onClick={onBack} className="h-11 px-6">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-6 border-t border-border">
+            <Button type="button" variant="outline" onClick={onBack} className="h-11 px-6 order-2 sm:order-1">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={submitting || !form.name || (!folder && !folderLimits.canCreateMore)}
-              className="h-11 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              className="h-11 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 order-1 sm:order-2"
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               <Save className="h-4 w-4 mr-2" />

@@ -1033,7 +1033,7 @@ export function DashboardOverview() {
       {userRole === 'owner' && (
         <>
           {/* Global/Current Workspace Toggle */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
             <div>
               <h2 className="text-xl font-semibold">Workspace Management</h2>
               <p className="text-sm text-muted-foreground">
@@ -1316,56 +1316,7 @@ export function DashboardOverview() {
         </>
       )}
 
-      {/* Legacy owner stats - keeping for backward compatibility */}
-      {userRole === 'owner' && false && ( // Hidden but kept for reference
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="card-interactive border-l-4 border-l-yellow-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Globe className="h-4 w-4 mr-2 text-yellow-600" />
-                All Workspaces
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{allWorkspacesData.workspaces.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Main & Sub workspaces
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-interactive border-l-4 border-l-blue-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Users className="h-4 w-4 mr-2 text-blue-600" />
-                All Teams Across Workspaces
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.allWorkspacesTeams || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Total teams managed
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-interactive border-l-4 border-l-green-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Target className="h-4 w-4 mr-2 text-green-600" />
-                Total System Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{allWorkspacesData.totalUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                Across all workspaces
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
+      {/* My Teams, Recent Activity, Upcoming Deadlines */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* My Teams */}
         <Card className="md:col-span-1">
@@ -1564,70 +1515,60 @@ export function DashboardOverview() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Common tasks to get you started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
-              onClick={() => router.push('/dashboard/tasks')}
-            >
-              <Target className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">View Tasks</span>
-              <span className="text-xs text-muted-foreground">Manage your tasks</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
-              onClick={() => router.push('/dashboard/reports')}
-            >
-              <FileText className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Manage Reports</span>
-              <span className="text-xs text-muted-foreground">View & submit reports</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
-              onClick={() => router.push('/dashboard/folders')}
-            >
-              <Folder className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Browse Files</span>
-              <span className="text-xs text-muted-foreground">Access documents</span>
-            </Button>
-            
-            {(userRole === 'owner' || userRole === 'admin') && (
-              <Button 
-                variant="outline" 
-                className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
-                onClick={() => router.push('/dashboard/analytics')}
-              >
-                <BarChart3 className="h-6 w-6 text-primary" />
-                <span className="text-sm font-medium">View Analytics</span>
-                <span className="text-xs text-muted-foreground">Insights & metrics</span>
-              </Button>
-            )}
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <Button 
+          variant="outline" 
+          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          onClick={() => router.push('/dashboard/tasks')}
+        >
+          <Target className="h-6 w-6 text-primary" />
+          <span className="text-sm font-medium">View Tasks</span>
+          <span className="text-xs text-muted-foreground">Manage your tasks</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          onClick={() => router.push('/dashboard/reports')}
+        >
+          <FileText className="h-6 w-6 text-primary" />
+          <span className="text-sm font-medium">Manage Reports</span>
+          <span className="text-xs text-muted-foreground">View & submit reports</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          onClick={() => router.push('/dashboard/folders')}
+        >
+          <Folder className="h-6 w-6 text-primary" />
+          <span className="text-sm font-medium">Browse Files</span>
+          <span className="text-xs text-muted-foreground">Access documents</span>
+        </Button>
+        
+        {(userRole === 'owner' || userRole === 'admin') && (
+          <Button 
+            variant="outline" 
+            className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+            onClick={() => router.push('/dashboard/analytics')}
+          >
+            <BarChart3 className="h-6 w-6 text-primary" />
+            <span className="text-sm font-medium">View Analytics</span>
+            <span className="text-xs text-muted-foreground">Insights & metrics</span>
+          </Button>
+        )}
 
-            {/* Add Calendar action for all users */}
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
-              onClick={() => router.push('/dashboard/calendar')}
-            >
-              <Calendar className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Calendar</span>
-              <span className="text-xs text-muted-foreground">View schedule</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Add Calendar action for all users */}
+        <Button 
+          variant="outline" 
+          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          onClick={() => router.push('/dashboard/calendar')}
+        >
+          <Calendar className="h-6 w-6 text-primary" />
+          <span className="text-sm font-medium">Calendar</span>
+          <span className="text-xs text-muted-foreground">View schedule</span>
+        </Button>
+      </div>
 
       {/* Analytics Section */}
       <div className="space-y-6">

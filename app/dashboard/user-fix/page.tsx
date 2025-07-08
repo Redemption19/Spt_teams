@@ -181,7 +181,7 @@ export default function UserFixPage() {
 
   if (loading) {
     return (
-      <div className="container max-w-4xl mx-auto p-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <RefreshCw className="h-8 w-8 animate-spin" />
           <span className="ml-2">Loading users...</span>
@@ -194,7 +194,7 @@ export default function UserFixPage() {
   const fixedCount = users.filter(u => u.isFixed).length;
 
   return (
-    <div className="container max-w-4xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Settings className="h-8 w-8" />
         <div>

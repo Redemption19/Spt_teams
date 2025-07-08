@@ -1066,275 +1066,270 @@ export default function FolderManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 max-w-7xl">
-        <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+        <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Folders & Documents
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Organize files with advanced permissions, member folders, and team collaboration
+            </p>
+          </div>
           
-          {/* Header Section */}
-          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
-              <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
-                  Folders & Documents
-                </h1>
-                <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed max-w-3xl">
-                  Organize files with advanced permissions, member folders, and team collaboration
-                </p>
-              </div>
-              
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                <div className="flex items-center space-x-2">
-                  <FolderOpen className="h-4 w-4 text-primary" />
-                  <span>{folders.length} folder{folders.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div className="h-4 w-px bg-border hidden sm:block" />
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span>{folders.reduce((acc, f) => acc + f.fileCount, 0)} files</span>
-                </div>
-                <div className="h-4 w-px bg-border hidden sm:block" />
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span>Role: {getRoleBadge()}</span>
-                </div>
-              </div>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center space-x-2">
+              <FolderOpen className="h-4 w-4 text-primary" />
+              <span>{folders.length} folder{folders.length !== 1 ? 's' : ''}</span>
             </div>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <div className="flex items-center space-x-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <span>{folders.reduce((acc, f) => acc + f.fileCount, 0)} files</span>
+            </div>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span>Role: {getRoleBadge()}</span>
+            </div>
+          </div>
+        </div>
 
-            {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              {canCreateFolders && folderLimits.canCreateMore && (
-                <Button 
-                  onClick={() => setCurrentPage('create')}
-                  className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 touch-manipulation"
-                >
-                  <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">New Folder</span>
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          {canCreateFolders && folderLimits.canCreateMore && (
+            <Button 
+              onClick={() => setCurrentPage('create')}
+              className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              <span>New Folder</span>
+            </Button>
+          )}
+
+          {(userRole === 'owner' || userRole === 'admin') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 border-border/50">
+                  <FileDown className="h-4 w-4 mr-2" />
+                  <span>Actions</span>
                 </Button>
-              )}
-
-              {(userRole === 'owner' || userRole === 'admin') && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 border-border/50 touch-manipulation">
-                      <FileDown className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">Actions</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setShowFolderSettings(true)}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Folder Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => setShowArchiveDialog(true)}
-                      disabled={selectedFolders.length === 0}
-                    >
-                      <Archive className="h-4 w-4 mr-2" />
-                      Archive Selected ({selectedFolders.length})
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSelectAll}>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {selectedFolders.length > 0 ? 'Deselect All' : 'Select All'}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-
-          {/* Filters and Search */}
-          <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-6">
-            <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search folders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-border bg-background"
-                />
-              </div>
-              
-              {/* Cross-Workspace Toggle for Owners */}
-              {userRole === 'owner' && accessibleWorkspaces.length > 1 && (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <input
-                    type="checkbox"
-                    id="showAllWorkspaces"
-                    checked={showAllWorkspaces}
-                    onChange={(e) => setShowAllWorkspaces(e.target.checked)}
-                    className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
-                  />
-                  <label htmlFor="showAllWorkspaces" className="text-sm font-medium text-blue-700 dark:text-blue-300 cursor-pointer">
-                    🌐 All Workspaces
-                  </label>
-                  <Badge variant="outline" className="text-xs">
-                    {accessibleWorkspaces.length}
-                  </Badge>
-                </div>
-              )}
-
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-full sm:w-40 border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="team">Team Folders</SelectItem>
-                  <SelectItem value="personal">Personal</SelectItem>
-                  <SelectItem value="member-assigned">Assigned</SelectItem>
-                  <SelectItem value="project">Project Folders</SelectItem>
-                  <SelectItem value="shared">Shared</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Workspace Filter - Only show when multi-workspace view is enabled */}
-              {showAllWorkspaces && userRole === 'owner' && (
-                <Select value={selectedWorkspaceFilter} onValueChange={setSelectedWorkspaceFilter}>
-                  <SelectTrigger className="w-full sm:w-48 border-border bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Workspaces</SelectItem>
-                    {accessibleWorkspaces.map((workspace) => (
-                      <SelectItem key={workspace.id} value={workspace.id}>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                            {workspace.workspaceType === 'main' ? '🏢' : '📁'}
-                          </span>
-                          <span>{workspace.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {teams.length > 0 && (
-                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                  <SelectTrigger className="w-full sm:w-48 border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Teams</SelectItem>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-
-            {/* View Mode Selector */}
-            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as typeof viewMode)}>
-              <TabsList>
-                <TabsTrigger value="grid">
-                  <Grid3X3 className="h-4 w-4 mr-1" />
-                  Grid
-                </TabsTrigger>
-                <TabsTrigger value="tree">
-                  <TreePine className="h-4 w-4 mr-1" />
-                  Tree
-                </TabsTrigger>
-                {canViewMemberFolders && (
-                  <TabsTrigger value="member">
-                    <Users className="h-4 w-4 mr-1" />
-                    Members
-                  </TabsTrigger>
-                )}
-              </TabsList>
-            </Tabs>
-          </div>
-
-          {/* Main Content */}
-          <div className="space-y-6">
-            {viewMode === 'grid' && (
-              <FolderCardGrid
-                folders={filteredFolders}
-                loading={loading}
-                onFolderClick={handleFolderClick}
-                onEditFolder={handleEditFolder}
-                onDeleteFolder={initiateDeleteFolder}
-                searchTerm={searchTerm}
-                userRole={userRole}
-                submitting={submitting}
-              />
-            )}
-
-            {viewMode === 'tree' && (
-              <FolderTreeView
-                folders={filteredFolders}
-                loading={loading}
-                onFolderClick={handleFolderClick}
-                onEditFolder={handleEditFolder}
-                onDeleteFolder={initiateDeleteFolder}
-                onCreateSubfolder={(parentFolder: FolderType) => {
-                  toast({
-                    title: 'ℹ️ Coming Soon',
-                    description: 'Subfolder creation functionality will be available soon.',
-                  });
-                }}
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                userRole={userRole}
-              />
-            )}
-
-            {viewMode === 'member' && (
-              <FolderMemberView
-                folders={filteredFolders}
-                loading={loading}
-                onFolderClick={handleFolderClick}
-                onEditFolder={handleEditFolder}
-                onDeleteFolder={initiateDeleteFolder}
-                onCreateMemberFolder={(member: User) => {
-                  toast({
-                    title: 'ℹ️ Coming Soon',
-                    description: 'Direct member folder creation functionality will be available soon.',
-                  });
-                }}
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                userRole={userRole}
-              />
-            )}
-          </div>
-
-          {/* Enhanced Empty State with Debug Tools */}
-          {filteredFolders.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20 text-center space-y-6">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center mb-4">
-                <FolderOpen className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
-              </div>
-              
-              <div className="space-y-2 max-w-md">
-                <h3 className="text-xl sm:text-2xl font-semibold text-foreground">
-                  No folders found
-                </h3>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  {searchTerm ? 
-                    `No folders match "${searchTerm}". Try adjusting your search or filters.` : 
-                    'Get started by creating your first folder'
-                  }
-                </p>
-              </div>
-
-              {canCreateFolders && folderLimits.canCreateMore && (
-                <Button 
-                  onClick={() => setCurrentPage('create')}
-                  className="h-11 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowFolderSettings(true)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Folder Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setShowArchiveDialog(true)}
+                  disabled={selectedFolders.length === 0}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Folder
-                </Button>
-              )}
-            </div>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archive Selected ({selectedFolders.length})
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSelectAll}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {selectedFolders.length > 0 ? 'Deselect All' : 'Select All'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
+
+      {/* Filters and Search */}
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-6">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search folders..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-border bg-background"
+            />
+          </div>
+          
+          {/* Cross-Workspace Toggle for Owners */}
+          {userRole === 'owner' && accessibleWorkspaces.length > 1 && (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <input
+                type="checkbox"
+                id="showAllWorkspaces"
+                checked={showAllWorkspaces}
+                onChange={(e) => setShowAllWorkspaces(e.target.checked)}
+                className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+              />
+              <label htmlFor="showAllWorkspaces" className="text-sm font-medium text-blue-700 dark:text-blue-300 cursor-pointer">
+                🌐 All Workspaces
+              </label>
+              <Badge variant="outline" className="text-xs">
+                {accessibleWorkspaces.length}
+              </Badge>
+            </div>
+          )}
+
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-full sm:w-40 border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="team">Team Folders</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+              <SelectItem value="member-assigned">Assigned</SelectItem>
+              <SelectItem value="project">Project Folders</SelectItem>
+              <SelectItem value="shared">Shared</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Workspace Filter - Only show when multi-workspace view is enabled */}
+          {showAllWorkspaces && userRole === 'owner' && (
+            <Select value={selectedWorkspaceFilter} onValueChange={setSelectedWorkspaceFilter}>
+              <SelectTrigger className="w-full sm:w-48 border-border bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Workspaces</SelectItem>
+                {accessibleWorkspaces.map((workspace) => (
+                  <SelectItem key={workspace.id} value={workspace.id}>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                        {workspace.workspaceType === 'main' ? '🏢' : '📁'}
+                      </span>
+                      <span>{workspace.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {teams.length > 0 && (
+            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <SelectTrigger className="w-full sm:w-48 border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Teams</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* View Mode Selector */}
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as typeof viewMode)}>
+          <TabsList>
+            <TabsTrigger value="grid">
+              <Grid3X3 className="h-4 w-4 mr-1" />
+              Grid
+            </TabsTrigger>
+            <TabsTrigger value="tree">
+              <TreePine className="h-4 w-4 mr-1" />
+              Tree
+            </TabsTrigger>
+            {canViewMemberFolders && (
+              <TabsTrigger value="member">
+                <Users className="h-4 w-4 mr-1" />
+                Members
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Main Content */}
+      <div className="space-y-6">
+        {viewMode === 'grid' && (
+          <FolderCardGrid
+            folders={filteredFolders}
+            loading={loading}
+            onFolderClick={handleFolderClick}
+            onEditFolder={handleEditFolder}
+            onDeleteFolder={initiateDeleteFolder}
+            searchTerm={searchTerm}
+            userRole={userRole}
+            submitting={submitting}
+          />
+        )}
+
+        {viewMode === 'tree' && (
+          <FolderTreeView
+            folders={filteredFolders}
+            loading={loading}
+            onFolderClick={handleFolderClick}
+            onEditFolder={handleEditFolder}
+            onDeleteFolder={initiateDeleteFolder}
+            onCreateSubfolder={(parentFolder: FolderType) => {
+              toast({
+                title: 'ℹ️ Coming Soon',
+                description: 'Subfolder creation functionality will be available soon.',
+              });
+            }}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            userRole={userRole}
+          />
+        )}
+
+        {viewMode === 'member' && (
+          <FolderMemberView
+            folders={filteredFolders}
+            loading={loading}
+            onFolderClick={handleFolderClick}
+            onEditFolder={handleEditFolder}
+            onDeleteFolder={initiateDeleteFolder}
+            onCreateMemberFolder={(member: User) => {
+              toast({
+                title: 'ℹ️ Coming Soon',
+                description: 'Direct member folder creation functionality will be available soon.',
+              });
+            }}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            userRole={userRole}
+          />
+        )}
+      </div>
+
+      {/* Enhanced Empty State with Debug Tools */}
+      {filteredFolders.length === 0 && !loading && (
+        <div className="flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20 text-center space-y-6">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center mb-4">
+            <FolderOpen className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+          </div>
+          
+          <div className="space-y-2 max-w-md">
+            <h3 className="text-xl sm:text-2xl font-semibold text-foreground">
+              No folders found
+            </h3>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              {searchTerm ? 
+                `No folders match "${searchTerm}". Try adjusting your search or filters.` : 
+                'Get started by creating your first folder'
+              }
+            </p>
+          </div>
+
+          {canCreateFolders && folderLimits.canCreateMore && (
+            <Button 
+              onClick={() => setCurrentPage('create')}
+              className="h-11 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Folder
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Delete Folder Dialog */}
       <DeleteFolderAlertDialog
@@ -1397,77 +1392,33 @@ export default function FolderManagement() {
                 </div>
 
                 {settingsForm.autoArchiveInactive && (
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg ml-4">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Archive After (Days)</Label>
                       <p className="text-xs text-muted-foreground">Days of inactivity before archiving</p>
                     </div>
                     <Input
                       type="number"
+                      value={settingsForm.autoArchiveDays}
+                      onChange={(e) => setSettingsForm(prev => ({ ...prev, autoArchiveDays: parseInt(e.target.value) || 30 }))}
+                      className="w-20"
                       min="1"
                       max="365"
-                      value={settingsForm.autoArchiveDays}
-                      onChange={(e) => 
-                        setSettingsForm(prev => ({ 
-                          ...prev, 
-                          autoArchiveDays: parseInt(e.target.value) || 90 
-                        }))
-                      }
-                      className="w-20 h-8"
                     />
                   </div>
                 )}
-
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Require Upload Approval</Label>
-                    <p className="text-xs text-muted-foreground">Require admin approval for file uploads</p>
-                  </div>
-                  <Switch
-                    checked={settingsForm.requireApprovalForUploads}
-                    onCheckedChange={(checked) => 
-                      setSettingsForm(prev => ({ ...prev, requireApprovalForUploads: checked }))
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Allow Member Subfolders</Label>
-                    <p className="text-xs text-muted-foreground">Allow members to create subfolders</p>
-                  </div>
-                  <Switch
-                    checked={settingsForm.allowMemberSubfolders}
-                    onCheckedChange={(checked) => 
-                      setSettingsForm(prev => ({ ...prev, allowMemberSubfolders: checked }))
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Allow Bulk Operations</Label>
-                    <p className="text-xs text-muted-foreground">Enable bulk selection and operations</p>
-                  </div>
-                  <Switch
-                    checked={settingsForm.allowBulkOperations}
-                    onCheckedChange={(checked) => 
-                      setSettingsForm(prev => ({ ...prev, allowBulkOperations: checked }))
-                    }
-                  />
-                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-border">
-            <Button type="button" variant="outline" onClick={() => setShowFolderSettings(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveFolderSettings}>
-              <Settings className="h-4 w-4 mr-2" />
-              Save Settings
-            </Button>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowFolderSettings(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveFolderSettings} disabled={submitting}>
+                {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Save Settings
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1477,69 +1428,18 @@ export default function FolderManagement() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center space-x-2">
-              <Archive className="h-5 w-5 text-orange-600" />
+              <Archive className="h-5 w-5 text-orange-500" />
               <span>Archive Selected Folders</span>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to archive {selectedFolders.length} folder{selectedFolders.length > 1 ? 's' : ''}. 
+              Are you sure you want to archive {selectedFolders.length} folder(s)? 
               Archived folders will be hidden from the main view but can be restored later.
-              
-              <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <div className="flex items-start space-x-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                      What happens when you archive folders:
-                    </p>
-                    <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
-                      <li>• Folders become read-only for members</li>
-                      <li>• Files remain accessible but no new uploads allowed</li>
-                      <li>• Folders are hidden from member view</li>
-                      <li>• Can be restored by admins at any time</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {selectedFolders.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-sm font-medium mb-2">Folders to be archived:</p>
-                  <div className="max-h-32 overflow-y-auto space-y-1">
-                    {selectedFolders.map(folderId => {
-                      const folder = filteredFolders.find(f => f.id === folderId);
-                      return folder ? (
-                        <div key={folderId} className="flex items-center space-x-2 text-xs p-2 bg-muted rounded">
-                          <FolderOpen className="h-3 w-3" />
-                          <span className="truncate">{folder.name}</span>
-                          <Badge variant="outline" className="text-xs">{folder.type}</Badge>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={archivingFolders}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleArchiveSelected}
-              disabled={archivingFolders}
-              className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700"
-            >
-              {archivingFolders ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Archiving...
-                </>
-              ) : (
-                <>
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive {selectedFolders.length} Folder{selectedFolders.length > 1 ? 's' : ''}
-                </>
-              )}
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchiveSelected} className="bg-orange-600 hover:bg-orange-700">
+              Archive Folders
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

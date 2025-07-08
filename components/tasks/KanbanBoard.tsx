@@ -59,14 +59,14 @@ export default function KanbanBoard({
   }));
 
   return (
-    <>
-      <div className="mb-4 flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <Select
             value={selectedProject || 'all'}
             onValueChange={(value) => {
               setSelectedProject(value === 'all' ? null : value);
-              // No need to call loadData here, as selectedProject change will trigger useEffect in parent
             }}
           >
             <SelectTrigger className="w-full sm:w-48 lg:w-64">
@@ -301,6 +301,6 @@ export default function KanbanBoard({
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 } 

@@ -321,7 +321,7 @@ export function DepartmentManagement() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 md:p-6 max-w-full overflow-x-hidden">
+    <div className="space-y-6">
       {/* Header and Cross-Workspace Toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
@@ -338,25 +338,33 @@ export function DepartmentManagement() {
             }
           </p>
         </div>
-        {/* Cross-workspace toggle for owners */}
-        {isAdminOrOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-          <div className="flex items-center space-x-2 px-2 py-1 sm:px-3 sm:py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50 w-full sm:w-auto">
-            <button
-              onClick={() => setShowAllWorkspaces(!showAllWorkspaces)}
-              className={`flex items-center space-x-2 text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto justify-center ${
-                showAllWorkspaces
-                  ? 'text-green-700 dark:text-green-400'
-                  : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
-              }`}
+        {/* Header Actions: Group Create Department and Workspace Toggle */}
+        {isAdminOrOwner && (
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto sm:items-center sm:justify-end">
+            <Button
+              className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+              onClick={() => setIsCreateOpen(true)}
             >
-              <span className="text-base">{showAllWorkspaces ? '🌍' : '🏢'}</span>
-              <span>
-                {showAllWorkspaces
-                  ? `All Workspaces (${accessibleWorkspaces.length})`
-                  : 'Current Workspace'
-                }
-              </span>
-            </button>
+              <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Create Department</span>
+              <span className="sm:hidden">New</span>
+            </Button>
+            {accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+              <div className="flex items-center">
+                <button
+                  onClick={() => setShowAllWorkspaces(!showAllWorkspaces)}
+                  className={`flex items-center space-x-2 text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto justify-center px-4 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50` + (showAllWorkspaces ? ' text-green-700 dark:text-green-400' : ' text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400')}
+                >
+                  <span className="text-base">{showAllWorkspaces ? '🌍' : '🏢'}</span>
+                  <span>
+                    {showAllWorkspaces
+                      ? `All Workspaces (${accessibleWorkspaces.length})`
+                      : 'Current Workspace'
+                    }
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

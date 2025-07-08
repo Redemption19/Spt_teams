@@ -649,374 +649,373 @@ export default function ProjectTaskManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 max-w-7xl">
-        <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+        <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Projects & Tasks
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1
+                ? `Manage projects and track tasks across all ${accessibleWorkspaces.length} accessible workspaces with unified visual workflows and comprehensive analytics`
+                : 'Manage your projects and track tasks with visual workflows and comprehensive analytics'
+              }
+            </p>
+          </div>
           
-          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
-              <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
-                  Projects & Tasks
-                </h1>
-                <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed max-w-3xl">
-                  {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1
-                    ? `Manage projects and track tasks across all ${accessibleWorkspaces.length} accessible workspaces with unified visual workflows and comprehensive analytics`
-                    : 'Manage your projects and track tasks with visual workflows and comprehensive analytics'
-                  }
-                </p>
-              </div>
-              
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                <div className="flex items-center space-x-2">
-                  <Folder className="h-4 w-4 text-primary" />
-                  <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div className="h-4 w-px bg-border hidden sm:block" />
-                <div className="flex items-center space-x-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  <span>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div className="h-4 w-px bg-border hidden sm:block" />
-                <div className="flex items-center space-x-2">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  <span>{tasks.filter(t => t.status === 'completed').length} completed</span>
-                </div>
-              </div>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center space-x-2">
+              <Folder className="h-4 w-4 text-primary" />
+              <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
             </div>
-
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0 w-full sm:w-auto">
-              {/* Cross-workspace toggle for owners */}
-              {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-                  <button
-                    onClick={() => setShowAllWorkspaces(!showAllWorkspaces)}
-                    className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
-                      showAllWorkspaces 
-                        ? 'text-green-700 dark:text-green-400' 
-                        : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
-                    }`}
-                  >
-                    <span className="text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
-                    <span>
-                      {showAllWorkspaces 
-                        ? `All Workspaces (${accessibleWorkspaces.length})` 
-                        : 'Current Workspace'
-                      }
-                    </span>
-                  </button>
-                </div>
-              )}
-              
-              <Dialog open={isCreateProjectOpen} onOpenChange={setIsCreateProjectOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-background to-accent/10 hover:from-accent/10 hover:to-accent/20 border-border/50 touch-manipulation">
-                    <Folder className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">New Project</span>
-                  </Button>
-                </DialogTrigger>
-                <CreateEditProjectDialog
-                  isOpen={isCreateProjectOpen}
-                  setIsOpen={setIsCreateProjectOpen}
-                  projectForm={projectForm}
-                  setProjectForm={setProjectForm}
-                  teams={teams}
-                  onSubmit={handleCreateProject}
-                  submitting={submitting}
-                  isEdit={false}
-                />
-              </Dialog>
-              
-              {/* ✅ ENHANCED RBAC - Conditionally render create task button */}
-              {canShowCreateTaskButton() && (
-                <Dialog open={isCreateTaskOpen} onOpenChange={setIsCreateTaskOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 touch-manipulation">
-                      <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">{getCreateTaskButtonText()}</span>
-                    </Button>
-                  </DialogTrigger>
-                  <CreateEditTaskDialog
-                    isOpen={isCreateTaskOpen}
-                    setIsOpen={setIsCreateTaskOpen}
-                    taskForm={taskForm}
-                    setTaskForm={setTaskForm}
-                    projects={getProjectsWhereUserCanCreateTasks()} // ✅ Only show projects where user can create tasks
-                    users={users}
-                    onSubmit={handleCreateTask}
-                    submitting={submitting}
-                    isEdit={false}
-                  />
-                </Dialog>
-              )}
-
-              {/* ✅ ENHANCED RBAC - Show helpful message for users without permission */}
-              {!canShowCreateTaskButton() && (
-                <div className="w-full sm:w-auto h-11 sm:h-10 flex items-center justify-center px-4 py-2 bg-muted/50 border border-border/50 rounded-md">
-                  <span className="text-sm text-muted-foreground">
-                    Contact admin to join projects for task creation
-                  </span>
-                </div>
-              )}
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <div className="flex items-center space-x-2">
+              <Target className="h-4 w-4 text-primary" />
+              <span>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span>{tasks.filter(t => t.status === 'completed').length} completed</span>
             </div>
           </div>
+        </div>
 
-          {/* Cross-workspace scope banner for owners */}
-          {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-            <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-              <p className="text-sm text-green-700 dark:text-green-400">
-                🌐 <strong>Cross-Workspace Tasks:</strong> Displaying projects and tasks across all {accessibleWorkspaces.length} accessible workspaces. Projects, tasks, teams, and analytics from all workspaces are aggregated for centralized management.
-              </p>
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0 w-full sm:w-auto">
+          {/* Cross-workspace toggle for owners */}
+          {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+              <button
+                onClick={() => setShowAllWorkspaces(!showAllWorkspaces)}
+                className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
+                  showAllWorkspaces 
+                    ? 'text-green-700 dark:text-green-400' 
+                    : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
+                }`}
+              >
+                <span className="text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
+                <span>
+                  {showAllWorkspaces 
+                    ? `All Workspaces (${accessibleWorkspaces.length})` 
+                    : 'Current Workspace'
+                  }
+                </span>
+              </button>
             </div>
           )}
+          
+          <Dialog open={isCreateProjectOpen} onOpenChange={setIsCreateProjectOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-background to-accent/10 hover:from-accent/10 hover:to-accent/20 border-border/50">
+                <Folder className="h-4 w-4 mr-2" />
+                <span>New Project</span>
+              </Button>
+            </DialogTrigger>
+            <CreateEditProjectDialog
+              isOpen={isCreateProjectOpen}
+              setIsOpen={setIsCreateProjectOpen}
+              projectForm={projectForm}
+              setProjectForm={setProjectForm}
+              teams={teams}
+              onSubmit={handleCreateProject}
+              submitting={submitting}
+              isEdit={false}
+            />
+          </Dialog>
+          
+          {/* ✅ ENHANCED RBAC - Conditionally render create task button */}
+          {canShowCreateTaskButton() && (
+            <Dialog open={isCreateTaskOpen} onOpenChange={setIsCreateTaskOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span>{getCreateTaskButtonText()}</span>
+                </Button>
+              </DialogTrigger>
+              <CreateEditTaskDialog
+                isOpen={isCreateTaskOpen}
+                setIsOpen={setIsCreateTaskOpen}
+                taskForm={taskForm}
+                setTaskForm={setTaskForm}
+                projects={getProjectsWhereUserCanCreateTasks()} // ✅ Only show projects where user can create tasks
+                users={users}
+                onSubmit={handleCreateTask}
+                submitting={submitting}
+                isEdit={false}
+              />
+            </Dialog>
+          )}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex flex-col space-y-6 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-8 mb-6 md:mb-8">
-              <TabsList className="grid w-full grid-cols-4 lg:w-fit">
-                <TabsTrigger value="projects" className="text-xs sm:text-sm">
-                  <Folder className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">
-                    Projects ({projects.length})
-                    {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                  </span>
-                  <span className="sm:hidden">
-                    Projects{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="kanban" className="text-xs sm:text-sm">
-                  <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">
-                    Kanban Board{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                  </span>
-                  <span className="sm:hidden">
-                    Kanban{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="list" className="text-xs sm:text-sm">
-                  <List className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">
-                    List View ({tasks.length})
-                    {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                  </span>
-                  <span className="sm:hidden">
-                    List{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="text-xs sm:text-sm">
-                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">
-                    Analytics{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                  </span>
-                  <span className="sm:hidden">
-                    Analytics{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
+          {/* ✅ ENHANCED RBAC - Show helpful message for users without permission */}
+          {!canShowCreateTaskButton() && (
+            <div className="w-full sm:w-auto h-11 sm:h-10 flex items-center justify-center px-4 py-2 bg-muted/50 border border-border/50 rounded-md">
+              <span className="text-sm text-muted-foreground">
+                Contact admin to join projects for task creation
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
 
-              <div className="space-y-3 sm:space-y-0">
-                <div className="relative w-full sm:hidden">
+      {/* Cross-workspace scope banner for owners */}
+      {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+          <p className="text-sm text-green-700 dark:text-green-400">
+            🌐 <strong>Cross-Workspace Tasks:</strong> Displaying projects and tasks across all {accessibleWorkspaces.length} accessible workspaces. Projects, tasks, teams, and analytics from all workspaces are aggregated for centralized management.
+          </p>
+        </div>
+      )}
+
+      {/* Tabs and Filters Section */}
+      <div className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex flex-col space-y-6 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-8">
+            <TabsList className="grid w-full grid-cols-4 lg:w-fit">
+              <TabsTrigger value="projects" className="text-xs sm:text-sm">
+                <Folder className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  Projects ({projects.length})
+                  {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
+                </span>
+                <span className="sm:hidden">
+                  Projects{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="kanban" className="text-xs sm:text-sm">
+                <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  Kanban Board{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
+                </span>
+                <span className="sm:hidden">
+                  Kanban{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="list" className="text-xs sm:text-sm">
+                <List className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  List View ({tasks.length})
+                  {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
+                </span>
+                <span className="sm:hidden">
+                  List{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  Analytics{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
+                </span>
+                <span className="sm:hidden">
+                  Analytics{showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 ? ' 🌐' : ''}
+                </span>
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="space-y-3 sm:space-y-0">
+              <div className="relative w-full sm:hidden">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search projects & tasks..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-11 pl-10 border-border/50 focus:border-primary"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                <div className="hidden sm:block relative lg:col-span-2 xl:col-span-2">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search projects & tasks..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-11 pl-10 border-border/50 focus:border-primary touch-manipulation"
+                    className="h-10 pl-10 border-border/50 focus:border-primary"
                   />
                 </div>
+                
+                <div className="sm:col-span-1">
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger className="h-11 sm:h-10 w-full">
+                      <SelectValue placeholder="All Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priority</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                  <div className="hidden sm:block relative lg:col-span-2 xl:col-span-2">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Search projects & tasks..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-10 pl-10 border-border/50 focus:border-primary"
-                    />
-                  </div>
-                  
-                  <div className="sm:col-span-1">
-                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                      <SelectTrigger className="h-11 sm:h-10 w-full touch-manipulation">
-                        <SelectValue placeholder="All Priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Priority</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="sm:col-span-1">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-11 sm:h-10 w-full">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="todo">To Do</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="review">Review</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  <div className="sm:col-span-1">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="h-11 sm:h-10 w-full touch-manipulation">
-                        <SelectValue placeholder="All Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="todo">To Do</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="review">Review</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="sm:col-span-1">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full h-11 sm:h-10 touch-manipulation border-border/50" disabled={isExporting}>
-                          {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
-                          <span>Export</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem onClick={() => handleExportProjects('csv')}>
-                          <FileDown className="h-4 w-4 mr-2" />
-                          Export Projects (CSV)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExportProjects('excel')}>
-                          <FileDown className="h-4 w-4 mr-2" />
-                          Export Projects (Excel)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExportTasks('csv')}>
-                          <FileDown className="h-4 w-4 mr-2" />
-                          Export Tasks (CSV)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExportTasks('excel')}>
-                          <FileDown className="h-4 w-4 mr-2" />
-                          Export Tasks (Excel)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExportTasks('pdf')}>
-                          <FileDown className="h-4 w-4 mr-2" />
-                          Export Tasks (PDF)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExportProjects('summary' as ExportFormat)}>
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          Summary Report (PDF)
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                <div className="sm:col-span-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full h-11 sm:h-10 border-border/50" disabled={isExporting}>
+                        {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
+                        <span>Export</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => handleExportProjects('csv')}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export Projects (CSV)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportProjects('excel')}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export Projects (Excel)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportTasks('csv')}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export Tasks (CSV)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportTasks('excel')}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export Tasks (Excel)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportTasks('pdf')}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export Tasks (PDF)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportProjects('summary' as ExportFormat)}>
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Summary Report (PDF)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
+          </div>
 
-            <TabsContent value="projects" className="mt-0">
-              <ProjectCardGrid
-                projects={projects}
-                setSelectedProject={setSelectedProject}
-                setActiveTab={setActiveTab}
-                handleEditProject={handleEditProject}
-                initiateDeleteProject={initiateDeleteProject}
-              />
-            </TabsContent>
+          <TabsContent value="projects" className="mt-6">
+            <ProjectCardGrid
+              projects={projects}
+              setSelectedProject={setSelectedProject}
+              setActiveTab={setActiveTab}
+              handleEditProject={handleEditProject}
+              initiateDeleteProject={initiateDeleteProject}
+            />
+          </TabsContent>
 
-            <TabsContent value="kanban" className="mt-0">
-              <KanbanBoard
-                tasks={filteredTasks}
-                projects={projects}
-                selectedProject={selectedProject}
-                setSelectedProject={setSelectedProject}
-                loadData={loadData}
-                handleTaskStatusChange={handleTaskStatusChange}
-                initiateDeleteTask={initiateDeleteTask}
-              />
-            </TabsContent>
+          <TabsContent value="kanban" className="mt-6">
+            <KanbanBoard
+              tasks={filteredTasks}
+              projects={projects}
+              selectedProject={selectedProject}
+              setSelectedProject={setSelectedProject}
+              loadData={loadData}
+              handleTaskStatusChange={handleTaskStatusChange}
+              initiateDeleteTask={initiateDeleteTask}
+            />
+          </TabsContent>
 
-            <TabsContent value="list" className="mt-0">
-              <TaskListView
-                paginatedTasks={paginatedTasks}
-                totalTasks={totalTasks}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                tasksPerPage={tasksPerPage}
-                selectedTasks={selectedTasks}
-                setTasksPerPage={(value) => setTasksPerPage(value)}
-                handlePageChange={(page) => setCurrentPage(page)}
-                handleSort={setSortField}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                handleTaskSelect={(id) => setSelectedTasks(prev => prev.includes(id) ? prev.filter(taskId => taskId !== id) : [...prev, id])}
-                handleSelectAllTasks={() => {
-                  const currentPageTaskIds = paginatedTasks.map(task => task.id);
-                  const allCurrentPageSelected = currentPageTaskIds.every(id => selectedTasks.includes(id));
-                  if (allCurrentPageSelected) {
-                    setSelectedTasks(prev => prev.filter(id => !currentPageTaskIds.includes(id)));
-                  } else {
-                    setSelectedTasks(prev => Array.from(new Set([...prev, ...currentPageTaskIds])));
-                  }
-                }}
-                handleBulkStatusUpdate={handleBulkStatusUpdate}
-                handleBulkDelete={handleBulkDelete}
-                handleExportSelectedTasks={handleExportSelectedTasks}
-                isExporting={isExporting}
-                handleTaskStatusChange={handleTaskStatusChange}
-                handleEditTask={handleEditTask}
-                initiateDeleteTask={initiateDeleteTask}
-                searchTerm={searchTerm}
-                priorityFilter={priorityFilter}
-                statusFilter={statusFilter}
-                setIsCreateTaskOpen={setIsCreateTaskOpen}
-              />
-            </TabsContent>
+          <TabsContent value="list" className="mt-6">
+            <TaskListView
+              paginatedTasks={paginatedTasks}
+              totalTasks={totalTasks}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              tasksPerPage={tasksPerPage}
+              selectedTasks={selectedTasks}
+              setTasksPerPage={(value) => setTasksPerPage(value)}
+              handlePageChange={(page) => setCurrentPage(page)}
+              handleSort={setSortField}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              handleTaskSelect={(id) => setSelectedTasks(prev => prev.includes(id) ? prev.filter(taskId => taskId !== id) : [...prev, id])}
+              handleSelectAllTasks={() => {
+                const currentPageTaskIds = paginatedTasks.map(task => task.id);
+                const allCurrentPageSelected = currentPageTaskIds.every(id => selectedTasks.includes(id));
+                if (allCurrentPageSelected) {
+                  setSelectedTasks(prev => prev.filter(id => !currentPageTaskIds.includes(id)));
+                } else {
+                  setSelectedTasks(prev => Array.from(new Set([...prev, ...currentPageTaskIds])));
+                }
+              }}
+              handleBulkStatusUpdate={handleBulkStatusUpdate}
+              handleBulkDelete={handleBulkDelete}
+              handleExportSelectedTasks={handleExportSelectedTasks}
+              isExporting={isExporting}
+              handleTaskStatusChange={handleTaskStatusChange}
+              handleEditTask={handleEditTask}
+              initiateDeleteTask={initiateDeleteTask}
+              searchTerm={searchTerm}
+              priorityFilter={priorityFilter}
+              statusFilter={statusFilter}
+              setIsCreateTaskOpen={setIsCreateTaskOpen}
+            />
+          </TabsContent>
 
-            <TabsContent value="analytics" className="mt-0">
-              <AnalyticsDashboard
-                projects={projects}
-                tasks={tasks}
-                handleExportProjects={handleExportProjects}
-                handleExportTasks={handleExportTasks}
-                isExporting={isExporting}
-              />
-            </TabsContent>
-          </Tabs>
-
-          <CreateEditProjectDialog
-            isOpen={isEditProjectOpen}
-            setIsOpen={setIsEditProjectOpen}
-            projectForm={projectForm}
-            setProjectForm={setProjectForm}
-            teams={teams}
-            onSubmit={handleUpdateProject}
-            submitting={submitting}
-            isEdit={true}
-          />
-
-          <CreateEditTaskDialog
-            isOpen={isEditTaskOpen}
-            setIsOpen={setIsEditTaskOpen}
-            taskForm={taskForm}
-            setTaskForm={setTaskForm}
-            projects={projects}
-            users={users}
-            onSubmit={handleUpdateTask}
-            submitting={submitting}
-            isEdit={true}
-            editingTask={viewingTask}
-          />
-
-          <DeleteProjectAlertDialog
-            isOpen={isDeleteProjectOpen}
-            setIsOpen={setIsDeleteProjectOpen}
-            projectToDelete={projectToDelete}
-            tasks={tasks}
-            confirmDelete={confirmDeleteProject}
-            isSubmitting={submitting}
-          />
-
-          <DeleteTaskAlertDialog
-            isOpen={isDeleteTaskOpen}
-            setIsOpen={setIsDeleteTaskOpen}
-            taskToDelete={taskToDelete}
-            confirmDelete={confirmDeleteTask}
-            isSubmitting={submitting}
-          />
-        </div>
+          <TabsContent value="analytics" className="mt-6">
+            <AnalyticsDashboard
+              projects={projects}
+              tasks={tasks}
+              handleExportProjects={handleExportProjects}
+              handleExportTasks={handleExportTasks}
+              isExporting={isExporting}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <CreateEditProjectDialog
+        isOpen={isEditProjectOpen}
+        setIsOpen={setIsEditProjectOpen}
+        projectForm={projectForm}
+        setProjectForm={setProjectForm}
+        teams={teams}
+        onSubmit={handleUpdateProject}
+        submitting={submitting}
+        isEdit={true}
+      />
+
+      <CreateEditTaskDialog
+        isOpen={isEditTaskOpen}
+        setIsOpen={setIsEditTaskOpen}
+        taskForm={taskForm}
+        setTaskForm={setTaskForm}
+        projects={projects}
+        users={users}
+        onSubmit={handleUpdateTask}
+        submitting={submitting}
+        isEdit={true}
+        editingTask={viewingTask}
+      />
+
+      <DeleteProjectAlertDialog
+        isOpen={isDeleteProjectOpen}
+        setIsOpen={setIsDeleteProjectOpen}
+        projectToDelete={projectToDelete}
+        tasks={tasks}
+        confirmDelete={confirmDeleteProject}
+        isSubmitting={submitting}
+      />
+
+      <DeleteTaskAlertDialog
+        isOpen={isDeleteTaskOpen}
+        setIsOpen={setIsDeleteTaskOpen}
+        taskToDelete={taskToDelete}
+        confirmDelete={confirmDeleteTask}
+        isSubmitting={submitting}
+      />
     </div>
   );
 } 

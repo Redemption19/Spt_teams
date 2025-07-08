@@ -135,7 +135,7 @@ export default function CreateEditFolderDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="h-full flex flex-col">
-          <div className="flex-1 grid grid-cols-3 gap-6 overflow-hidden">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
             
             {/* Column 1: Basic Information */}
             <div className="space-y-4 overflow-y-auto">
@@ -197,7 +197,7 @@ export default function CreateEditFolderDialog({
                 </h4>
                 
                 <div className="space-y-2">
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <Input
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
@@ -454,14 +454,14 @@ export default function CreateEditFolderDialog({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-border mt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="h-10 px-6">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-border mt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="h-10 px-6 order-2 sm:order-1">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={submitting || !form.name || !folderLimits.canCreateMore}
-              className="h-10 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              className="h-10 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 order-1 sm:order-2"
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {folder ? 'Update Folder' : 'Create Folder'}

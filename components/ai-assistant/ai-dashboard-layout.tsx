@@ -16,7 +16,7 @@ export default function AIDashboardLayout() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="space-y-1 px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-gradient-to-r from-primary to-accent rounded-lg">
@@ -42,7 +42,7 @@ export default function AIDashboardLayout() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="space-y-6 px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[calc(100vh-200px)]">
           {/* Left Side - Chat Interface */}
           <div className="lg:col-span-2 relative">
@@ -68,7 +68,7 @@ export default function AIDashboardLayout() {
         </div>
 
         {/* Bottom Section - AI-Powered Actions */}
-        <div className="mt-6">
+        <div>
           <AIPoweredActions />
         </div>
       </div>

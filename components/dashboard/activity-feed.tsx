@@ -68,41 +68,43 @@ const getActivityBadgeColor = (type: string) => {
 
 export function ActivityFeed() {
   return (
-    <Card className="border-border/50 shadow-lg bg-card/90 backdrop-blur-sm card-enhanced">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-80">
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-card/80 hover:shadow-sm border border-transparent hover:border-border/30 transition-all duration-200">
-                <Avatar className="h-8 w-8 border-2 border-background shadow-sm">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-xs">
-                    {activity.user.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-foreground">
-                      {activity.user}
-                    </span>
-                    <Badge className={`text-xs px-2 py-0.5 ${getActivityBadgeColor(activity.type)}`}>
-                      {activity.type}
-                    </Badge>
+    <div className="space-y-6">
+      <Card className="border-border/50 shadow-lg bg-card/90 backdrop-blur-sm card-enhanced">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-80">
+            <div className="space-y-4">
+              {activities.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-card/80 hover:shadow-sm border border-transparent hover:border-border/30 transition-all duration-200">
+                  <Avatar className="h-8 w-8 border-2 border-background shadow-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-xs">
+                      {activity.user.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {activity.user}
+                      </span>
+                      <Badge className={`text-xs px-2 py-0.5 ${getActivityBadgeColor(activity.type)}`}>
+                        {activity.type}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {activity.action} <span className="font-medium text-foreground">&ldquo;{activity.target}&rdquo;</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.action} <span className="font-medium text-foreground">&ldquo;{activity.target}&rdquo;</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
-                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -178,6 +178,9 @@ export class WorkspaceService {
       
       await setDoc(subWorkspaceRef, cleanSubWorkspace);
 
+      // Add creator as owner of the sub-workspace
+      await this.addUserToWorkspace(creatorId, subWorkspaceId, 'owner');
+
       // Create hierarchy relationship
       await this.createHierarchyRelationship(parentWorkspaceId, subWorkspaceId, creatorId);
 

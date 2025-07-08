@@ -558,18 +558,20 @@ export default function AnalyticsMain() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 md:p-6 max-w-full overflow-x-hidden">
+    <div className="space-y-6">
       {/* Header and Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
             Analytics
+            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed max-w-3xl">
             Workspace performance, productivity, and trends
+            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ` across ${accessibleWorkspaces.length} workspaces`}
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 w-full sm:w-auto">
           {/* Cross-workspace toggle for owners */}
           {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
             <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
@@ -593,513 +595,137 @@ export default function AnalyticsMain() {
           )}
           
           <Select value={selectedPreset} onValueChange={(value) => setSelectedPreset(value as any)}>
-            <SelectTrigger className="w-40 border-border">
-              <Calendar className="h-4 w-4 mr-2" />
+            <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/50 touch-manipulation">
+              <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="last-7-days">Last 7 days</SelectItem>
-              <SelectItem value="last-30-days">Last 30 days</SelectItem>
-              <SelectItem value="last-3-months">Last 3 months</SelectItem>
-              <SelectItem value="last-year">Last year</SelectItem>
+              <SelectItem value="last-7-days">Last 7 Days</SelectItem>
+              <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+              <SelectItem value="last-3-months">Last 3 Months</SelectItem>
+              <SelectItem value="last-year">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
 
-          {canExportAnalytics && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="h-11 sm:h-10 touch-manipulation"
             >
-              <Download className="h-4 w-4 mr-2" />
-              Export
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
-          )}
+            
+            {canExportAnalytics && (
+              <Button 
+                variant="outline" 
+                onClick={handleExport}
+                className="h-11 sm:h-10 touch-manipulation"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Role-based access banner */}
-      {userRole && (
-        <div className={`p-3 rounded-lg border ${
-          userRole === 'owner' 
-            ? 'bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-800/50'
-            : userRole === 'admin'
-            ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800/50'
-            : 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800/50'
-        }`}>
-          <div className="flex items-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <p className={`text-sm ${
-              userRole === 'owner' 
-                ? 'text-green-700 dark:text-green-400'
-                : userRole === 'admin'
-                ? 'text-blue-700 dark:text-blue-400'
-                : 'text-yellow-700 dark:text-yellow-400'
-            }`}>
-              {userRole === 'owner' && (
-                <>🔧 <strong>Owner Analytics:</strong> Full access to all workspace and system-wide analytics including performance trends, user insights, and administrative data.
-                {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-                  <> Use the workspace toggle above to view data across all {accessibleWorkspaces.length} accessible workspaces.</>
-                )}
-                </>
-              )}
-              {userRole === 'admin' && (
-                <>⚙️ <strong>Admin Analytics:</strong> Access to workspace analytics including team performance, project metrics, and user activity within your workspace.</>
-              )}
-              {userRole === 'member' && (
-                <>👤 <strong>Member Analytics:</strong> View your personal performance metrics, task completion rates, and team collaboration insights.</>
-              )}
-            </p>
-          </div>
+      {/* Cross-workspace scope banner for owners */}
+      {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
+        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+          <p className="text-sm text-green-700 dark:text-green-400">
+            🌐 <strong>Cross-Workspace Analytics:</strong> Viewing analytics, performance metrics, and trends across all {accessibleWorkspaces.length} accessible workspaces. All data from accessible workspaces is aggregated for comprehensive analysis.
+          </p>
         </div>
       )}
 
-      {/* Statistics Cards */}
-      <StatsCards 
-        workspaceId={getEffectiveWorkspaceId()}
-        userId={user?.uid || ''}
-        userRole={userRole as 'member' | 'admin' | 'owner'}
-        filters={dateFilters}
-        refreshTrigger={refreshing}
-        showAllWorkspaces={isOwner && showAllWorkspaces}
-        accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
-      />
-
       {/* Analytics Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4">
-        <TabsList className="w-full flex flex-row flex-wrap justify-start">
-          <TabsTrigger value="overview" className="flex-1 text-xs sm:text-sm">Overview</TabsTrigger>
-          <TabsTrigger value="performance" className="flex-1 text-xs sm:text-sm">Performance</TabsTrigger>
-          <TabsTrigger value="branches" className="flex-1 text-xs sm:text-sm">Branches</TabsTrigger>
-          <TabsTrigger value="teams" className="flex-1 text-xs sm:text-sm">Teams</TabsTrigger>
-          <TabsTrigger value="projects" className="flex-1 text-xs sm:text-sm">Projects</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-11 sm:h-10">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs sm:text-sm">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="projects" className="flex items-center gap-2 text-xs sm:text-sm">
+            <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Projects</span>
+            <span className="sm:hidden">Projects</span>
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="flex items-center gap-2 text-xs sm:text-sm">
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Performance</span>
+            <span className="sm:hidden">Performance</span>
+          </TabsTrigger>
+          <TabsTrigger value="branches" className="flex items-center gap-2 text-xs sm:text-sm">
+            <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Branches</span>
+            <span className="sm:hidden">Branches</span>
+          </TabsTrigger>
+          <TabsTrigger value="teams" className="flex items-center gap-2 text-xs sm:text-sm">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Teams</span>
+            <span className="sm:hidden">Teams</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {userRole === 'member' ? (
-            /* Member Overview - Personal Dashboard */
-            <div className="space-y-6">
-              {/* Personal Stats */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">My Tasks</CardTitle>
-                    <Target className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">Loading...</div>
-                    <p className="text-xs text-muted-foreground">
-                      Personal task metrics
-                    </p>
-                  </CardContent>
-                </Card>
+          {/* Stats Cards */}
+          <StatsCards 
+            workspaceId={getEffectiveWorkspaceId()}
+            userId={user?.uid || ''}
+            userRole={userRole as 'member' | 'admin' | 'owner'}
+            filters={dateFilters}
+            refreshTrigger={refreshing}
+            showAllWorkspaces={isOwner && showAllWorkspaces}
+            accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
+          />
 
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">Loading...</div>
-                    <p className="text-xs text-muted-foreground">
-                      Your task completion
-                    </p>
-                  </CardContent>
-                </Card>
+          {/* Charts Grid */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <PerformanceChart 
+              workspaceId={getEffectiveWorkspaceId()}
+              userId={user?.uid || ''}
+              userRole={userRole as 'member' | 'admin' | 'owner'}
+              filters={dateFilters}
+              refreshTrigger={refreshing}
+              showAllWorkspaces={isOwner && showAllWorkspaces}
+              accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
+            />
+            <BranchMetricsChart 
+              workspaceId={getEffectiveWorkspaceId()}
+              userId={user?.uid || ''}
+              userRole={userRole as 'member' | 'admin' | 'owner'}
+              filters={dateFilters}
+              refreshTrigger={refreshing}
+              showAllWorkspaces={isOwner && showAllWorkspaces}
+              accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
+            />
+          </div>
 
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Projects Involved</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">Loading...</div>
-                    <p className="text-xs text-muted-foreground">
-                      Active project participation
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Actions for Members */}
-              <Card className="card-enhanced">
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-3 md:grid-cols-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start h-12"
-                    onClick={() => setActiveTab('performance')}
-                  >
-                    <TrendingUp className="h-4 w-4 mr-3" />
-                    View My Performance
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start h-12"
-                    onClick={() => router?.push('/dashboard/tasks')}
-                  >
-                    <Target className="h-4 w-4 mr-3" />
-                    Manage My Tasks
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Member-specific insights */}
-              <Card className="card-enhanced">
-                <CardHeader>
-                  <CardTitle>Your Work Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4">
-                      <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Your Personal Analytics</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Track your personal productivity and task completion metrics
-                    </p>
-                    <Button onClick={() => setActiveTab('performance')}>
-                      View My Performance Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            /* Admin/Owner Overview - Full Dashboard */
-            <div className="space-y-6">
-              {/* Admin Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-                    <Target className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {adminStats.loading ? (
-                        <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
-                      ) : (
-                        adminStats.totalTasks
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {adminStats.loading ? 'Loading...' : (
-                        `${adminStats.completedTasks} completed (${adminStats.completionRate}%)`
-                      )}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {adminStats.loading ? (
-                        <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
-                      ) : (
-                        adminStats.activeProjects
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {adminStats.loading ? 'Loading...' : (
-                        `${adminStats.totalProjects} total projects`
-                      )}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {adminStats.loading ? (
-                        <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
-                      ) : (
-                        adminStats.totalUsers
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {adminStats.loading ? 'Loading...' : (
-                        `${adminStats.totalTeams} teams`
-                      )}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="card-enhanced">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
-                      {adminStats.loading ? (
-                        <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
-                      ) : (
-                        `${adminStats.completionRate}%`
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {adminStats.loading ? 'Loading...' : 'Workspace completion rate'}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Main Analytics Grid */}
-              <div className="grid gap-6 lg:grid-cols-3">
-                {/* Branch Performance Overview */}
-                <div className="lg:col-span-2">
-                <BranchMetricsChart 
-                  workspaceId={getEffectiveWorkspaceId()}
-                  userId={user?.uid || ''}
-                  userRole={userRole as 'member' | 'admin' | 'owner'}
-                  filters={dateFilters}
-                  refreshTrigger={refreshing}
-                  showAllWorkspaces={isOwner && showAllWorkspaces}
-                  accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
-                />
-              </div>
-
-              {/* Quick Stats & Actions */}
-              <div className="space-y-6">
-                {/* Recent Activity Summary */}
-                <Card className="card-enhanced">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Quick Insights</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800/50">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Team Performance</p>
-                          <p className="text-xs text-blue-700 dark:text-blue-300">
-                            {showAllWorkspaces ? 'Cross-workspace view active' : 'Current workspace metrics'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                          <BarChart3 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Analytics Access</p>
-                          <p className="text-xs text-green-700 dark:text-green-300">
-                            {userRole === 'owner' ? 'Full system analytics' : 'Workspace analytics'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800/50">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                          <Calendar className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-amber-900 dark:text-amber-100">Data Range</p>
-                          <p className="text-xs text-amber-700 dark:text-amber-300">
-                            {selectedPreset === 'last-7-days' ? 'Last 7 days' :
-                             selectedPreset === 'last-30-days' ? 'Last 30 days' :
-                             selectedPreset === 'last-3-months' ? 'Last 3 months' : 'Last year'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Navigation Quick Links */}
-                <Card className="card-enhanced">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start h-10"
-                      onClick={() => setActiveTab('projects')}
-                    >
-                      <Target className="h-4 w-4 mr-3" />
-                      View Project Health
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start h-10"
-                      onClick={() => setActiveTab('performance')}
-                    >
-                      <TrendingUp className="h-4 w-4 mr-3" />
-                      Performance Metrics
-                    </Button>
-
-                    {canViewAdvancedAnalytics && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start h-10"
-                        onClick={() => setActiveTab('teams')}
-                      >
-                        <Users className="h-4 w-4 mr-3" />
-                        Team Analytics
-                      </Button>
-                    )}
-
-                    {canViewSystemWideAnalytics && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start h-10"
-                        onClick={() => setActiveTab('branches')}
-                      >
-                        <BarChart3 className="h-4 w-4 mr-3" />
-                        Trend Analysis
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-            </div>
-          )}
-
-          {/* Secondary Metrics Row - Only for non-members */}
-          {userRole !== 'member' && (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Performance Quick View */}
-              <Card className="card-enhanced">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center space-x-2">
-                    <TrendingUp className="h-5 w-5" />
-                    <span>Performance Overview</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Productivity Trend</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="h-2 w-16 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full w-3/4 bg-green-500 rounded-full"></div>
-                        </div>
-                        <span className="text-sm font-medium">75%</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Task Efficiency</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="h-2 w-16 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full w-4/5 bg-blue-500 rounded-full"></div>
-                        </div>
-                        <span className="text-sm font-medium">80%</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Delivery Rate</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="h-2 w-16 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full w-5/6 bg-purple-500 rounded-full"></div>
-                        </div>
-                        <span className="text-sm font-medium">85%</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setActiveTab('performance')}
-                    >
-                      View Detailed Performance
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Workspace Summary */}
-              <Card className="card-enhanced">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center space-x-2">
-                    <Shield className="h-5 w-5" />
-                    <span>Workspace Overview</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Your Role</span>
-                      <Badge variant={
-                        userRole === 'owner' ? 'default' : 'secondary'
-                      }>
-                        {userRole === 'owner' ? '🔧 Owner' : '⚙️ Admin'}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Workspace Access</span>
-                      <span className="text-sm font-medium">
-                        {isOwner && accessibleWorkspaces ? `${accessibleWorkspaces.length} workspaces` : '1 workspace'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Analytics Scope</span>
-                      <span className="text-sm font-medium">
-                        {showAllWorkspaces ? 'Multi-workspace' : 'Current workspace'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Data Period</span>
-                      <span className="text-sm font-medium">
-                        {selectedPreset.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={handleRefresh}
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh Data
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          {/* Additional Charts */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <TeamDistributionChart 
+              workspaceId={getEffectiveWorkspaceId()}
+              userId={user?.uid || ''}
+              userRole={userRole as 'member' | 'admin' | 'owner'}
+              filters={dateFilters}
+              refreshTrigger={refreshing}
+              showAllWorkspaces={isOwner && showAllWorkspaces}
+              accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
+            />
+            <ProductivityTrendsChart 
+              workspaceId={getEffectiveWorkspaceId()}
+              userId={user?.uid || ''}
+              userRole={userRole as 'member' | 'admin' | 'owner'}
+              filters={dateFilters}
+              refreshTrigger={refreshing}
+              showAllWorkspaces={isOwner && showAllWorkspaces}
+              accessibleWorkspaces={isOwner ? accessibleWorkspaces : undefined}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="projects" className="space-y-6">
@@ -1122,7 +748,7 @@ export default function AnalyticsMain() {
                   Project health analytics are available to administrators and owners only.
                 </p>
               </div>
-          </div>
+            </div>
           )}
         </TabsContent>
 
@@ -1167,12 +793,12 @@ export default function AnalyticsMain() {
 
         <TabsContent value="branches" className="space-y-6">
           {canViewSystemWideAnalytics ? (
-          <PerformanceChart
-            title="Task Creation vs Completion Trends"
-            dataKey1="tasks"
-            dataKey2="productivity"
-            name1="Tasks Created"
-            name2="Completion Rate %"
+            <PerformanceChart
+              title="Task Creation vs Completion Trends"
+              dataKey1="tasks"
+              dataKey2="productivity"
+              name1="Tasks Created"
+              name2="Completion Rate %"
               workspaceId={getEffectiveWorkspaceId()}
               userId={user?.uid || ''}
               userRole={userRole as 'member' | 'admin' | 'owner'}
@@ -1196,7 +822,7 @@ export default function AnalyticsMain() {
 
         <TabsContent value="teams" className="space-y-6">
           {canViewAdvancedAnalytics ? (
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               <TeamDistributionChart 
                 workspaceId={getEffectiveWorkspaceId()}
                 userId={user?.uid || ''}

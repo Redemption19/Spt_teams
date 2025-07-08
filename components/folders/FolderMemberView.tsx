@@ -695,13 +695,13 @@ export default function FolderMemberView({
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Users className="h-8 w-8 text-blue-500" />
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.totalMembers}</p>
+                <p className="text-xl sm:text-2xl font-bold">{stats.totalMembers}</p>
                 <p className="text-xs text-muted-foreground">Total Members</p>
               </div>
             </div>
@@ -711,9 +711,9 @@ export default function FolderMemberView({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <UserCheck className="h-8 w-8 text-green-500" />
+              <UserCheck className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.membersWithFolders}</p>
+                <p className="text-xl sm:text-2xl font-bold">{stats.membersWithFolders}</p>
                 <p className="text-xs text-muted-foreground">With Folders</p>
               </div>
             </div>
@@ -723,9 +723,9 @@ export default function FolderMemberView({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <FolderOpen className="h-8 w-8 text-purple-500" />
+              <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.totalMemberFolders}</p>
+                <p className="text-xl sm:text-2xl font-bold">{stats.totalMemberFolders}</p>
                 <p className="text-xs text-muted-foreground">Member Folders</p>
               </div>
             </div>
@@ -735,9 +735,9 @@ export default function FolderMemberView({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <FileText className="h-8 w-8 text-orange-500" />
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.totalFiles}</p>
+                <p className="text-xl sm:text-2xl font-bold">{stats.totalFiles}</p>
                 <p className="text-xs text-muted-foreground">Total Files</p>
               </div>
             </div>
@@ -748,7 +748,7 @@ export default function FolderMemberView({
       {/* Main Content */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-primary" />
               <span>Member Folders</span>
@@ -864,7 +864,7 @@ export default function FolderMemberView({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {assignedFolders.map(renderFolderCard)}
                 </div>
               )}
@@ -880,7 +880,7 @@ export default function FolderMemberView({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {memberFolders.map(renderFolderCard)}
                 </div>
               )}

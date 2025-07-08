@@ -28,6 +28,22 @@ service firebase.storage {
       return resource == null || resource.contentType in allowedTypes;
     }
     
+    // ==================== DATABASE BACKUPS ====================
+    
+    match /backups/{workspaceId}/{backupId} {
+      // Database backups - workspace owners and admins can manage backups
+      allow read, write: if isAuthenticated() && 
+                         // Allow JSON backup files
+                         (resource == null || 
+                          resource.contentType == 'application/json' ||
+                          resource.contentType == 'text/plain') &&
+                         // File size limit for backups (100MB)
+                         isValidFileSize(100 * 1024 * 1024);
+      
+      // Add CORS headers for downloads
+      allow read: if isAuthenticated();
+    }
+    
     // ==================== USER AVATARS ====================
     
     match /avatars/{userId}/{allPaths=**} {

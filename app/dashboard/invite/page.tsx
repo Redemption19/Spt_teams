@@ -220,11 +220,22 @@ export default function InvitationsPage() {
     return team?.name || 'Unknown Team';
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: any) => {
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
+    let parsedDate: Date;
+    if (!date) {
+      return 'Invalid date';
+    } else if (date instanceof Date) {
+      parsedDate = date;
+    } else if (typeof date.toDate === 'function') {
+      parsedDate = date.toDate();
+    } else if (typeof date === 'string' || typeof date === 'number') {
+      parsedDate = new Date(date);
+    } else {
+      return 'Invalid date';
+    }
+    const diffTime = Math.abs(now.getTime() - parsedDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
     if (diffDays === 0) {
       return 'today';
     } else if (diffDays === 1) {
@@ -232,15 +243,26 @@ export default function InvitationsPage() {
     } else if (diffDays < 7) {
       return `${diffDays} days ago`;
     } else {
-      return date.toLocaleDateString();
+      return parsedDate.toLocaleDateString();
     }
   };
 
-  const formatExpiryDate = (date: Date) => {
+  const formatExpiryDate = (date: any) => {
     const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
+    let parsedDate: Date;
+    if (!date) {
+      return 'Invalid date';
+    } else if (date instanceof Date) {
+      parsedDate = date;
+    } else if (typeof date.toDate === 'function') {
+      parsedDate = date.toDate();
+    } else if (typeof date === 'string' || typeof date === 'number') {
+      parsedDate = new Date(date);
+    } else {
+      return 'Invalid date';
+    }
+    const diffTime = parsedDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
     if (diffDays < 0) {
       return 'expired';
     } else if (diffDays === 0) {

@@ -196,6 +196,7 @@ const navigationGroups = [
       },
     ],
   },
+  
   {
     type: 'single',
     name: 'Team Members',
@@ -227,11 +228,25 @@ const navigationGroups = [
     href: '/dashboard/activity',
     icon: Activity,
   },
+  {
+    type: 'single',
+    name: 'Database Management',
+    href: '/dashboard/databases',
+    icon: Database,
+    ownerOnly: true,
+  },
 ];
 
 interface SidebarProps {
   className?: string;
 }
+
+// Find the navigationGroups definition and update the 'Manage Workspaces' item label dynamically
+const getWorkspaceNavLabel = (role: string | undefined) => {
+  if (role === 'owner') return 'Manage Workspace';
+  if (role === 'admin') return 'Workspace Overview';
+  return 'My Workspace';
+};
 
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -283,7 +298,30 @@ export function Sidebar({ className }: SidebarProps) {
     return pathname === item.href;
   };
 
+  // Clone navigationGroups and update the label for 'Manage Workspaces' dynamically
+  const dynamicNavigationGroups = navigationGroups.map(group => {
+    if (group.name === 'Workspace' && Array.isArray(group.items)) {
+      return {
+        ...group,
+        items: group.items.map(item => {
+          if (item.name === 'Manage Workspaces') {
+            return {
+              ...item,
+              name: getWorkspaceNavLabel(userProfile?.role),
+            };
+          }
+          return item;
+        })
+      };
+    }
+    return group;
+  });
+
   const renderNavigationItem = (item: any, isSubItem = false, isNestedItem = false) => {
+    // Owner-only check
+    if (item.ownerOnly && userProfile?.role !== 'owner') {
+      return null;
+    }
     // Handle nested dropdown items
     if (item.type === 'nested-dropdown') {
       const isNestedOpen = openNestedSections.includes(item.name);
@@ -397,7 +435,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       <ScrollArea className="flex-1 px-2">
         <div className="space-y-1 py-4">
-          {navigationGroups.map((group) => {
+          {dynamicNavigationGroups.map((group) => {
             // Skip groups that require permission if user doesn't have it
             if (group.requiresPermission && !canManageUsers) {
               return null;

@@ -703,7 +703,7 @@ export default function FolderDetailPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost" 
@@ -909,21 +909,20 @@ export default function FolderDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search files..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Filters and Sort */}
-              <div className="flex flex-wrap gap-2">
+              {/* Search and Filters */}
+              <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search files..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
                 <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-32">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -934,9 +933,9 @@ export default function FolderDetailPage({
                     <SelectItem value="archives">Archives</SelectItem>
                   </SelectContent>
                 </Select>
-
+                
                 <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-32">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -946,7 +945,7 @@ export default function FolderDetailPage({
                     <SelectItem value="type">Type</SelectItem>
                   </SelectContent>
                 </Select>
-
+                
                 <Button
                   variant="outline"
                   size="sm"
@@ -958,17 +957,24 @@ export default function FolderDetailPage({
 
               {/* Bulk Actions */}
               {selectedFiles.length > 0 && (
-                <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <span className="text-sm font-medium">
-                    {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
+                    {selectedFiles.length} file(s) selected
                   </span>
                   <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedFiles([])}>
-                      <X className="h-4 w-4 mr-1" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedFiles([])}
+                    >
                       Clear
                     </Button>
-                    <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
-                      <Trash2 className="h-4 w-4 mr-1" />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
                       Delete
                     </Button>
                   </div>
@@ -977,50 +983,41 @@ export default function FolderDetailPage({
             </CardContent>
           </Card>
 
-          {/* Files List */}
+          {/* File List/Grid */}
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-4">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : filteredAndSortedFiles.length === 0 ? (
-                <div className="text-center py-8 space-y-2">
-                  <File className="h-8 w-8 text-muted-foreground mx-auto" />
-                  <p className="text-sm font-medium">No files found</p>
-                  <p className="text-xs text-muted-foreground">
-                    {searchTerm ? 'Try adjusting your search terms' : 'Upload files to get started'}
+                <div className="text-center py-8">
+                  <File className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    {searchTerm ? 'No files match your search' : 'No files in this folder'}
                   </p>
                 </div>
               ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-2 gap-4 p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredAndSortedFiles.map((file) => (
                     <div
                       key={file.id}
-                      className={`group relative border rounded-lg p-3 hover:shadow-md transition-all cursor-pointer ${
-                        selectedFiles.includes(file.id) ? 'border-primary bg-primary/5' : 'border-border'
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedFiles.includes(file.id) 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
                       }`}
                       onClick={() => {
-                        setSelectedFiles(prev => 
-                          prev.includes(file.id) 
-                            ? prev.filter(id => id !== file.id)
-                            : [...prev, file.id]
-                        );
+                        if (selectedFiles.includes(file.id)) {
+                          setSelectedFiles(selectedFiles.filter(id => id !== file.id));
+                        } else {
+                          setSelectedFiles([...selectedFiles, file.id]);
+                        }
                       }}
                     >
-                      <div className="flex items-start space-x-2">
+                      <div className="flex items-start space-x-3">
                         <div className="flex-shrink-0">
-                          {file.thumbnailUrl ? (
-                            <img 
-                              src={file.thumbnailUrl} 
-                              alt={file.name}
-                              className="w-8 h-8 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                              {getFileIcon(file)}
-                            </div>
-                          )}
+                          {getFileIcon(file)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{file.name}</p>
@@ -1028,125 +1025,58 @@ export default function FolderDetailPage({
                             {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
                           </p>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFileDelete(file.id);
+                          }}
+                          className="flex-shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Preview
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Share
-                          </DropdownMenuItem>
-                          {canEdit && (
-                            <DropdownMenuItem 
-                              onClick={() => handleFileDelete(file.id)}
-                              className="text-red-600 dark:text-red-400"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="divide-y">
+                <div className="space-y-2">
                   {filteredAndSortedFiles.map((file) => (
                     <div
                       key={file.id}
-                      className={`flex items-center space-x-4 p-4 hover:bg-muted/50 transition-colors cursor-pointer ${
-                        selectedFiles.includes(file.id) ? 'bg-primary/5' : ''
+                      className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedFiles.includes(file.id) 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
                       }`}
                       onClick={() => {
-                        setSelectedFiles(prev => 
-                          prev.includes(file.id) 
-                            ? prev.filter(id => id !== file.id)
-                            : [...prev, file.id]
-                        );
+                        if (selectedFiles.includes(file.id)) {
+                          setSelectedFiles(selectedFiles.filter(id => id !== file.id));
+                        } else {
+                          setSelectedFiles([...selectedFiles, file.id]);
+                        }
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={selectedFiles.includes(file.id)}
-                        onChange={() => {}}
-                        className="h-4 w-4"
-                      />
-                      
                       <div className="flex-shrink-0">
-                        {file.thumbnailUrl ? (
-                          <img 
-                            src={file.thumbnailUrl} 
-                            alt={file.name}
-                            className="w-8 h-8 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                            {getFileIcon(file)}
-                          </div>
-                        )}
+                        {getFileIcon(file)}
                       </div>
-
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{file.name}</p>
-                        {file.description && (
-                          <p className="text-xs text-muted-foreground truncate">{file.description}</p>
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
+                        </p>
                       </div>
-
-                      <div className="text-right text-xs text-muted-foreground">
-                        <p>{formatFileSize(file.size)}</p>
-                        <p>{formatDate(file.uploadedAt)}</p>
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Preview
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Share
-                          </DropdownMenuItem>
-                          {canEdit && (
-                            <DropdownMenuItem 
-                              onClick={() => handleFileDelete(file.id)}
-                              className="text-red-600 dark:text-red-400"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFileDelete(file.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -1155,214 +1085,74 @@ export default function FolderDetailPage({
           </Card>
         </div>
 
-        {/* Column 3: Settings & Permissions */}
+        {/* Column 3: Reports & Analytics */}
         <div className="space-y-6">
-          {/* Access & Permissions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary" />
-                <span>Access & Permissions</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Your Role</span>
-                  <Badge variant="outline" className="text-xs">
-                    {userRole}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Visibility</span>
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {folder.visibility}
-                  </Badge>
-                </div>
-
-                <div className="pt-2 space-y-2">
-                  <div className="flex items-center space-x-2 text-sm">
-                    {canAccess ? <CheckCircle className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
-                    <span>View files</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm">
-                    {canUpload ? <CheckCircle className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
-                    <span>Upload files</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm">
-                    {canEdit ? <CheckCircle className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
-                    <span>Edit folder</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm">
-                    {canDelete ? <CheckCircle className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
-                    <span>Delete folder</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Folder Settings */}
-          {canManagePermissions && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Settings className="h-5 w-5 text-primary" />
-                  <span>Folder Settings</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2 bg-muted rounded">
-                    <div>
-                      <span className="text-sm font-medium">Allow Subfolders</span>
-                      <p className="text-xs text-muted-foreground">Create nested folders</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={folder.settings?.allowSubfolders ?? true}
-                      readOnly
-                      className="h-4 w-4"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-2 bg-muted rounded">
-                    <div>
-                      <span className="text-sm font-medium">Notify on Upload</span>
-                      <p className="text-xs text-muted-foreground">Email notifications</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={folder.settings?.notifyOnUpload ?? false}
-                      readOnly
-                      className="h-4 w-4"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-2 bg-muted rounded">
-                    <div>
-                      <span className="text-sm font-medium">Require Approval</span>
-                      <p className="text-xs text-muted-foreground">Approve uploads</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={folder.settings?.requireApproval ?? false}
-                      readOnly
-                      className="h-4 w-4"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Reports Statistics */}
+          {/* Reports Summary */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5 text-primary" />
-                <span>Reports Statistics</span>
+                <span>Reports</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="text-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded">
-                  <p className="font-medium text-lg text-blue-700 dark:text-blue-300">{reports.totalReports}</p>
-                  <p className="text-blue-600 dark:text-blue-400">Total Reports</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{reports.totalReports}</p>
+                  <p className="text-xs text-muted-foreground">Total Reports</p>
                 </div>
-                <div className="text-center p-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded">
-                  <p className="font-medium text-lg text-green-700 dark:text-green-300">{reports.approvedReports}</p>
-                  <p className="text-green-600 dark:text-green-400">Approved</p>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-yellow-600">{reports.pendingReports}</p>
+                  <p className="text-xs text-muted-foreground">Pending</p>
                 </div>
-                <div className="text-center p-2 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded">
-                  <p className="font-medium text-lg text-yellow-700 dark:text-yellow-300">{reports.pendingReports}</p>
-                  <p className="text-yellow-600 dark:text-yellow-400">Pending</p>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-green-600">{reports.approvedReports}</p>
+                  <p className="text-xs text-muted-foreground">Approved</p>
                 </div>
-                <div className="text-center p-2 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded">
-                  <p className="font-medium text-lg text-red-700 dark:text-red-300">{reports.rejectedReports}</p>
-                  <p className="text-red-600 dark:text-red-400">Rejected</p>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-red-600">{reports.rejectedReports}</p>
+                  <p className="text-xs text-muted-foreground">Rejected</p>
                 </div>
               </div>
-
-              {/* Recent Reports */}
-              {reports.recentReports && reports.recentReports.length > 0 && (
-                <div className="pt-2">
-                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Recent Reports</h4>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {reports.recentReports.slice(0, 3).map((report: any) => (
-                      <div key={report.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{report.title}</p>
-                          <p className="text-muted-foreground">{formatDate(report.submittedAt)}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant={
-                              report.status === 'approved' ? 'default' : 
-                              report.status === 'pending' ? 'secondary' : 
-                              'destructive'
-                            }
-                            className="text-xs"
-                          >
-                            {report.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {report.type}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {reports.recentReports.length > 3 && (
-                    <Button variant="ghost" size="sm" className="w-full mt-2 text-xs h-8">
-                      View All Reports ({reports.recentReports.length})
-                    </Button>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
+          {/* Recent Reports */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                <span>Statistics</span>
+                <Clock className="h-5 w-5 text-primary" />
+                <span>Recent Reports</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="text-center p-2 bg-muted rounded">
-                  <p className="font-medium text-lg">{files.length}</p>
-                  <p className="text-muted-foreground">Total Files</p>
+            <CardContent>
+              {reports.recentReports.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No recent reports
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {reports.recentReports.slice(0, 5).map((report) => (
+                    <div key={report.id} className="flex items-center space-x-3 p-2 border rounded-lg">
+                      <div className="flex-shrink-0">
+                        <div className={`w-2 h-2 rounded-full ${
+                          report.status === 'approved' ? 'bg-green-500' :
+                          report.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{report.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {report.authorName} • {formatDate(report.submittedAt)}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {report.type}
+                      </Badge>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-center p-2 bg-muted rounded">
-                  <p className="font-medium text-lg">{formatFileSize(files.reduce((acc, f) => acc + f.size, 0))}</p>
-                  <p className="text-muted-foreground">Total Size</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Documents</span>
-                  <span>{files.filter(f => f.type === 'document').length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Images</span>
-                  <span>{files.filter(f => f.type === 'image').length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Videos</span>
-                  <span>{files.filter(f => f.type === 'video').length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Archives</span>
-                  <span>{files.filter(f => f.type === 'archive').length}</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

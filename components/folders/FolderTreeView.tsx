@@ -180,11 +180,11 @@ export default function FolderTreeView({
       <div key={node.id} className="select-none">
         <div 
           className={`group flex items-center space-x-2 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border-l-2 ${
-            node.level > 0 ? 'ml-6' : ''
+            node.level > 0 ? 'ml-2 sm:ml-6' : ''
           } ${
             node.isSystemFolder ? 'border-l-yellow-400' : 'border-l-transparent'
           }`}
-          style={{ paddingLeft: `${node.level * 24 + 12}px` }}
+          style={{ paddingLeft: `${Math.min(node.level * 16 + 12, 200)}px` }}
         >
           {/* Expand/Collapse Button */}
           <Button
@@ -225,24 +225,26 @@ export default function FolderTreeView({
           >
             <span className="font-medium text-sm truncate">{node.name}</span>
             
-            <Badge className={`${getTypeColor(node.type)} text-xs`}>
+            <Badge className={`${getTypeColor(node.type)} text-xs hidden sm:inline-flex`}>
               {node.type}
             </Badge>
             
             {node.isSystemFolder && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs hidden sm:inline-flex">
                 <Shield className="h-3 w-3 mr-1" />
                 System
               </Badge>
             )}
             
-            {getVisibilityIcon(node.visibility)}
+            <div className="hidden sm:block">
+              {getVisibilityIcon(node.visibility)}
+            </div>
           </div>
 
           {/* File Count */}
           <div className="flex items-center space-x-1 text-xs text-muted-foreground">
             <FileText className="h-3 w-3" />
-            <span>{node.fileCount}</span>
+            <span className="hidden sm:inline">{node.fileCount}</span>
           </div>
 
           {/* Actions */}
@@ -296,7 +298,7 @@ export default function FolderTreeView({
 
         {/* Render Children */}
         {hasChildren && isExpanded && (
-          <div className="ml-4">
+          <div className="ml-2 sm:ml-4">
             {node.children.map((child, childIndex) => renderTreeNode(child, childIndex))}
           </div>
         )}
@@ -328,7 +330,7 @@ export default function FolderTreeView({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-2">
             <TreePine className="h-5 w-5 text-primary" />
             <span>Tree View</span>
@@ -388,7 +390,7 @@ export default function FolderTreeView({
         {/* Tree Stats */}
         {filteredTreeData.length > 0 && (
           <div className="pt-4 border-t text-xs text-muted-foreground">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <span>Total folders: {folders.length}</span>
               <span>Expanded: {expandedNodes.size}</span>
             </div>

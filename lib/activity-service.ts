@@ -28,6 +28,7 @@ export type ActivityType =
   | 'task_comment_added' | 'task_comment_edited' | 'task_comment_deleted'
   | 'report_created' | 'report_updated' | 'report_submitted' | 'report_approved' | 'report_rejected' | 'report_status_changed' | 'report_deleted'
   | 'folder_created' | 'folder_updated' | 'folder_deleted'
+  | 'support_ticket_created' | 'support_ticket_updated' | 'support_ticket_resolved' | 'support_ticket_closed'
   | 'settings_changed' | 'security_event' | 'system_event';
 
 export interface EnhancedActivityLog extends ActivityLog {

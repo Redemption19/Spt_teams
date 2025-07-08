@@ -63,6 +63,13 @@ export interface RolePermissions {
   canViewAIInsights: boolean;
   canManageAISettings: boolean;
   canUseAdvancedAIFeatures: boolean;
+  
+  // === SUPPORT PERMISSIONS ===
+  canCreateSupportTickets: boolean;
+  canViewAllSupportTickets: boolean;
+  canManageSupportTickets: boolean;
+  canViewSupportAnalytics: boolean;
+  canManageSupportSettings: boolean;
 }
 
 export function useRolePermissions(): RolePermissions {
@@ -128,6 +135,13 @@ export function useRolePermissions(): RolePermissions {
     canViewAIInsights: true, // Everyone can view AI insights
     canManageAISettings: userRole === 'owner', // Only owners can manage AI settings
     canUseAdvancedAIFeatures: userRole === 'owner' || userRole === 'admin', // Advanced features for admins+
+    
+    // === SUPPORT PERMISSIONS ===
+    canCreateSupportTickets: true, // All users can create support tickets
+    canViewAllSupportTickets: userRole === 'owner' || userRole === 'admin', // Only admins+ can view all tickets
+    canManageSupportTickets: userRole === 'owner' || userRole === 'admin', // Only admins+ can manage tickets
+    canViewSupportAnalytics: userRole === 'owner' || userRole === 'admin', // Only admins+ can view analytics
+    canManageSupportSettings: userRole === 'owner', // Only owners can manage support settings
   };
 
   return permissions;
