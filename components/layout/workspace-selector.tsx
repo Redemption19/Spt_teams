@@ -29,7 +29,7 @@ export function WorkspaceSelector() {
     userRole,
     canCreateSubWorkspace,
     getUserRole,
-    switchWorkspace,
+    switchToWorkspace,
     loading
   } = useWorkspace();
 
@@ -37,7 +37,7 @@ export function WorkspaceSelector() {
 
   const handleWorkspaceSwitch = async (workspaceId: string) => {
     try {
-      await switchWorkspace(workspaceId);
+      await switchToWorkspace(workspaceId);
       setIsOpen(false);
     } catch (error) {
       console.error('Error switching workspace:', error);

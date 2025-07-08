@@ -41,7 +41,7 @@ export default function WorkspacePage() {
     currentWorkspace, 
     userWorkspaces, 
     userRole, 
-    switchWorkspace, 
+    switchToWorkspace, 
     createWorkspace, 
     refreshWorkspaces,
     refreshCurrentWorkspace
@@ -592,7 +592,7 @@ export default function WorkspacePage() {
                 <div className="flex items-center space-x-3 sm:space-x-4">
                   <div 
                     className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center cursor-pointer flex-shrink-0 transition-transform hover:scale-105 touch-manipulation"
-                    onClick={() => switchWorkspace(workspace.id)}
+                    onClick={() => switchToWorkspace(workspace.id)}
                   >
                     {workspace.logo ? (
                       <Image 
@@ -608,7 +608,7 @@ export default function WorkspacePage() {
                   </div>
                   <div 
                     className="flex-1 min-w-0 cursor-pointer"
-                    onClick={() => switchWorkspace(workspace.id)}
+                    onClick={() => switchToWorkspace(workspace.id)}
                   >
                     <CardTitle className="text-base sm:text-lg truncate leading-tight">
                       {workspace.name}
@@ -660,7 +660,7 @@ export default function WorkspacePage() {
                 </div>
               </CardHeader>
               <CardContent 
-                onClick={() => switchWorkspace(workspace.id)} 
+                onClick={() => switchToWorkspace(workspace.id)} 
                 className="cursor-pointer p-4 sm:p-6 pt-0"
               >
                 <p className="text-sm sm:text-base text-muted-foreground line-clamp-2 leading-relaxed mb-4">

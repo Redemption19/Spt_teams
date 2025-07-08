@@ -80,7 +80,7 @@ interface DashboardStats {
 export function DashboardOverview() {
   const router = useRouter();
   const { user, userProfile } = useAuth();
-  const { currentWorkspace, userRole, switchWorkspace } = useWorkspace();
+  const { currentWorkspace, userRole, switchToWorkspace } = useWorkspace();
   const permissions = useRolePermissions();
   const isOwner = useIsOwner();
   const { toast } = useToast();
@@ -1173,7 +1173,7 @@ export function DashboardOverview() {
                             title: "Switching workspace",
                             description: `Loading ${workspace.name}...`,
                           });
-                          await switchWorkspace(workspace.id);
+                          await switchToWorkspace(workspace.id);
                           // Refresh the dashboard data after switching
                           await loadDashboardData();
                           toast({
