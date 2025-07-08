@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PasswordResetService } from '@/lib/password-reset-service';
 import { DepartmentService } from '@/lib/department-service';
+import { toDate } from '@/lib/firestore-utils';
 
 // Import modular components
 import { UserFilters } from './user-management/user-filters';
@@ -905,7 +906,7 @@ export function UserManagement() {
                         {invitation.role}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(invitation.createdAt.toDate()).toLocaleDateString()}
+                        {toDate(invitation.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
