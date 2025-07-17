@@ -13,11 +13,6 @@ import { useAuth } from '@/lib/auth-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'WorkSpace - Collaboration Platform',
-  description: 'Advanced workspace collaboration system with branch management and analytics',
-};
-
 function WorkspaceProviderWrapper({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   return (
