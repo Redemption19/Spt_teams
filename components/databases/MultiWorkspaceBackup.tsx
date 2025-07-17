@@ -1,6 +1,6 @@
 // components/databases/MultiWorkspaceBackup.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,13 +41,8 @@ export default function MultiWorkspaceBackup() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadWorkspaces();
-  }, [user]);
-
-  const loadWorkspaces = async () => {
+  const loadWorkspaces = useCallback(async () => {
     if (!user) return;
-
     try {
       setLoading(true);
       setError(null);
@@ -63,7 +58,11 @@ export default function MultiWorkspaceBackup() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
+
+  useEffect(() => {
+    loadWorkspaces();
+  }, [user, loadWorkspaces]);
 
   const handleWorkspaceSelection = (workspaceId: string, checked: boolean) => {
     if (checked) {

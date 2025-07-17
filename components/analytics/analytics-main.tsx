@@ -306,7 +306,7 @@ export default function AnalyticsMain() {
     };
 
     loadAdminData();
-  }, [userRole, user?.uid, currentWorkspace?.id, refreshing]);
+  }, [userRole, user?.uid, currentWorkspace?.id, refreshing, toast]);
 
   // Member-specific simplified analytics
   if (userRole === 'member') {

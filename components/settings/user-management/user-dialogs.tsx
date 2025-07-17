@@ -526,7 +526,7 @@ export function UserDialogs(props: UserDialogsProps) {
                           className="h-8 text-sm"
                         />
                         {createUserForm.password && createUserForm.confirmPassword && createUserForm.password !== createUserForm.confirmPassword && (
-                          <p className="text-xs text-red-500">Passwords don't match</p>
+                          <p className="text-xs text-red-500">Passwords don&apos;t match</p>
                         )}
                       </div>
                     </div>

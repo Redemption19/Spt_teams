@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,13 +35,7 @@ export default function UserFixPage() {
   const [fixing, setFixing] = useState<string[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
-  useEffect(() => {
-    if (currentWorkspace?.id) {
-      loadUsers();
-    }
-  }, [currentWorkspace]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     if (!currentWorkspace?.id) return;
 
     setLoading(true);
@@ -90,7 +84,13 @@ export default function UserFixPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace]);
+
+  useEffect(() => {
+    if (currentWorkspace?.id) {
+      loadUsers();
+    }
+  }, [currentWorkspace, loadUsers]);
 
   const fixUserWorkspace = async (userStatus: UserWorkspaceStatus) => {
     const { user } = userStatus;
@@ -335,7 +335,7 @@ export default function UserFixPage() {
               • Users without these relationships may experience login issues or access problems
             </p>
             <p>
-              • The fix creates proper hierarchical permissions based on the user's current role
+              • The fix creates proper hierarchical permissions based on the user&apos;s current role
             </p>
           </div>
         </CardContent>

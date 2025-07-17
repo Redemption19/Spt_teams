@@ -1,6 +1,6 @@
 // components/databases/DatabaseAnalytics.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,13 +51,7 @@ export default function DatabaseAnalytics() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (currentWorkspace) {
-      loadAnalytics();
-    }
-  }, [currentWorkspace]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     if (!currentWorkspace) return;
 
     setLoading(true);
@@ -90,7 +84,11 @@ export default function DatabaseAnalytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace, trendPeriod, toast]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const generateReport = async () => {
     if (!currentWorkspace || !user) return;

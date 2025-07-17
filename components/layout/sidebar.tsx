@@ -37,7 +37,10 @@ import {
   Edit3,
   ClipboardList,
   Download,
+  Bell,
+  Shield,
 } from 'lucide-react';
+import { useNotifications } from '@/lib/notification-context';
 
 // Define navigation structure with groups and nested dropdowns
 const navigationGroups = [
@@ -175,6 +178,13 @@ const navigationGroups = [
         icon: UserCog,
       },
       {
+        name: 'Permissions & Privileges',
+        href: '/dashboard/permissions',
+        icon: Shield,
+        description: 'Manage granular user permissions',
+        adminOnly: true,
+      },
+      {
         name: 'Invitations',
         href: '/dashboard/invite',
         icon: Mail,
@@ -224,6 +234,13 @@ const navigationGroups = [
   },
   {
     type: 'single',
+    name: 'Notifications',
+    href: '/dashboard/notifications',
+    icon: Bell,
+    showUnreadBadge: true,
+  },
+  {
+    type: 'single',
     name: 'Activity Log',
     href: '/dashboard/activity',
     icon: Activity,
@@ -257,6 +274,7 @@ export function Sidebar({ className }: SidebarProps) {
   const currentView = searchParams.get('view');
   const { userProfile } = useAuth();
   const isAdminOrOwner = useIsAdminOrOwner();
+  const { unreadCount } = useNotifications();
 
   // Only show User Management for owners and admins
   const canManageUsers = userProfile?.role === 'owner' || userProfile?.role === 'admin';
@@ -390,10 +408,17 @@ export function Sidebar({ className }: SidebarProps) {
         >
           <item.icon className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
           {!collapsed && (
-            <span className={cn(item.optional && "opacity-70", "text-left")}>
-              {item.name}
-              {item.optional && <span className="text-xs ml-1">(optional)</span>}
-            </span>
+            <>
+              <span className={cn(item.optional && "opacity-70", "text-left")}>
+                {item.name}
+                {item.optional && <span className="text-xs ml-1">(optional)</span>}
+              </span>
+              {item.showUnreadBadge && unreadCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white rounded-full px-2 text-xs">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </>
           )}
         </Button>
       </Link>

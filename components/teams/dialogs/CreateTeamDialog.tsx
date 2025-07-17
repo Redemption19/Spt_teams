@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Plus, X, Users, Globe, Building } from 'lucide-react';
 import { Branch, Region, Team, User } from '@/lib/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { UserService } from '@/lib/user-service';
 import { BranchService } from '@/lib/branch-service';
 import { RegionService } from '@/lib/region-service';
@@ -85,11 +85,71 @@ export default function CreateTeamDialog({
   }, [isOpen, teamForm, currentWorkspace]);
 
   // Load users and workspace data when workspace changes
-  useEffect(() => {
-    if (isSystemWideView && selectedWorkspaceId) {
-      loadWorkspaceUsersAndData();
+  const loadWorkspaceUsersAndData = useCallback(async () => {
+    if (!selectedWorkspaceId) return;
+    setLoadingUsers(true);
+    setLoadingWorkspaceData(true);
+    try {
+      const selectedWorkspace = availableWorkspaces.find(w => w.id === selectedWorkspaceId) || currentWorkspace;
+      const sourceWorkspaceId = selectedWorkspace?.workspaceType === 'sub' 
+        ? selectedWorkspace.parentWorkspaceId || selectedWorkspaceId
+        : selectedWorkspaceId;
+      const [users, workspaceB, workspaceR] = await Promise.all([
+        UserService.getUsersByWorkspace(selectedWorkspaceId),
+        BranchService.getWorkspaceBranches(sourceWorkspaceId),
+        RegionService.getWorkspaceRegions(sourceWorkspaceId),
+      ]);
+      let filteredRegions = workspaceR;
+      let filteredBranches = workspaceB;
+      if (selectedWorkspace?.workspaceType === 'sub') {
+        filteredRegions = selectedWorkspace.regionId 
+          ? workspaceR.filter(r => r.id === selectedWorkspace.regionId)
+          : [];
+        filteredBranches = selectedWorkspace.branchId 
+          ? workspaceB.filter(b => b.id === selectedWorkspace.branchId)
+          : [];
+      }
+      setAvailableUsers(users);
+      setWorkspaceBranches(filteredBranches);
+      setWorkspaceRegions(filteredRegions);
+    } catch (error) {
+      console.error('Error loading workspace data:', error);
+    } finally {
+      setLoadingUsers(false);
+      setLoadingWorkspaceData(false);
     }
-  }, [selectedWorkspaceId, isSystemWideView]);
+  }, [selectedWorkspaceId, availableWorkspaces, currentWorkspace]);
+
+  // Direct workspace data loading for when props are insufficient
+  const loadWorkspaceDataDirectly = useCallback(async (workspaceId: string) => {
+    if (!workspaceId) return;
+    setLoadingWorkspaceData(true);
+    try {
+      const sourceWorkspaceId = currentWorkspace?.workspaceType === 'sub' 
+        ? currentWorkspace.parentWorkspaceId || workspaceId
+        : workspaceId;
+      const [workspaceB, workspaceR] = await Promise.all([
+        BranchService.getWorkspaceBranches(sourceWorkspaceId),
+        RegionService.getWorkspaceRegions(sourceWorkspaceId),
+      ]);
+      let filteredRegions = workspaceR;
+      let filteredBranches = workspaceB;
+      if (currentWorkspace?.workspaceType === 'sub') {
+        filteredRegions = currentWorkspace.regionId 
+          ? workspaceR.filter(r => r.id === currentWorkspace.regionId)
+          : [];
+        filteredBranches = currentWorkspace.branchId 
+          ? workspaceB.filter(b => b.id === currentWorkspace.branchId)
+          : [];
+      }
+      setWorkspaceBranches(filteredBranches);
+      setWorkspaceRegions(filteredRegions);
+    } catch (error) {
+      console.error('CreateTeamDialog: Error loading workspace data directly:', error);
+    } finally {
+      setLoadingWorkspaceData(false);
+    }
+  }, [currentWorkspace]);
 
   // Initialize with current workspace if not system-wide
   useEffect(() => {
@@ -105,7 +165,7 @@ export default function CreateTeamDialog({
         loadWorkspaceDataDirectly(currentWorkspace.id);
       }
     }
-  }, [isSystemWideView, currentWorkspace, branches, regions, setTeamForm]);
+  }, [isSystemWideView, currentWorkspace, branches, regions, setTeamForm, loadWorkspaceDataDirectly]);
 
   // Sync workspace selection with parent teamForm
   useEffect(() => {
@@ -128,94 +188,12 @@ export default function CreateTeamDialog({
     }
   }, [selectedTeamLead, teamForm.leadId, setTeamForm]);
 
-  const loadWorkspaceUsersAndData = async () => {
-    if (!selectedWorkspaceId) return;
-
-    setLoadingUsers(true);
-    setLoadingWorkspaceData(true);
-    
-    try {
-      // Find the selected workspace to determine its type
-      const selectedWorkspace = availableWorkspaces.find(w => w.id === selectedWorkspaceId) || currentWorkspace;
-      
-      // Determine which workspace to load regions/branches from
-      // For sub-workspaces, load from parent workspace
-      const sourceWorkspaceId = selectedWorkspace?.workspaceType === 'sub' 
-        ? selectedWorkspace.parentWorkspaceId || selectedWorkspaceId
-        : selectedWorkspaceId;
-      
-      const [users, workspaceB, workspaceR] = await Promise.all([
-        UserService.getUsersByWorkspace(selectedWorkspaceId),
-        BranchService.getWorkspaceBranches(sourceWorkspaceId),
-        RegionService.getWorkspaceRegions(sourceWorkspaceId),
-      ]);
-
-      // For sub-workspaces, filter to only show bound region and branch
-      let filteredRegions = workspaceR;
-      let filteredBranches = workspaceB;
-      
-      if (selectedWorkspace?.workspaceType === 'sub') {
-        // For sub-workspaces, only show the bound region and branch
-        filteredRegions = selectedWorkspace.regionId 
-          ? workspaceR.filter(r => r.id === selectedWorkspace.regionId)
-          : [];
-        
-        filteredBranches = selectedWorkspace.branchId 
-          ? workspaceB.filter(b => b.id === selectedWorkspace.branchId)
-          : [];
-      }
-
-      setAvailableUsers(users);
-      setWorkspaceBranches(filteredBranches);
-      setWorkspaceRegions(filteredRegions);
-    } catch (error) {
-      console.error('Error loading workspace data:', error);
-    } finally {
-      setLoadingUsers(false);
-      setLoadingWorkspaceData(false);
+  // Load users and workspace data when workspace changes
+  useEffect(() => {
+    if (isSystemWideView && selectedWorkspaceId) {
+      loadWorkspaceUsersAndData();
     }
-  };
-
-  // Direct workspace data loading for when props are insufficient
-  const loadWorkspaceDataDirectly = async (workspaceId: string) => {
-    if (!workspaceId) return;
-    
-    setLoadingWorkspaceData(true);
-    try {
-      // Determine which workspace to load regions/branches from
-      // For sub-workspaces, load from parent workspace (same logic as teams management)
-      const sourceWorkspaceId = currentWorkspace?.workspaceType === 'sub' 
-        ? currentWorkspace.parentWorkspaceId || workspaceId
-        : workspaceId;
-      
-      const [workspaceB, workspaceR] = await Promise.all([
-        BranchService.getWorkspaceBranches(sourceWorkspaceId),
-        RegionService.getWorkspaceRegions(sourceWorkspaceId),
-      ]);
-
-      // For sub-workspaces, filter to only show bound region and branch
-      let filteredRegions = workspaceR;
-      let filteredBranches = workspaceB;
-      
-      if (currentWorkspace?.workspaceType === 'sub') {
-        // For sub-workspaces, only show the bound region and branch
-        filteredRegions = currentWorkspace.regionId 
-          ? workspaceR.filter(r => r.id === currentWorkspace.regionId)
-          : [];
-        
-        filteredBranches = currentWorkspace.branchId 
-          ? workspaceB.filter(b => b.id === currentWorkspace.branchId)
-          : [];
-      }
-
-      setWorkspaceBranches(filteredBranches);
-      setWorkspaceRegions(filteredRegions);
-    } catch (error) {
-      console.error('CreateTeamDialog: Error loading workspace data directly:', error);
-    } finally {
-      setLoadingWorkspaceData(false);
-    }
-  };
+  }, [selectedWorkspaceId, isSystemWideView, loadWorkspaceUsersAndData]);
 
   // Filter users based on search query
   const filteredUsers = availableUsers.filter(user => 
@@ -542,7 +520,7 @@ export default function CreateTeamDialog({
 
             {teamForm.joinAsLead && !isSystemWideView && (
               <p className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                You'll be automatically added as the team lead when the team is created.
+                You&apos;ll be automatically added as the team lead when the team is created.
               </p>
             )}
           </div>

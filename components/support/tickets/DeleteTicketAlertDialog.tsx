@@ -17,7 +17,7 @@ export const DeleteTicketAlertDialog: React.FC<DeleteTicketAlertDialogProps> = (
           <AlertDialogTitle>Delete Ticket</AlertDialogTitle>
         </AlertDialogHeader>
         <div className="py-2">
-          Are you sure you want to delete the ticket <span className="font-semibold">"{ticket.title}"</span>? This action cannot be undone.
+          Are you sure you want to delete the ticket titled &quot;{ticket?.title}&quot;? This action cannot be undone.
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>

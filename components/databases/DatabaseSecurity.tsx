@@ -1,6 +1,6 @@
 // components/databases/DatabaseSecurity.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,15 +67,8 @@ export default function DatabaseSecurity() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (currentWorkspace) {
-      loadSecurityData();
-    }
-  }, [currentWorkspace]);
-
-  const loadSecurityData = async () => {
+  const loadSecurityData = useCallback(async () => {
     if (!currentWorkspace) return;
-
     setLoading(true);
     try {
       const [
@@ -93,7 +86,6 @@ export default function DatabaseSecurity() {
         DatabaseSecurityService.getAuditLogs(currentWorkspace.id, { limit: 50 }),
         DatabaseSecurityService.getDataClassifications(currentWorkspace.id)
       ]);
-
       setSecuritySettings(settings);
       setSecurityMetrics(metrics);
       setIncidents(incidentsData);
@@ -109,7 +101,13 @@ export default function DatabaseSecurity() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace, toast]);
+
+  useEffect(() => {
+    if (currentWorkspace) {
+      loadSecurityData();
+    }
+  }, [currentWorkspace, loadSecurityData]);
 
   const updateSecuritySettings = async (updates: Partial<SecuritySettings>) => {
     if (!currentWorkspace) return;

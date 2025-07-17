@@ -290,7 +290,7 @@ export default function ActivityLogPage() {
               <>⚙️ <strong>Admin Access:</strong> You can view most activities except critical security and system events.</>
             )}
             {userRole === 'member' && (
-              <>👤 <strong>Member Access:</strong> You can view your own activities and general content/team activities you're involved in.</>
+              <>👤 <strong>Member Access:</strong> You can view your own activities and general content/team activities you&apos;re involved in.</>
             )}
           </p>
         </div>

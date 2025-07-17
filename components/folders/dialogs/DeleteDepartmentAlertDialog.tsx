@@ -35,7 +35,7 @@ export default function DeleteDepartmentAlertDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
             <p>
-              Are you sure you want to delete the <strong>"{departmentToDelete?.name}"</strong> department?
+              Are you sure you want to delete the <strong>&quot;{departmentToDelete?.name}&quot;</strong> department?
             </p>
             {departmentToDelete && (
               <>

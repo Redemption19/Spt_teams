@@ -196,6 +196,15 @@ export default function CalendarMain() {
     ...permissions
   }), [user?.uid, currentWorkspace?.id, permissions]);
 
+  const accessibleWorkspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
+  const calendarAccessCanManageReportDeadlines = calendarAccess?.canManageReportDeadlines;
+  const calendarAccessIsAdminOrOwner = calendarAccess?.isAdminOrOwner;
+  const calendarAccessCanCreateEvents = calendarAccess?.canCreateEvents;
+  const calendarAccessCanEditEvents = calendarAccess?.canEditEvents;
+  const calendarAccessCanDeleteEvents = calendarAccess?.canDeleteEvents;
+  const calendarAccessCanAccessCalendar = calendarAccess?.canAccessCalendar;
+  const currentDateValue = currentDate;
+
   // Load user's events with broader date range for "My Events" section and cross-workspace support
   const loadMyEvents = useCallback(async () => {
     if (!currentWorkspace?.id || !user?.uid) return;
@@ -246,7 +255,7 @@ export default function CalendarMain() {
     } catch (error) {
       console.error('Error loading my events:', error);
     }
-  }, [currentWorkspace?.id, user?.uid, userRole, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '']);
+  }, [currentWorkspace?.id, user?.uid, userRole, isOwner, showAllWorkspaces, accessibleWorkspaces]);
 
   // Load data with workspace isolation and cross-workspace support
   const loadData = useCallback(async () => {
@@ -269,9 +278,9 @@ export default function CalendarMain() {
       
       // Use broader date range to ensure events are loaded for navigation
       // Load 6 months before current date to 2 years after
-      const startDate = new Date(currentDate);
+      const startDate = new Date(currentDateValue);
       startDate.setMonth(startDate.getMonth() - 6);
-      const endDate = new Date(currentDate);
+      const endDate = new Date(currentDateValue);
       endDate.setFullYear(endDate.getFullYear() + 2);
       
       console.log('📅 Date range:', { startDate, endDate });
@@ -410,7 +419,7 @@ export default function CalendarMain() {
       console.log('🏁 Setting loading to false');
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, userRole, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '']); // Added cross-workspace dependencies
+  }, [currentWorkspace?.id, user?.uid, userRole, isOwner, showAllWorkspaces, accessibleWorkspaceIds, calendarAccess, currentDateValue]);
 
   // Load recent reports with workspace isolation and cross-workspace support
   const loadRecentReports = useCallback(async () => {
@@ -538,10 +547,15 @@ export default function CalendarMain() {
 
       setRecentReports(convertedReports.slice(0, 8)); // Show top 8 reports
       console.log('✅ Reports loaded successfully');
-    } catch (error) {
+    }  catch (error) {
       console.error('Error loading recent reports:', error);
+      toast({
+        title: 'Error Loading Reports',
+        description: 'Failed to load recent reports. Please try again.',
+        variant: 'destructive',
+      });
     }
-  }, [currentWorkspace?.id, user?.uid, calendarAccess.canManageReportDeadlines, calendarAccess.isAdminOrOwner, convertToReportItem, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '']);
+  }, [currentWorkspace?.id, user?.uid, calendarAccess, convertToReportItem, isOwner, showAllWorkspaces, accessibleWorkspaces, toast]);
 
   useEffect(() => {
     console.log('🔄 Main useEffect triggered', {
@@ -554,7 +568,7 @@ export default function CalendarMain() {
       loadMyEvents();
       loadRecentReports();
     }
-  }, [currentWorkspace?.id, user?.uid]); // Simplified dependencies
+  }, [currentWorkspace?.id, user?.uid, loadData, loadMyEvents, loadRecentReports]); // Simplified dependencies
 
   // Apply filters to events
   useEffect(() => {
@@ -625,7 +639,7 @@ export default function CalendarMain() {
     setShowCreateEventPage(false);
     await loadData();
     await loadMyEvents();
-  }, [currentWorkspace?.id, user?.uid, calendarAccess.canCreateEvents, loadData, loadMyEvents, toast]);
+  }, [currentWorkspace?.id, user?.uid, calendarAccess, loadData, loadMyEvents, toast, accessibleWorkspaces]);
 
   const handleUpdateEvent = useCallback(async (eventId: string, updates: Partial<CalendarEvent>) => {
     if (!currentWorkspace?.id || !user?.uid) return;
@@ -668,7 +682,7 @@ export default function CalendarMain() {
         variant: 'destructive',
       });
     }
-  }, [currentWorkspace?.id, user?.uid, events, loadData, loadMyEvents, toast, calendarAccess]);
+  }, [currentWorkspace?.id, user?.uid, events, loadData, loadMyEvents, toast, calendarAccess.canEditEvents, calendarAccess.isAdminOrOwner]);
 
   const handleDeleteEvent = useCallback(async (eventId: string) => {
     if (!currentWorkspace?.id || !user?.uid) return;
@@ -711,7 +725,7 @@ export default function CalendarMain() {
         variant: 'destructive',
       });
     }
-  }, [currentWorkspace?.id, user?.uid, events, loadData, loadMyEvents, toast, calendarAccess]);
+  }, [currentWorkspace?.id, user?.uid, events, loadData, loadMyEvents, toast, calendarAccess.canDeleteEvents, calendarAccess.isAdminOrOwner]);
 
   const handleEventClick = useCallback((event: CalendarEvent) => {
     // Check if user can view this event manually without using hooks inside callback
@@ -733,7 +747,7 @@ export default function CalendarMain() {
     
     setSelectedEvent(event);
     setIsViewEventOpen(true);
-  }, [user?.uid, toast, calendarAccess]);
+  }, [user?.uid, calendarAccess.canAccessCalendar, toast]);
 
   const handleEditEvent = useCallback((event: CalendarEvent) => {
     // Check if user can edit this event manually without using hooks inside callback

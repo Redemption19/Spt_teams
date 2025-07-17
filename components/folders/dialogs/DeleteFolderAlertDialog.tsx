@@ -126,7 +126,7 @@ export default function DeleteFolderAlertDialog({
                     <span className="font-medium text-sm">Member Folder Warning</span>
                   </div>
                   <p className="text-xs text-orange-600 dark:text-orange-300 mt-1">
-                    This is a member's personal folder. Deleting it will remove their workspace and all contents.
+                    This is a member&apos;s personal folder. Deleting it will remove their workspace and all contents.
                   </p>
                 </div>
               )}
@@ -151,7 +151,7 @@ export default function DeleteFolderAlertDialog({
                     <span className="font-medium text-sm">Insufficient Permissions</span>
                   </div>
                   <p className="text-xs text-red-600 dark:text-red-300 mt-1">
-                    You don't have permission to delete this folder. Contact an administrator for assistance.
+                    You don&apos;t have permission to delete this folder. Contact an administrator for assistance.
                   </p>
                 </div>
               )}

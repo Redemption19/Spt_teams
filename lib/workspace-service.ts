@@ -122,8 +122,8 @@ export class WorkspaceService {
 
       // Check if user can create sub-workspaces
       const userRole = await this.getUserRole(creatorId, parentWorkspaceId);
-      if (userRole !== 'owner') {
-        throw new Error('Only workspace owners can create sub-workspaces');
+      if (userRole !== 'owner' && userRole !== 'admin') {
+        throw new Error('Only workspace owners or admins can create sub-workspaces');
       }
 
       // Check sub-workspace limits
@@ -143,7 +143,7 @@ export class WorkspaceService {
         description: subWorkspaceData.description,
         logo: subWorkspaceData.logo,
         type: parentWorkspace.type,
-        ownerId: creatorId,
+        ownerId: parentWorkspace.ownerId, // Always set main workspace owner as owner
         createdAt: new Date(),
         updatedAt: new Date(),
         // Hierarchical fields
@@ -178,8 +178,13 @@ export class WorkspaceService {
       
       await setDoc(subWorkspaceRef, cleanSubWorkspace);
 
-      // Add creator as owner of the sub-workspace
-      await this.addUserToWorkspace(creatorId, subWorkspaceId, 'owner');
+      // Always add main workspace owner as owner of the sub-workspace
+      await this.addUserToWorkspace(parentWorkspace.ownerId, subWorkspaceId, 'owner');
+
+      // If creator is not the owner, add creator as admin
+      if (creatorId !== parentWorkspace.ownerId) {
+        await this.addUserToWorkspace(creatorId, subWorkspaceId, 'admin');
+      }
 
       // Create hierarchy relationship
       await this.createHierarchyRelationship(parentWorkspaceId, subWorkspaceId, creatorId);

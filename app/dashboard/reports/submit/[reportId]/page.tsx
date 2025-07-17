@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,11 +22,7 @@ export default function SubmitReportPage() {
   const [report, setReport] = useState<EnhancedReport | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadReportData();
-  }, [reportId, currentWorkspace?.id]);
-
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     if (!currentWorkspace?.id || !reportId) return;
 
     try {
@@ -65,7 +61,11 @@ export default function SubmitReportPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace?.id, reportId, router, toast, user?.uid]);
+
+  useEffect(() => {
+    loadReportData();
+  }, [reportId, currentWorkspace?.id, loadReportData]);
 
   if (loading) {
     return (

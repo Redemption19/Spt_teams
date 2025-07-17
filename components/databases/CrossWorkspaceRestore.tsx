@@ -1,6 +1,6 @@
 // components/databases/CrossWorkspaceRestore.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -42,11 +42,8 @@ export default function CrossWorkspaceRestore() {
   const { currentWorkspace } = useWorkspace();
   const { user } = useAuth();
 
-  useEffect(() => {
-    loadAvailableWorkspaces();
-  }, [user]);
-
-  const loadAvailableWorkspaces = async () => {
+  // Move loadAvailableWorkspaces above useEffect
+  const loadAvailableWorkspaces = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -55,7 +52,11 @@ export default function CrossWorkspaceRestore() {
     } catch (error) {
       console.error('Error loading workspaces:', error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadAvailableWorkspaces();
+  }, [loadAvailableWorkspaces]);
 
   const handleValidation = async () => {
     if (!sourceWorkspace || targetWorkspaces.length === 0) {

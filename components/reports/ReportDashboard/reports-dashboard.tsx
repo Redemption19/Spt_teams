@@ -61,7 +61,7 @@ export function ReportsDashboard({ showAllWorkspaces, accessibleWorkspaces }: Cr
         <Shield className="h-16 w-16 text-muted-foreground" />
         <h2 className="text-xl font-semibold text-foreground">Access Restricted</h2>
         <p className="text-muted-foreground text-center max-w-md">
-          You don't have permission to view the reports dashboard. Only administrators and owners can access this page.
+          You don&apos;t have permission to view the reports dashboard. Only administrators and owners can access this page.
         </p>
       </div>
     );

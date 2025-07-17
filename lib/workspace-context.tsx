@@ -6,6 +6,8 @@ import { db } from './firebase';
 import { Workspace, UserWorkspace, SubWorkspaceData } from './types';
 import { WorkspaceService } from './workspace-service';
 import { InheritanceService } from './inheritance-service';
+import { GuestService } from './guest-service';
+import { useAuth } from './auth-context';
 
 interface WorkspaceContextType {
   // Current workspace state
@@ -33,24 +35,21 @@ interface WorkspaceContextType {
   getWorkspaceHierarchyPath: (workspaceId?: string) => Promise<Workspace[]>;
   getUserRole: (workspaceId: string) => string | null;
   canUserAccessWorkspace: (workspaceId: string) => boolean;
-}
-
-const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
-
-export function useWorkspace() {
-  const context = useContext(WorkspaceContext);
-  if (context === undefined) {
-    throw new Error('useWorkspace must be used within a WorkspaceProvider');
-  }
-  return context;
+  
+  // Guest-specific properties
+  isGuest: boolean;
 }
 
 interface WorkspaceProviderProps {
   children: ReactNode;
-  userId?: string; // Current authenticated user ID
+  userId: string;
+  authLoading?: boolean;
+  isGuest?: boolean;
 }
 
-export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) {
+const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
+
+export function WorkspaceProvider({ children, userId, authLoading = false, isGuest = false }: WorkspaceProviderProps) {
   // Basic workspace state
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
   const [userWorkspaces, setUserWorkspaces] = useState<{workspace: Workspace, role: string}[]>([]);
@@ -65,12 +64,46 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
   const [canCreateSubWorkspace, setCanCreateSubWorkspace] = useState(false);
   const [accessibleWorkspaces, setAccessibleWorkspaces] = useState<Workspace[]>([]);
 
+  // Guest state - use the prop from auth context instead of detecting by UID length
+  const [isGuestState, setIsGuestState] = useState(isGuest);
+
   // Memoize loadUserWorkspaces to prevent infinite loops
   const loadUserWorkspaces = useCallback(async () => {
     if (!userId) return;
     
     setLoading(true);
     try {
+      console.log('🔄 Loading workspaces for user:', userId, 'isGuest:', isGuest);
+      
+      // Use the isGuest prop from auth context instead of detecting by UID length
+      if (isGuest) {
+        console.log('👤 Setting up guest workspace for:', userId);
+        setIsGuestState(true);
+        
+        // Create guest workspace data
+        const guestWorkspace = await GuestService.createGuestWorkspace(userId);
+        const sampleData = GuestService.getSampleWorkspaceData();
+        
+        setUserWorkspaces([{
+          workspace: guestWorkspace,
+          role: 'member'
+        }]);
+        setMainWorkspaces([guestWorkspace]);
+        setSubWorkspaces({});
+        setAccessibleWorkspaces([guestWorkspace]);
+        setCurrentWorkspace(guestWorkspace);
+        setUserRole('member');
+        
+        // Create sample data for guest
+        await GuestService.createSampleGuestData(userId);
+        
+        console.log('✅ Guest workspace loaded for user:', userId);
+        setLoading(false);
+        return;
+      }
+      
+      // Regular user workspace loading
+      setIsGuestState(false);
       const workspaces = await WorkspaceService.getUserWorkspaces(userId);
       setUserWorkspaces(workspaces);
       
@@ -92,18 +125,34 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
       setSubWorkspaces(subs);
       setAccessibleWorkspaces(workspaces.map(uw => uw.workspace));
       
+      console.log('✅ Regular user workspaces loaded:', workspaces.length);
+      
     } catch (error) {
       console.error('Error loading user workspaces:', error);
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, isGuest]);
 
   // Load workspaces when userId changes
   useEffect(() => {
-    if (userId) {
+    if (!authLoading && userId) {
+      // Clear any previous workspace state and localStorage before loading new user workspaces
+      setUserWorkspaces([]);
+      setCurrentWorkspace(null);
+      setUserRole(null);
+      setMainWorkspaces([]);
+      setSubWorkspaces({});
+      setWorkspaceHierarchy([]);
+      setParentWorkspace(undefined);
+      setCanCreateSubWorkspace(false);
+      setAccessibleWorkspaces([]);
+      setIsGuestState(isGuest);
+      setLoading(true);
+      localStorage.removeItem('currentWorkspaceId');
+      // Now load workspaces for the new user
       loadUserWorkspaces();
-    } else {
+    } else if (!authLoading && !userId) {
       // Reset all state when user logs out
       setUserWorkspaces([]);
       setCurrentWorkspace(null);
@@ -114,13 +163,24 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
       setParentWorkspace(undefined);
       setCanCreateSubWorkspace(false);
       setAccessibleWorkspaces([]);
+      setIsGuestState(false);
       setLoading(false);
+      localStorage.removeItem('currentWorkspaceId');
     }
-  }, [userId, loadUserWorkspaces]);
+  }, [userId, authLoading, isGuest, loadUserWorkspaces]);
 
   // Memoize switchToWorkspace to prevent infinite loops
   const switchToWorkspace = useCallback(async (workspace: Workspace) => {
     try {
+      // For guest users, always allow switching to guest workspace
+      if (isGuestState) {
+        setCurrentWorkspace(workspace);
+        setUserRole('member');
+        localStorage.setItem('currentWorkspaceId', workspace.id);
+        console.log(`Guest switched to workspace: ${workspace.name}`);
+        return;
+      }
+      
       // Find user's role in this workspace
       const userWorkspace = userWorkspaces.find(uw => uw.workspace.id === workspace.id);
       const role = userWorkspace?.role || null;
@@ -142,7 +202,7 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
       console.error('Error switching to workspace:', error);
       throw error;
     }
-  }, [userWorkspaces, userId]);
+  }, [userWorkspaces, userId, isGuestState]);
 
   // Helper function to switch to workspace by ID
   const switchToWorkspaceById = useCallback(async (workspaceId: string) => {
@@ -156,6 +216,15 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
   // Memoize loadCurrentWorkspaceContext to prevent infinite loops
   const loadCurrentWorkspaceContext = useCallback(async () => {
     try {
+      // For guest users, always use guest workspace
+      if (isGuestState) {
+        const guestWorkspace = accessibleWorkspaces[0];
+        if (guestWorkspace) {
+          await switchToWorkspace(guestWorkspace);
+        }
+        return;
+      }
+      
       // Get saved workspace or default to first main workspace
       const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
       
@@ -181,7 +250,7 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
     } catch (error) {
       console.error('Error loading current workspace context:', error);
     }
-  }, [accessibleWorkspaces, mainWorkspaces, switchToWorkspace]);
+  }, [accessibleWorkspaces, mainWorkspaces, switchToWorkspace, isGuestState]);
 
   // Load current workspace and set context
   useEffect(() => {
@@ -221,95 +290,72 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
     if (currentWorkspace && userId) {
       updateWorkspaceContext();
     }
-  }, [currentWorkspace?.id, userId, updateWorkspaceContext]);
+  }, [currentWorkspace, userId, updateWorkspaceContext]);
 
-  const refreshWorkspaces = async () => {
+  const refreshWorkspaces = useCallback(async () => {
     await loadUserWorkspaces();
-    
-    // Also refresh the current workspace to get latest settings
+  }, [loadUserWorkspaces]);
+
+  const refreshCurrentWorkspace = useCallback(async () => {
     if (currentWorkspace) {
-      await refreshCurrentWorkspace();
-    }
-  };
-
-  const refreshCurrentWorkspace = async () => {
-    if (!currentWorkspace?.id) return;
-    
-    try {
-      // Fetch the latest workspace data from database
-      const latestWorkspace = await WorkspaceService.getWorkspace(currentWorkspace.id);
-      
-      if (latestWorkspace) {
-        setCurrentWorkspace(latestWorkspace);
+      try {
+        const updatedWorkspace = await WorkspaceService.getWorkspace(currentWorkspace.id);
+        if (updatedWorkspace) {
+          setCurrentWorkspace(updatedWorkspace);
+        }
+      } catch (error) {
+        console.error('Error refreshing current workspace:', error);
       }
-    } catch (error) {
-      console.error('Error refreshing current workspace:', error);
     }
-  };
+  }, [currentWorkspace]);
 
-  const createWorkspace = async (data: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
-    if (!userId) throw new Error('User not authenticated');
+  const createWorkspace = useCallback(async (data: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (isGuestState) {
+      throw new Error('Guest users cannot create workspaces');
+    }
     
-    try {
-      const workspaceId = await WorkspaceService.createWorkspace(data, userId);
-      await refreshWorkspaces();
-      
-      // Switch to the new workspace
-      await switchToWorkspaceById(workspaceId);
-      
-      return workspaceId;
-    } catch (error) {
-      console.error('Error creating workspace:', error);
-      throw error;
-    }
-  };
+    const workspaceId = await WorkspaceService.createWorkspace(data, userId);
+    await refreshWorkspaces();
+    return workspaceId;
+  }, [isGuestState, refreshWorkspaces, userId]);
 
-  const createSubWorkspace = async (
-    parentWorkspaceId: string, 
-    data: SubWorkspaceData
-  ): Promise<string> => {
-    if (!userId) throw new Error('User not authenticated');
+  const createSubWorkspace = useCallback(async (parentWorkspaceId: string, data: SubWorkspaceData) => {
+    if (isGuestState) {
+      throw new Error('Guest users cannot create sub-workspaces');
+    }
     
-    try {
-      console.log('Creating sub-workspace with data:', data);
-      const subWorkspaceId = await WorkspaceService.createSubWorkspace(parentWorkspaceId, data, userId);
-      
-      // Refresh workspace data to include the new sub-workspace
-      await refreshWorkspaces();
-      
-      // Give a moment for the refresh to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Switch to the new sub-workspace (this will now fetch fresh data if needed)
-      await switchToWorkspaceById(subWorkspaceId);
-      
-      return subWorkspaceId;
-    } catch (error) {
-      console.error('Error creating sub-workspace:', error);
-      throw error;
-    }
-  };
+    const workspaceId = await WorkspaceService.createSubWorkspace(parentWorkspaceId, data, userId);
+    await refreshWorkspaces();
+    return workspaceId;
+  }, [isGuestState, refreshWorkspaces, userId]);
 
-  const getWorkspaceHierarchyPath = async (workspaceId?: string): Promise<Workspace[]> => {
-    try {
-      const targetWorkspaceId = workspaceId || currentWorkspace?.id;
-      if (!targetWorkspaceId) return [];
-      
-      return await WorkspaceService.getWorkspaceHierarchyPath(targetWorkspaceId);
-    } catch (error) {
-      console.error('Error getting workspace hierarchy path:', error);
-      return [];
+  const getWorkspaceHierarchyPath = useCallback(async (workspaceId?: string) => {
+    if (isGuestState) {
+      return [accessibleWorkspaces[0]].filter(Boolean);
     }
-  };
+    
+    const targetId = workspaceId || currentWorkspace?.id;
+    if (!targetId) return [];
+    
+    return await WorkspaceService.getWorkspaceHierarchyPath(targetId);
+  }, [isGuestState, accessibleWorkspaces, currentWorkspace]);
 
-  const getUserRole = (workspaceId: string): string | null => {
+  const getUserRole = useCallback((workspaceId: string) => {
+    if (isGuestState) {
+      return 'member';
+    }
+    
     const userWorkspace = userWorkspaces.find(uw => uw.workspace.id === workspaceId);
     return userWorkspace?.role || null;
-  };
+  }, [isGuestState, userWorkspaces]);
 
-  const canUserAccessWorkspace = (workspaceId: string): boolean => {
+  const canUserAccessWorkspace = useCallback((workspaceId: string) => {
+    if (isGuestState) {
+      return workspaceId === GuestService.getGuestWorkspaceId();
+    }
+    
     return accessibleWorkspaces.some(w => w.id === workspaceId);
-  };
+  }, [isGuestState, accessibleWorkspaces]);
 
   const value: WorkspaceContextType = {
     // Current workspace state
@@ -337,6 +383,9 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
     getWorkspaceHierarchyPath,
     getUserRole,
     canUserAccessWorkspace,
+    
+    // Guest-specific properties
+    isGuest: isGuestState,
   };
 
   return (
@@ -344,4 +393,12 @@ export function WorkspaceProvider({ children, userId }: WorkspaceProviderProps) 
       {children}
     </WorkspaceContext.Provider>
   );
+}
+
+export function useWorkspace() {
+  const context = useContext(WorkspaceContext);
+  if (context === undefined) {
+    throw new Error('useWorkspace must be used within a WorkspaceProvider');
+  }
+  return context;
 }

@@ -261,7 +261,7 @@ export function ReportReview({
               Approve Report
             </DialogTitle>
             <DialogDescription>
-              You're about to approve "{report.title}". You can optionally add a comment.
+              You&apos;re about to approve &quot;{report.title}&quot;. You can optionally add a comment.
             </DialogDescription>
           </DialogHeader>
           
@@ -318,7 +318,7 @@ export function ReportReview({
               Reject Report
             </DialogTitle>
             <DialogDescription>
-              Please provide detailed feedback for "{report.title}". This will be sent to the author.
+              Please provide detailed feedback for &quot;{report.title}&quot;. This will be sent to the author.
             </DialogDescription>
           </DialogHeader>
           

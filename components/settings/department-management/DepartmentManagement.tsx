@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -60,7 +60,7 @@ export function DepartmentManagement() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
   // Load data with cross-workspace support
-  const loadData = async () => {
+  const loadData: () => Promise<void> = useCallback(async () => {
     if (!user?.uid) return;
     const workspaceIds = (isAdminOrOwner && showAllWorkspaces && accessibleWorkspaces?.length)
       ? accessibleWorkspaces.map(w => w.id)
@@ -110,11 +110,12 @@ export function DepartmentManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.uid, isAdminOrOwner, showAllWorkspaces, accessibleWorkspaces, currentWorkspace, toast]);
 
+  const workspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
   useEffect(() => {
     loadData();
-  }, [currentWorkspace?.id, user?.uid, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',')]);
+  }, [currentWorkspace?.id, user?.uid, showAllWorkspaces, workspaceIds, loadData]);
 
   // Get current user's department info for members
   const currentUserProfile = useMemo(() => users.find(u => u.email === user?.email), [users, user?.email]);

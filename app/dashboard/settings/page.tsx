@@ -1,6 +1,6 @@
 'use client';
 
-import { SettingsPanel } from '@/components/settings/settings-panel';
+import { SettingsPanel } from '@/components/settings/setting-panel/settings-panel-main';
 import { useAuth } from '@/lib/auth-context';
 
 export default function SettingsPage() {

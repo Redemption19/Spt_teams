@@ -1,6 +1,6 @@
 // components/databases/WorkspaceSettings.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,13 +31,8 @@ export default function WorkspaceSettings() {
   const { toast } = useToast();
   const { currentWorkspace } = useWorkspace();
 
-  useEffect(() => {
-    loadSettings();
-  }, [currentWorkspace]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     if (!currentWorkspace) return;
-
     try {
       setLoading(true);
       setError(null);
@@ -53,7 +48,11 @@ export default function WorkspaceSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace, toast]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [currentWorkspace, loadSettings]);
 
   const handleSaveSettings = async () => {
     if (!currentWorkspace) return;

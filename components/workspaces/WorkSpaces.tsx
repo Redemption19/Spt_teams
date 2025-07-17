@@ -35,6 +35,10 @@ import { toDate } from '@/lib/firestore-utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import FixSubWorkspaceOwnership from './FixSubWorkspaceOwnership';
+import { SubWorkspaceCreator } from '@/components/layout/sub-workspace-creator';
+import { WorkspaceMembersTable } from './WorkspaceMembersTable';
+import { AssignUserToWorkspaceCard } from './AssignUserToWorkspaceCard';
+import { MoveUserBetweenWorkspacesCard } from './MoveUserBetweenWorkspacesCard';
 
 export default function WorkspacePage() {
   const { 
@@ -81,6 +85,10 @@ export default function WorkspacePage() {
 
   // Fix Sub-Workspace Ownership state
   const [showFixDialog, setShowFixDialog] = useState(false);
+
+  // New state for workspace type selection
+  const [showTypeSelect, setShowTypeSelect] = useState(false);
+  const [showSubWorkspaceDialog, setShowSubWorkspaceDialog] = useState(false);
 
   // Listen for real-time workspace settings changes
   useEffect(() => {
@@ -324,6 +332,9 @@ export default function WorkspacePage() {
     return 'Access and collaborate in your workspaces.';
   }
 
+  const [selectedMembersWorkspaceId, setSelectedMembersWorkspaceId] = useState<string | null>(null);
+  const accessibleWorkspaces = userWorkspaces.filter(ws => ws.workspace.id !== currentWorkspace?.id);
+
   return (
     <div className="space-y-6">
       {/* Page Header - Responsive */}
@@ -351,72 +362,114 @@ export default function WorkspacePage() {
             </Dialog>
           )}
           {canCreateWorkspace && (
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation bg-rose-600 hover:bg-rose-700 text-white">
-                  <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">New Workspace</span>
-                  <span className="sm:hidden">New</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="mx-4 w-[calc(100vw-2rem)] max-w-md sm:mx-auto sm:w-full rounded-xl border shadow-lg">
-                <DialogHeader className="space-y-3">
-                  <DialogTitle className="text-lg sm:text-xl font-semibold">Create New Workspace</DialogTitle>
-                  <DialogDescription className="text-sm sm:text-base text-muted-foreground">
-                    Create a new workspace to organize your teams and projects.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-5 pt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="workspace-name" className="text-sm font-medium">Name *</Label>
-                    <Input
-                      id="workspace-name"
-                      value={workspaceForm.name}
-                      onChange={(e) => setWorkspaceForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Enter workspace name"
-                      className="text-sm sm:text-base rounded-lg border-2 focus:border-primary transition-colors h-11 sm:h-10"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="workspace-description" className="text-sm font-medium">Description</Label>
-                    <Textarea
-                      id="workspace-description"
-                      value={workspaceForm.description}
-                      onChange={(e) => setWorkspaceForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Describe your workspace"
-                      rows={3}
-                      className="text-sm sm:text-base resize-none rounded-lg border-2 focus:border-primary transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="workspace-logo" className="text-sm font-medium">Logo URL</Label>
-                    <Input
-                      id="workspace-logo"
-                      value={workspaceForm.logo}
-                      onChange={(e) => setWorkspaceForm(prev => ({ ...prev, logo: e.target.value }))}
-                      placeholder="https://example.com/logo.png"
-                      className="text-sm sm:text-base rounded-lg border-2 focus:border-primary transition-colors h-11 sm:h-10"
-                    />
-                  </div>
-                  <div className="flex flex-col-reverse sm:flex-row sm:justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3 pt-4 border-t">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setIsCreateOpen(false)} 
-                      className="w-full sm:w-auto rounded-lg border-2 transition-all hover:border-primary h-11 sm:h-10"
+            <>
+              {/* Workspace Type Selection Dialog */}
+              <Dialog open={showTypeSelect} onOpenChange={setShowTypeSelect}>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation bg-rose-600 hover:bg-rose-700 text-white">
+                    <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">New Workspace</span>
+                    <span className="sm:hidden">New</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Select Workspace Type</DialogTitle>
+                    <DialogDescription>
+                      Would you like to create a Main Workspace or a Sub Workspace?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-4 mt-4">
+                    <Button
+                      className="w-full bg-primary text-white hover:bg-primary/90"
+                      onClick={() => {
+                        setShowTypeSelect(false);
+                        setIsCreateOpen(true);
+                      }}
                     >
-                      Cancel
+                      Main Workspace
                     </Button>
-                    <Button 
-                      onClick={handleCreateWorkspace} 
-                      disabled={loading} 
-                      className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all h-11 sm:h-10"
+                    <Button
+                      className="w-full bg-background text-primary border border-primary hover:bg-primary/10 hover:text-primary"
+                      style={{ fontWeight: 600 }}
+                      onClick={() => {
+                        setShowTypeSelect(false);
+                        setShowSubWorkspaceDialog(true);
+                      }}
                     >
-                      {loading ? 'Creating...' : 'Create Workspace'}
+                      Sub Workspace
                     </Button>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+              {/* Main Workspace Creation Dialog (existing) */}
+              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogContent className="mx-4 w-[calc(100vw-2rem)] max-w-md sm:mx-auto sm:w-full rounded-xl border shadow-lg">
+                  <DialogHeader className="space-y-3">
+                    <DialogTitle className="text-lg sm:text-xl font-semibold">Create New Workspace</DialogTitle>
+                    <DialogDescription className="text-sm sm:text-base text-muted-foreground">
+                      Create a new workspace to organize your teams and projects.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-5 pt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="workspace-name" className="text-sm font-medium">Name *</Label>
+                      <Input
+                        id="workspace-name"
+                        value={workspaceForm.name}
+                        onChange={(e) => setWorkspaceForm(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Enter workspace name"
+                        className="text-sm sm:text-base rounded-lg border-2 focus:border-primary transition-colors h-11 sm:h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="workspace-description" className="text-sm font-medium">Description</Label>
+                      <Textarea
+                        id="workspace-description"
+                        value={workspaceForm.description}
+                        onChange={(e) => setWorkspaceForm(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe your workspace"
+                        rows={3}
+                        className="text-sm sm:text-base resize-none rounded-lg border-2 focus:border-primary transition-colors"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="workspace-logo" className="text-sm font-medium">Logo URL</Label>
+                      <Input
+                        id="workspace-logo"
+                        value={workspaceForm.logo}
+                        onChange={(e) => setWorkspaceForm(prev => ({ ...prev, logo: e.target.value }))}
+                        placeholder="https://example.com/logo.png"
+                        className="text-sm sm:text-base rounded-lg border-2 focus:border-primary transition-colors h-11 sm:h-10"
+                      />
+                    </div>
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3 pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsCreateOpen(false)} 
+                        className="w-full sm:w-auto rounded-lg border-2 transition-all hover:border-primary h-11 sm:h-10"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleCreateWorkspace} 
+                        disabled={loading} 
+                        className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all h-11 sm:h-10"
+                      >
+                        {loading ? 'Creating...' : 'Create Workspace'}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {/* Sub Workspace Creation Dialog */}
+              <SubWorkspaceCreator
+                parentWorkspaceId={currentWorkspace?.id}
+                open={showSubWorkspaceDialog}
+                onOpenChange={setShowSubWorkspaceDialog}
+                trigger={null}
+              />
+            </>
           )}
         </div>
       </div>
@@ -450,107 +503,6 @@ export default function WorkspacePage() {
                     {getWorkspaceSectionTitle(userRole || '')}
                   </div>
                 </div>
-              </div>
-              
-              {/* Action Buttons - Responsive */}
-              <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:items-center sm:space-x-2">
-                {canInviteUsers && (
-                  <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="flex-1 sm:flex-initial h-10 sm:h-9 touch-manipulation">
-                        <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span className="hidden sm:inline">Invite</span>
-                        <span className="sm:hidden">Invite</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="mx-4 w-[calc(100vw-2rem)] max-w-md sm:mx-auto sm:w-full rounded-xl border shadow-lg">
-                      <DialogHeader className="space-y-3">
-                        <DialogTitle className="text-lg sm:text-xl font-semibold">Invite User</DialogTitle>
-                        <DialogDescription className="text-sm sm:text-base text-muted-foreground">
-                          Invite someone to join {currentWorkspace.name}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-5 pt-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="invite-email" className="text-sm font-medium">Email *</Label>
-                          <Input
-                            id="invite-email"
-                            type="email"
-                            value={inviteForm.email}
-                            onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                            placeholder="user@example.com"
-                            className="text-sm sm:text-base rounded-lg border-2 focus:border-primary transition-colors h-11 sm:h-10"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="invite-role" className="text-sm font-medium">Role</Label>
-                          <Select value={inviteForm.role} onValueChange={(value: 'admin' | 'member') => setInviteForm(prev => ({ ...prev, role: value }))}>
-                            <SelectTrigger className="text-sm sm:text-base rounded-lg border-2 focus:border-primary transition-colors h-11 sm:h-10">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-lg border shadow-lg">
-                              <SelectItem value="member" className="rounded-lg">Member</SelectItem>
-                              <SelectItem value="admin" className="rounded-lg">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex flex-col-reverse sm:flex-row sm:justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3 pt-4 border-t">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setIsInviteOpen(false)} 
-                            className="w-full sm:w-auto rounded-lg border-2 transition-all hover:border-primary h-11 sm:h-10"
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            onClick={handleInviteUser} 
-                            disabled={loading} 
-                            className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all h-11 sm:h-10"
-                          >
-                            {loading ? 'Sending...' : 'Send Invitation'}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-                {(userRole === 'owner' || userRole === 'admin') && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditWorkspace(currentWorkspace, userRole || '')}
-                    className="flex-1 sm:flex-initial h-10 sm:h-9 touch-manipulation"
-                  >
-                    <Edit className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Edit</span>
-                    <span className="sm:hidden">Edit</span>
-                  </Button>
-                )}
-                {userRole === 'owner' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDeleteWorkspace(currentWorkspace, userRole || '')}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-initial h-10 sm:h-9 touch-manipulation"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Delete</span>
-                    <span className="sm:hidden">Del</span>
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => copyWorkspaceId(currentWorkspace.id)}
-                  className="flex-shrink-0 h-10 w-10 sm:h-9 sm:w-9 touch-manipulation"
-                  title="Copy Workspace ID"
-                >
-                  {copied === currentWorkspace.id ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
               </div>
             </div>
           </CardHeader>
@@ -675,6 +627,34 @@ export default function WorkspacePage() {
             </Card>
           ))}
         </div>
+        {accessibleWorkspaces && accessibleWorkspaces.length > 0 && (
+          <div className="mt-10">
+            {/* Move User Between Workspaces Card */}
+            <MoveUserBetweenWorkspacesCard workspaces={userWorkspaces.map(uw => uw.workspace)} />
+            {/* Assign User to Workspace Card */}
+            <AssignUserToWorkspaceCard workspaces={userWorkspaces.map(uw => uw.workspace)} />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+              <h2 className="text-lg sm:text-xl font-semibold">Workspace Members</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Select Workspace:</span>
+                <Select
+                  value={selectedMembersWorkspaceId || currentWorkspace?.id || ''}
+                  onValueChange={setSelectedMembersWorkspaceId}
+                >
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Select workspace" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accessibleWorkspaces.map(ws => (
+                      <SelectItem key={ws.workspace.id} value={ws.workspace.id}>{ws.workspace.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <WorkspaceMembersTable workspaceId={selectedMembersWorkspaceId || currentWorkspace?.id || ''} />
+          </div>
+        )}
       </div>
 
       {/* Edit Workspace Dialog - Responsive */}

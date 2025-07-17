@@ -762,7 +762,12 @@ export function Header() {
           
           {/* Notifications */}
           <NotificationPanel>
-            <Button variant="ghost" size="sm" className="relative p-2 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative p-2 rounded-lg"
+              onClick={() => router.push('/dashboard/notifications')}
+            >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center min-w-5">

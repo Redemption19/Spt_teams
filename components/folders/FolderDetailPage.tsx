@@ -92,8 +92,6 @@ type ReportsData = {
   }>;
 };
 
-// --- Helper Functions (Moved outside component) ---
-
 const getFileType = (mimeType: string): FolderFile['type'] => {
   if (mimeType.startsWith('image/')) return 'image';
   if (mimeType.startsWith('video/')) return 'video';
@@ -103,13 +101,13 @@ const getFileType = (mimeType: string): FolderFile['type'] => {
 };
 
 const getFileIcon = (file: FolderFile) => {
-  switch (file.type) {
-    case 'image': return <Image className="h-4 w-4" />;
-    case 'video': return <Video className="h-4 w-4" />;
-    case 'archive': return <Archive className="h-4 w-4" />;
-    default: return <FileText className="h-4 w-4" />;
-  }
-};
+    switch (file.type) {
+      case 'image': return <Image className="h-4 w-4" />;
+      case 'video': return <Video className="h-4 w-4" />;
+      case 'archive': return <Archive className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
 
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 B';

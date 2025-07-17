@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,14 +77,7 @@ export default function TeamMembersPage({ teamId }: TeamMembersPageProps) {
   // Permission check
   const [canManageMembers, setCanManageMembers] = useState(false);
 
-  // Load team and member data
-  useEffect(() => {
-    if (teamId && user && currentWorkspace) {
-      loadData();
-    }
-  }, [teamId, user, currentWorkspace]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user || !teamId) return;
 
     setLoading(true);
@@ -130,7 +123,14 @@ export default function TeamMembersPage({ teamId }: TeamMembersPageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, teamId, router]);
+
+  // Load team and member data
+  useEffect(() => {
+    if (teamId && user && currentWorkspace) {
+      loadData();
+    }
+  }, [teamId, user, currentWorkspace, loadData]);
 
   const handleAddMember = async () => {
     if (!selectedUserId || !canManageMembers || !user) return;
@@ -511,7 +511,7 @@ export default function TeamMembersPage({ teamId }: TeamMembersPageProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              This team doesn't have a lead. You can assign one of the current members as team lead.
+              This team doesn&apos;t have a lead. You can assign one of the current members as team lead.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {members.map((member) => (

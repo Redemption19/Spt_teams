@@ -115,10 +115,9 @@ export function ProjectHealthDashboard({
       console.log('📊 Loaded projects:', allProjects.length);
       
       // Filter projects by date range if specified
-      const { from, to } = filters.dateRange;
       const filteredProjects = allProjects.filter(project => {
         const projectDate = new Date(project.createdAt);
-        return projectDate >= from && projectDate <= to;
+        return projectDate >= filters.dateRange.from && projectDate <= filters.dateRange.to;
       });
       
       // Calculate health metrics for each project
@@ -177,11 +176,10 @@ export function ProjectHealthDashboard({
     workspaceId, 
     userId, 
     userRole, 
-    filters.dateRange.from.getTime(), 
-    filters.dateRange.to.getTime(), 
-    filters.dateRange.preset,
     showAllWorkspaces, 
-    accessibleWorkspaces?.map(w => w.id).join(',') || ''
+    accessibleWorkspaces,
+    filters.dateRange.from,
+    filters.dateRange.to
   ]);
 
   useEffect(() => {

@@ -278,24 +278,15 @@ export function WorkspaceSelector() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Create New</DropdownMenuLabel>
-            <SubWorkspaceCreator
-              trigger={
-                <DropdownMenuItem className="flex items-center space-x-3 p-3 text-primary cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                  <Plus className="h-4 w-4" />
-                  <span className="text-sm">Create Sub-Workspace</span>
-                </DropdownMenuItem>
-              }
-            />
+            {/* Remove SubWorkspaceCreator trigger/button here */}
           </>
         )}
 
         {/* Always show main workspace creation for owners */}
-        {(userRole === 'owner') && (
-          <DropdownMenuItem className="flex items-center space-x-3 p-3 text-primary">
-            <Plus className="h-4 w-4" />
-            <span className="text-sm">Create Main Workspace</span>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem className="flex items-center space-x-3 p-3 text-primary">
+          <Plus className="h-4 w-4" />
+          <span className="text-sm">Create Main Workspace</span>
+        </DropdownMenuItem>
 
         {/* Workspace count info */}
         <DropdownMenuSeparator />

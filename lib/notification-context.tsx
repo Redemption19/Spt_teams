@@ -1,157 +1,125 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { NotificationService, Notification } from './notification-service';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { db } from './firebase';
+import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { useAuth } from './auth-context';
 import { useWorkspace } from './workspace-context';
+import type { Notification } from './notification-service';
 
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
-  loading: boolean;
+  refreshNotifications: () => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (notificationId: string) => Promise<void>;
-  refreshNotifications: () => Promise<void>;
+  undoDeleteNotification: (notificationId: string) => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType>({
+  notifications: [],
+  unreadCount: 0,
+  refreshNotifications: async () => {},
+  markAsRead: async () => {},
+  markAllAsRead: async () => {},
+  deleteNotification: async () => {},
+  undoDeleteNotification: async () => {},
+});
 
-interface NotificationProviderProps {
-  children: ReactNode;
-}
-
-export function NotificationProvider({ children }: NotificationProviderProps) {
+export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Calculate unread count
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  // Subscribe to real-time notifications
+  // Real-time listener
   useEffect(() => {
-    if (!user?.uid || !currentWorkspace?.id) {
-      setNotifications([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    // Get user's role from auth context
-    const userRole = (user as any)?.role || 'member';
-
-    const unsubscribe = NotificationService.subscribeToUserNotifications(
-      user.uid,
-      currentWorkspace.id,
-      (notificationList) => {
-        setNotifications(notificationList);
-        setLoading(false);
-      },
-      userRole
+    if (!user || !currentWorkspace?.id) return;
+    const q = query(
+      collection(db, 'workspaces', currentWorkspace.id, 'notifications'),
+      where('userId', '==', user.uid),
+      where('deleted', '!=', true),
+      orderBy('createdAt', 'desc')
     );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+      setNotifications(notifs);
+      setUnreadCount(notifs.filter(n => !n.read).length);
+    });
+    return () => unsubscribe();
+  }, [user, currentWorkspace?.id]);
 
-    return unsubscribe;
-  }, [user?.uid, currentWorkspace?.id]);
+  // Manual refresh
+  const refreshNotifications = useCallback(async () => {
+    if (!user || !currentWorkspace?.id) return;
+    const q = query(
+      collection(db, 'workspaces', currentWorkspace.id, 'notifications'),
+      where('userId', '==', user.uid),
+      where('deleted', '!=', true),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+    setNotifications(notifs);
+    setUnreadCount(notifs.filter(n => !n.read).length);
+  }, [user, currentWorkspace?.id]);
 
-  // Cleanup expired notifications periodically
-  useEffect(() => {
+  // Mark a single notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
     if (!currentWorkspace?.id) return;
-
-    const cleanupInterval = setInterval(() => {
-      NotificationService.cleanupExpiredNotifications(currentWorkspace.id)
-        .catch(error => console.error('Error cleaning up notifications:', error));
-    }, 30 * 60 * 1000); // Every 30 minutes
-
-    return () => clearInterval(cleanupInterval);
+    await updateDoc(doc(db, 'workspaces', currentWorkspace.id, 'notifications', notificationId), { read: true });
+    setNotifications(prev =>
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
   }, [currentWorkspace?.id]);
 
-  const markAsRead = async (notificationId: string) => {
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
+    if (!user || !currentWorkspace?.id) return;
+    const unread = notifications.filter(n => !n.read);
+    if (unread.length === 0) return;
+    const batch = writeBatch(db);
+    unread.forEach(n => {
+      batch.update(doc(db, 'workspaces', currentWorkspace.id, 'notifications', n.id), { read: true });
+    });
+    await batch.commit();
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  }, [notifications, user, currentWorkspace?.id]);
+
+  // Soft-delete a notification
+  const deleteNotification = useCallback(async (notificationId: string) => {
     if (!currentWorkspace?.id) return;
+    await updateDoc(doc(db, 'workspaces', currentWorkspace.id, 'notifications', notificationId), { deleted: true });
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+  }, [currentWorkspace?.id]);
 
-    try {
-      await NotificationService.markAsRead(notificationId, currentWorkspace.id);
-      // Update local state optimistically
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === notificationId ? { ...n, read: true } : n
-        )
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    if (!user?.uid || !currentWorkspace?.id) return;
-
-    try {
-      await NotificationService.markAllAsRead(user.uid, currentWorkspace.id);
-      // Update local state optimistically
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, read: true }))
-      );
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const deleteNotification = async (notificationId: string) => {
+  // Undo soft-delete
+  const undoDeleteNotification = useCallback(async (notificationId: string) => {
     if (!currentWorkspace?.id) return;
-
-    try {
-      await NotificationService.deleteNotification(notificationId, currentWorkspace.id);
-      // Update local state optimistically
-      setNotifications(prev =>
-        prev.filter(n => n.id !== notificationId)
-      );
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
-
-  const refreshNotifications = async () => {
-    if (!user?.uid || !currentWorkspace?.id) return;
-
-    try {
-      setLoading(true);
-      const userRole = (user as any)?.role || 'member';
-      const notificationList = await NotificationService.getUserNotifications(
-        user.uid,
-        currentWorkspace.id,
-        userRole
-      );
-      setNotifications(notificationList);
-    } catch (error) {
-      console.error('Error refreshing notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const value: NotificationContextType = {
-    notifications,
-    unreadCount,
-    loading,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    refreshNotifications
-  };
+    await updateDoc(doc(db, 'workspaces', currentWorkspace.id, 'notifications', notificationId), { deleted: false });
+    await refreshNotifications();
+  }, [currentWorkspace?.id, refreshNotifications]);
 
   return (
-    <NotificationContext.Provider value={value}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        refreshNotifications,
+        markAsRead,
+        markAllAsRead,
+        deleteNotification,
+        undoDeleteNotification,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );
 }
 
 export function useNotifications() {
-  const context = useContext(NotificationContext);
-  if (context === undefined) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
-  return context;
+  return useContext(NotificationContext);
 } 

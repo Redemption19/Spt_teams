@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,24 +85,14 @@ export default function Support() {
   const [searchTab, setSearchTab] = useState<'tickets' | 'faqs' | 'knowledge'>('tickets');
   const [ticketSearchResults, setTicketSearchResults] = useState<SupportTicket[]>([]);
 
-  useEffect(() => {
-    if (user && currentWorkspace) {
-      loadSupportData();
-      loadUserPermissions();
-    }
-  }, [user, currentWorkspace]);
-
-  const loadUserPermissions = async () => {
+  // Move loadUserPermissions and loadSupportData above useEffect
+  const loadUserPermissions = useCallback(async () => {
     if (!user || !currentWorkspace) return;
-    
     try {
       const role = await SupportService.getUserWorkspaceRole(user.uid, currentWorkspace.id);
       setUserRole(role);
-      
       const workspaces = await SupportService.getAccessibleWorkspaces(user.uid);
       setAccessibleWorkspaces(workspaces);
-      
-      // Load cross-workspace stats for owners
       if (role === 'owner') {
         const crossStats = await SupportService.getCrossWorkspaceStats(user.uid);
         setCrossWorkspaceStats(crossStats);
@@ -110,11 +100,10 @@ export default function Support() {
     } catch (error) {
       console.error('Error loading user permissions:', error);
     }
-  };
+  }, [user, currentWorkspace]);
 
-  const loadSupportData = async () => {
+  const loadSupportData = useCallback(async () => {
     if (!user || !currentWorkspace) return;
-    
     setLoading(true);
     try {
       const [ticketsData, faqsData, articlesData, statsData] = await Promise.all([
@@ -123,7 +112,6 @@ export default function Support() {
         SupportService.getKnowledgeArticles(),
         SupportService.getSupportStats(user.uid, currentWorkspace.id)
       ]);
-
       setTickets(ticketsData);
       setFaqs(faqsData);
       setArticles(articlesData);
@@ -138,7 +126,12 @@ export default function Support() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, currentWorkspace, toast]);
+
+  useEffect(() => {
+    loadSupportData();
+    loadUserPermissions();
+  }, [loadSupportData, loadUserPermissions]);
 
   const handleCreateTicket = async () => {
     if (!user || !currentWorkspace) return;
@@ -460,7 +453,7 @@ export default function Support() {
       {searchQuery && (ticketSearchResults.length > 0 || searchResults.faqs.length > 0 || searchResults.articles.length > 0) && (
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>Search Results for "{searchQuery}"</CardTitle>
+            <CardTitle>Search Results for &quot;{searchQuery}&quot;</CardTitle>
             <div className="flex gap-2 mt-2">
               <Button size="sm" variant={searchTab === 'tickets' ? 'default' : 'outline'} onClick={() => setSearchTab('tickets')}>
                 Tickets

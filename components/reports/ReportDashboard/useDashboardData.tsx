@@ -307,6 +307,9 @@ export function useDashboardData(
     };
   }, [filters]);
 
+  const workspaceIds = (isOwner && showAllWorkspaces && accessibleWorkspaces?.length) 
+    ? accessibleWorkspaces.map(w => w.id).join(',')
+    : currentWorkspace?.id;
   const fetchData = useCallback(async () => {
     console.log('🔄 Dashboard fetchData started', { 
       workspaceId: currentWorkspace?.id, 
@@ -323,8 +326,8 @@ export function useDashboardData(
 
       // Determine workspace IDs to load from
       const workspaceIds = (isOwner && showAllWorkspaces && accessibleWorkspaces?.length) 
-        ? accessibleWorkspaces.map(w => w.id)
-        : [currentWorkspace.id];
+        ? accessibleWorkspaces.map(w => w.id).join(',')
+        : currentWorkspace?.id;
       
       console.log('🏢 Loading dashboard data from workspaces:', workspaceIds);
 
@@ -397,7 +400,7 @@ export function useDashboardData(
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, filters, processReportsData, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '']);
+  }, [currentWorkspace?.id, user?.uid, filters, processReportsData, isOwner, showAllWorkspaces, accessibleWorkspaces]);
 
   useEffect(() => {
     fetchData();

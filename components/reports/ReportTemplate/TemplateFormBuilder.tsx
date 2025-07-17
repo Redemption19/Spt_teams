@@ -129,7 +129,7 @@ export function TemplateFormBuilder({
       isValid,
       isDirty: true
     });
-  }, [templateForm, builderState.fields]);
+  }, [templateForm, builderState, setBuilderState]);
 
   // Handle basic form changes
   const handleFormChange = (field: string, value: any) => {

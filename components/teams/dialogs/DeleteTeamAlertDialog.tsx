@@ -29,11 +29,7 @@ export default function DeleteTeamAlertDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center space-y-2">
             <p>
-              Are you sure you want to delete{' '}
-              <span className="font-semibold text-foreground bg-muted/50 px-2 py-1 rounded-md">
-                "{teamName}"
-              </span>
-              ?
+              Are you sure you want to delete the team &quot;{teamName}&quot;? This action cannot be undone.
             </p>
             <p className="text-sm text-muted-foreground">
               This action cannot be undone. All team data and member associations will be permanently removed.

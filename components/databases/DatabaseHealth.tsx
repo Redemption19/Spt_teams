@@ -1,6 +1,6 @@
 // components/databases/DatabaseHealth.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,7 @@ export default function DatabaseHealth() {
   const [error, setError] = useState<string | null>(null);
   const { currentWorkspace } = useWorkspace();
 
-  const loadHealthData = async () => {
+  const loadHealthData = useCallback(async () => {
     if (!currentWorkspace) return;
 
     try {
@@ -29,11 +29,11 @@ export default function DatabaseHealth() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace]);
 
   useEffect(() => {
     loadHealthData();
-  }, [currentWorkspace]);
+  }, [loadHealthData]);
 
   useEffect(() => {
     // Auto-refresh health data every 30 seconds
@@ -44,7 +44,7 @@ export default function DatabaseHealth() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [currentWorkspace]);
+  }, [currentWorkspace, loadHealthData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

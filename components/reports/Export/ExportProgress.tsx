@@ -216,7 +216,7 @@ export function ExportProgress({
                 <div>
                   <div className="font-medium">Processing Time</div>
                   <div className="text-muted-foreground">
-                    Large exports may take several minutes. You'll be notified when complete.
+                    Large exports may take several minutes. You&apos;ll be notified when complete.
                   </div>
                 </div>
               </div>

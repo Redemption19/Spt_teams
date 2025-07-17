@@ -39,6 +39,7 @@ import { ReportService } from '@/lib/report-service';
 import { ActivityService } from '@/lib/activity-service';
 import { FolderService } from '@/lib/folder-service';
 import { NotificationService } from '@/lib/notification-service';
+import { GuestService } from '@/lib/guest-service';
 import { useToast } from '@/hooks/use-toast';
 
 interface DashboardStats {
@@ -79,8 +80,8 @@ interface DashboardStats {
 
 export function DashboardOverview() {
   const router = useRouter();
-  const { user, userProfile } = useAuth();
-  const { currentWorkspace, userRole, switchToWorkspace } = useWorkspace();
+  const { user, userProfile, isGuest } = useAuth();
+  const { currentWorkspace, userRole, switchToWorkspace, isGuest: isGuestWorkspace } = useWorkspace();
   const permissions = useRolePermissions();
   const isOwner = useIsOwner();
   const { toast } = useToast();
@@ -211,12 +212,7 @@ export function DashboardOverview() {
         ...Object.values(subWorkspaces).flat()
       ];
 
-      console.log('🏢 Owner Dashboard - Workspaces found:', {
-        mainWorkspaces: mainWorkspaces.length,
-        subWorkspaces: Object.keys(subWorkspaces).length,
-        totalWorkspaces: allWorkspaces.length,
-        workspaceNames: allWorkspaces.map(w => ({ name: w.name, type: w.workspaceType, id: w.id }))
-      });
+
 
       // Load teams across all workspaces
       let allTeams: any[] = [];
@@ -243,9 +239,6 @@ export function DashboardOverview() {
             users: workspaceUsers.length,
             reports: workspaceReports.length
           };
-
-          console.log(`📊 Data for workspace "${workspace.name}":`, workspaceStats[workspace.id]);
-          console.log(`📋 Reports for workspace "${workspace.name}":`, workspaceReports.length, workspaceReports.map(r => ({ id: r.id, title: r.title, status: r.status })));
 
           // Add teams with workspace context
           workspaceTeams.forEach(team => {
@@ -340,7 +333,6 @@ export function DashboardOverview() {
         workspaceStats: workspaceStats
       });
       setAllReports(allReports);
-      console.log(`📋 Total reports loaded for owner dashboard:`, allReports.length, allReports.map(r => ({ id: r.id, title: r.title, workspaceName: r.workspaceName })));
 
       // Calculate completed tasks
       const completedTasks = uniqueTasks.filter(task => task.status === 'completed').length;
@@ -371,28 +363,19 @@ export function DashboardOverview() {
     if (!user || !currentWorkspace) return;
 
     try {
-      console.log(`🔍 Loading admin dashboard data for workspace: ${currentWorkspace.name}`);
-      
       // First get all workspaces where user has access
       const userWorkspaces = await WorkspaceService.getUserWorkspaces(user.uid);
       // Filter to only workspaces where user is specifically an admin (not owner or member)
       const adminWorkspaces = userWorkspaces.filter(uw => uw.role === 'admin');
       
-      console.log(`📊 Found ${adminWorkspaces.length} workspaces where user is admin:`, 
-        adminWorkspaces.map(uw => `${uw.workspace.name} (${uw.role})`));
-
       // Load cross-workspace reports ONLY from admin workspaces
       let allPendingReports: any[] = [];
       let allReports: any[] = [];
       
       for (const uw of adminWorkspaces) {
         try {
-          console.log(`🔍 Loading reports from admin workspace: ${uw.workspace.name}`);
           const workspacePendingReports = await ReportService.getPendingReports(uw.workspace.id, { limit: 100 });
           const workspaceAllReports = await ReportService.getWorkspaceReports(uw.workspace.id, { limit: 100 });
-          
-          console.log(`📋 Found ${workspacePendingReports.length} pending reports in admin workspace ${uw.workspace.name}`);
-          console.log(`📋 Found ${workspaceAllReports.length} total reports in admin workspace ${uw.workspace.name}`);
           
           // Add workspace name to reports for better tracking
           const pendingWithWorkspace = workspacePendingReports.map(r => ({
@@ -413,7 +396,7 @@ export function DashboardOverview() {
         }
       }
       
-      console.log(`📊 Admin cross-workspace aggregation complete: ${allPendingReports.length} pending reports, ${allReports.length} total reports from ${adminWorkspaces.length} admin workspaces`);
+
 
       // Load current workspace data for other metrics
       const [workspaceTeams, workspaceTasks, workspaceUsers, workspaceFolders] = await Promise.all([
@@ -569,6 +552,72 @@ export function DashboardOverview() {
     }
   }, [user, currentWorkspace, generateEnhancedRecentActivity]);
 
+  const loadGuestDashboardData = useCallback(async () => {
+    if (!user || !currentWorkspace) return;
+
+    try {
+      // Get guest data
+      const guestData = await GuestService.getGuestData(user.uid);
+      if (!guestData) {
+        // Create sample data for guest
+        await GuestService.createSampleGuestData(user.uid);
+      }
+
+      // Get sample workspace data for guest
+      const sampleData = GuestService.getSampleWorkspaceData();
+      
+      setUserTeams(sampleData.teams);
+      setAllReports(sampleData.reports);
+
+      const completedTasks = sampleData.tasks.filter(task => task.status === 'completed').length;
+      const totalFiles = 0; // Guest users don't have files
+      const pendingReports = sampleData.reports.filter(report => report.status === 'draft').length;
+
+      setStats({
+        totalTasks: sampleData.tasks.length,
+        completedTasks: completedTasks,
+        activeTeams: sampleData.teams.length,
+        pendingReports: pendingReports,
+        totalFiles: totalFiles,
+        totalFolders: 0,
+        activityScore: 75, // Sample activity score for guest
+        weeklyProgress: 25, // Sample progress for guest
+        recentActivity: [
+          {
+            id: 'guest-activity-1',
+            type: 'task' as const,
+            message: 'Welcome Task was created',
+            timestamp: new Date(Date.now() - 1000 * 60 * 30),
+            user: 'Guest User',
+            priority: 'medium'
+          },
+          {
+            id: 'guest-activity-2',
+            type: 'report' as const,
+            message: 'Sample Report was created',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60),
+            user: 'Guest User',
+            priority: 'medium'
+          }
+        ],
+        upcomingDeadlines: sampleData.tasks
+          .filter(task => task.dueDate && new Date(task.dueDate) > new Date())
+          .slice(0, 3)
+          .map(task => ({
+            id: task.id,
+            title: task.title,
+            type: 'task' as const,
+            dueDate: new Date(task.dueDate),
+            priority: (task.priority === 'urgent' ? 'high' : task.priority as 'high' | 'medium' | 'low') || 'medium'
+          })),
+        notifications: []
+      });
+
+    } catch (error) {
+      console.error('Error loading guest dashboard data:', error);
+    }
+  }, [user, currentWorkspace]);
+
   // Helper function to calculate average response time from recent activities
   const calculateAvgResponseTime = (activities: any[]): string => {
     if (activities.length === 0) return "0h";
@@ -591,7 +640,6 @@ export function DashboardOverview() {
       return submittedAt && submittedAt >= weekStart;
     });
     
-    console.log(`📊 Reports this week: ${thisWeekReports.length} out of ${reports.length} total reports`);
     return thisWeekReports.length;
   };
 
@@ -599,7 +647,6 @@ export function DashboardOverview() {
   const calculateApprovalRate = (reports: any[]): number => {
     const submittedReports = reports.filter(report => report.status && report.status !== 'draft');
     if (submittedReports.length === 0) {
-      console.log(`📊 No submitted reports found out of ${reports.length} total reports`);
       return 0;
     }
     
@@ -608,7 +655,6 @@ export function DashboardOverview() {
     ).length;
     
     const approvalRate = Math.round((approvedReports / submittedReports.length) * 100);
-    console.log(`📊 Approval rate: ${approvedReports} approved out of ${submittedReports.length} submitted (${approvalRate}%)`);
     return approvalRate;
   };
 
@@ -787,17 +833,14 @@ export function DashboardOverview() {
   const getDisplayReports = () => {
     // Owners with global view get cross-workspace reports from ALL owned workspaces
     if (userRole === 'owner' && globalView) {
-      console.log(`📋 Display reports (owner global view):`, allReports.length, 'reports');
       return allReports; // Show all reports from all owned workspaces
     }
     // Admins get cross-workspace reports ONLY from workspaces where they are admin
     if (userRole === 'admin') {
-      console.log(`📋 Display reports (admin cross-workspace):`, allReports.length, 'reports from admin workspaces');
       return allReports; // Show reports from admin workspaces only
     }
     // Default: current workspace only
     const currentReports = allReports.filter(r => r.workspaceId === currentWorkspace?.id || !r.workspaceId);
-    console.log(`📋 Display reports (current workspace):`, currentReports.length, 'reports for workspace', currentWorkspace?.name);
     return currentReports;
   };
 
@@ -806,8 +849,6 @@ export function DashboardOverview() {
     const pendingReports = reports.filter(report => 
       report.status === 'submitted' || report.status === 'under_review' || report.status === 'pending'
     );
-    console.log(`📋 Pending reports:`, pendingReports.length, 'out of', reports.length, 'total reports');
-    console.log(`📋 Report statuses:`, reports.map(r => ({ id: r.id, title: r.title, status: r.status })));
     return pendingReports.length;
   };
 
@@ -836,7 +877,9 @@ export function DashboardOverview() {
       setLoading(true);
 
       // Load role-specific data
-      if (userRole === 'owner') {
+      if (isGuest || isGuestWorkspace) {
+        await loadGuestDashboardData();
+      } else if (userRole === 'owner') {
         await loadOwnerDashboardData();
       } else if (userRole === 'admin') {
         await loadAdminDashboardData();
@@ -855,7 +898,7 @@ export function DashboardOverview() {
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace, user, userRole, loadOwnerDashboardData, loadAdminDashboardData, loadMemberDashboardData]);
+  }, [currentWorkspace, user, userRole, isGuest, isGuestWorkspace, loadOwnerDashboardData, loadAdminDashboardData, loadMemberDashboardData, loadGuestDashboardData]);
 
   useEffect(() => {
     if (currentWorkspace && user) {
@@ -869,11 +912,16 @@ export function DashboardOverview() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            {getGreeting()}, {userProfile?.name || 'there'}!
+            {getGreeting()}, {userProfile?.isGuest ? 'Guest User' : userProfile?.name || 'there'}!
           </h1>
           <p className="text-muted-foreground mt-1">
             Welcome to {currentWorkspace?.name} • Your role: {' '}
-            {userRole === 'owner' ? (
+            {isGuest ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200 dark:from-blue-900/20 dark:to-indigo-900/20 dark:text-blue-400 dark:border-blue-800">
+                <User className="w-3 h-3 mr-1" />
+                Guest
+              </span>
+            ) : userRole === 'owner' ? (
               <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200 dark:from-yellow-900/20 dark:to-amber-900/20 dark:text-yellow-400 dark:border-yellow-800">
                 <Crown className="w-3 h-3 mr-1" />
                 Owner
@@ -898,6 +946,22 @@ export function DashboardOverview() {
           </Button>
         </div>
       </div>
+
+      {/* Guest-specific notice */}
+      {isGuest && (
+        <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <User className="h-5 w-5 text-primary mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-medium text-foreground mb-1">Guest Mode</h3>
+              <p className="text-sm text-muted-foreground">
+                You&apos;re exploring the application as a guest. This is a demo environment with sample data. 
+                Create an account to save your work and access all features.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -155,7 +155,7 @@ export function MemberAnalytics() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Projects you're involved in
+                  Projects you&apos;re involved in
                 </p>
               </CardContent>
             </Card>

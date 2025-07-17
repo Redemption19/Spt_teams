@@ -670,3 +670,31 @@ export class NotificationService {
     return iconMap[type] || '🔔';
   }
 } 
+
+export async function sendNotification({
+  userId,
+  title,
+  body,
+  type,
+  link
+}: {
+  userId: string;
+  title: string;
+  body: string;
+  type: string;
+  link?: string;
+}) {
+  await addDoc(collection(db, 'notifications'), {
+    userId,
+    title,
+    body,
+    type,
+    link: link || null,
+    createdAt: serverTimestamp(),
+    read: false,
+  });
+}
+
+export async function markNotificationRead(notificationId: string) {
+  await updateDoc(doc(db, 'notifications', notificationId), { read: true });
+} 

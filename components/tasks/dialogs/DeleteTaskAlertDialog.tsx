@@ -29,7 +29,7 @@ export default function DeleteTaskAlertDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
             <p>
-              Are you sure you want to delete the task <strong>"{taskToDelete?.title}"</strong>?
+              Are you sure you want to delete the task &quot;{taskToDelete?.title}&quot;? This action cannot be undone.
             </p>
             {taskToDelete && (
               <>

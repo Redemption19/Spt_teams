@@ -180,7 +180,7 @@ export function TaskDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [taskId, currentWorkspace?.id, user?.uid, router]);
+  }, [taskId, currentWorkspace, user, router]);
 
   useEffect(() => {
     loadTaskData();
@@ -352,7 +352,7 @@ export function TaskDetailPage() {
           <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto" />
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-muted-foreground">Task not found</h3>
-            <p className="text-sm text-muted-foreground">The task you're looking for doesn't exist or you don't have permission to view it.</p>
+            <p className="text-sm text-muted-foreground">The task you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.</p>
           </div>
           <Button 
             variant="outline" 

@@ -35,6 +35,8 @@ export function UpcomingEvents({
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const accessibleWorkspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
+
   useEffect(() => {
     const loadUpcomingEvents = async () => {
       if (!workspaceId || !userId) return;
@@ -78,7 +80,7 @@ export function UpcomingEvents({
     };
 
     loadUpcomingEvents();
-  }, [workspaceId, userId, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '']);
+  }, [workspaceId, userId, showAllWorkspaces, accessibleWorkspaces, accessibleWorkspaceIds]);
 
   const getEventColor = (type: string, status: string) => {
     if (status === 'cancelled') return 'bg-red-100 text-red-700 border-red-200';

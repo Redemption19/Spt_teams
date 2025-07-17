@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,13 +57,7 @@ export default function UserTransferPage() {
   // Check if user is owner of current workspace
   const isOwner = userProfile?.role === 'owner';
 
-  useEffect(() => {
-    if (currentWorkspace?.id && userProfile?.id && isOwner) {
-      loadTransferData();
-    }
-  }, [currentWorkspace, userProfile, isOwner]);
-
-  const loadTransferData = async () => {
+  const loadTransferData = useCallback(async () => {
     if (!currentWorkspace?.id || !userProfile?.id) return;
 
     setLoading(true);
@@ -101,7 +95,13 @@ export default function UserTransferPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace, userProfile]);
+
+  useEffect(() => {
+    if (currentWorkspace?.id && userProfile?.id && isOwner) {
+      loadTransferData();
+    }
+  }, [currentWorkspace, userProfile, isOwner, loadTransferData]);
 
   const handleUserSelect = (userId: string, checked: boolean) => {
     setSelectedUsers(prev => 
@@ -122,7 +122,7 @@ export default function UserTransferPage() {
     }
   };
 
-  const handleTransfer = async () => {
+  const handleTransfer = useCallback(async () => {
     if (selectedUsers.length === 0 || !selectedDestination || !userProfile?.id || !currentWorkspace?.id) {
       return;
     }
@@ -172,7 +172,7 @@ export default function UserTransferPage() {
     } finally {
       setTransferring(false);
     }
-  };
+  }, [selectedUsers, selectedDestination, userProfile, currentWorkspace, selectedRole, loadTransferData]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {

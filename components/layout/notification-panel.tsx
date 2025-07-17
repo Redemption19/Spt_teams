@@ -35,7 +35,6 @@ export function NotificationPanel({ children }: NotificationPanelProps) {
   const { 
     notifications, 
     unreadCount, 
-    loading, 
     markAsRead, 
     markAllAsRead, 
     deleteNotification 
@@ -140,7 +139,7 @@ export function NotificationPanel({ children }: NotificationPanelProps) {
 
         {/* Content */}
         <div className="max-h-96">
-          {loading ? (
+          {notifications === undefined || notifications === null ? (
             <div className="p-4 flex items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
               <span className="text-sm text-muted-foreground">Loading notifications...</span>
@@ -150,7 +149,7 @@ export function NotificationPanel({ children }: NotificationPanelProps) {
               <BellOff className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">No notifications yet</p>
               <p className="text-xs text-muted-foreground mt-1">
-                You'll see important updates here
+                You&apos;ll see important updates here
               </p>
             </div>
           ) : (

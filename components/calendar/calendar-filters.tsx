@@ -56,7 +56,7 @@ export function CalendarFilters({
       setLocalFilters(filters);
       isInitializedRef.current = true;
     }
-  }, [filters.types.length, filters.status.length, filters.departments.length, filters.teams.length, filters.priority.length, filters.searchTerm]);
+  }, [filters, filters.types.length, filters.status.length, filters.departments.length, filters.teams.length, filters.priority.length, filters.searchTerm]);
 
   const eventTypes = useMemo(() => [
     { value: 'meeting', label: 'Meetings', icon: '👥', color: 'bg-blue-100 text-blue-800' },

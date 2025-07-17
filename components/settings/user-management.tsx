@@ -54,6 +54,8 @@ import { toDate } from '@/lib/firestore-utils';
 import { UserFilters } from './user-management/user-filters';
 import { UserList } from './user-management/user-list';
 import { UserDialogs } from './user-management/user-dialogs';
+import { PermissionsDialog } from './user-management/permissions/permissions-dialog';
+import { PermissionsTemplates } from './user-management/permissions/permissions-templates';
 
 interface UserItem {
   user: any;
@@ -129,6 +131,9 @@ export function UserManagement() {
   });
 
   const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
+  const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
+  const [isPermissionsTemplatesOpen, setIsPermissionsTemplatesOpen] = useState(false);
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<UserItem | null>(null);
 
   const [roleForm, setRoleForm] = useState({
     userId: '',
@@ -414,6 +419,23 @@ export function UserManagement() {
   const handleUserSettings = (userItem: UserItem) => {
     setSelectedUser(userItem);
     setIsUserSettingsOpen(true);
+  };
+
+  const handleOpenPermissions = (userItem: UserItem) => {
+    setSelectedUserForPermissions(userItem);
+    setIsPermissionsOpen(true);
+  };
+
+  const handleOpenPermissionsTemplates = () => {
+    setIsPermissionsTemplatesOpen(true);
+  };
+
+  const handleApplyPermissionTemplate = (template: any) => {
+    if (selectedUserForPermissions) {
+      // Apply template permissions to the selected user
+      // This will be implemented in the permissions dialog
+      console.log('Applying template:', template.name, 'to user:', selectedUserForPermissions.user.name);
+    }
   };
 
   const handleResetPassword = async () => {
@@ -823,7 +845,7 @@ export function UserManagement() {
                 System-Wide User Management (Owner View)
               </h4>
               <p className="text-sm text-blue-700 dark:text-blue-400">
-                You're viewing ALL users across the entire system. Users from different workspaces are highlighted.
+                You&apos;re viewing ALL users across the entire system. Users from different workspaces are highlighted.
               </p>
             </div>
           )}
@@ -883,6 +905,7 @@ export function UserManagement() {
             onChangeRole={openChangeRoleDialog}
             onEditUser={handleEditUser}
             onUserSettings={handleUserSettings}
+            onOpenPermissions={handleOpenPermissions}
           />
         </TabsContent>
 
@@ -957,6 +980,30 @@ export function UserManagement() {
         onDeactivateUser={handleDeactivateUser}
         onReactivateUser={handleReactivateUser}
         onDeleteUser={handleDeleteUser}
+      />
+
+      {/* Permissions Dialog */}
+      {selectedUserForPermissions && (
+        <PermissionsDialog
+          isOpen={isPermissionsOpen}
+          onClose={() => {
+            setIsPermissionsOpen(false);
+            setSelectedUserForPermissions(null);
+          }}
+          userId={selectedUserForPermissions.user.id}
+          userName={selectedUserForPermissions.user.name || `${selectedUserForPermissions.user.firstName || ''} ${selectedUserForPermissions.user.lastName || ''}`.trim()}
+          workspaceId={currentWorkspace?.id || ''}
+          workspaceName={currentWorkspace?.name || ''}
+          currentUserRole={selectedUserForPermissions.role}
+        />
+      )}
+
+      {/* Permissions Templates Dialog */}
+      <PermissionsTemplates
+        isOpen={isPermissionsTemplatesOpen}
+        onClose={() => setIsPermissionsTemplatesOpen(false)}
+        onApplyTemplate={handleApplyPermissionTemplate}
+        currentPermissions={{}}
       />
     </div>
   );

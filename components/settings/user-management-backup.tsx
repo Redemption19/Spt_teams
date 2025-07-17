@@ -785,7 +785,7 @@ export function UserManagement() {
                 System-Wide User Management (Owner View)
               </h4>
               <p className="text-sm text-blue-700 dark:text-blue-400">
-                You're viewing ALL users across the entire system. Users from different workspaces are highlighted.
+                You&apos;re viewing ALL users across the entire system. Users from different workspaces are highlighted.
               </p>
             </div>
           )}
@@ -1631,7 +1631,7 @@ export function UserManagement() {
                           className="h-8 text-sm"
                         />
                         {createUserForm.password && createUserForm.confirmPassword && createUserForm.password !== createUserForm.confirmPassword && (
-                          <p className="text-xs text-red-500">Passwords don't match</p>
+                          <p className="text-xs text-red-500">Passwords don&apos;t match</p>
                         )}
                       </div>
                     </div>

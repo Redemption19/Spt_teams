@@ -502,7 +502,7 @@ export default function CommentSection({
           <div className="border-t pt-4">
             <div className="text-center py-4 text-muted-foreground">
               <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">You don't have permission to comment on this {type}</p>
+              <p className="text-sm">You don&apos;t have permission to comment on this item.</p>
               <p className="text-xs">Contact your administrator for access</p>
             </div>
           </div>

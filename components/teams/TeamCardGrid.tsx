@@ -193,7 +193,7 @@ export default function TeamCardGrid({
                     <div className="flex items-center space-x-2 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-md dark:bg-green-900/20 dark:border-green-800">
                       <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                       <span className="text-sm text-green-700 dark:text-green-300">
-                        You're a {userRole} of this team
+                        You&apos;re a {userRole} of this team
                       </span>
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,23 +70,14 @@ export default function ManageMembersDialog({
   const [processingActions, setProcessingActions] = useState<{[key: string]: boolean}>({});
 
   // Load team members and available users
-  useEffect(() => {
-    if (isOpen && team) {
-      loadData();
-    }
-  }, [isOpen, team]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [teamMembers, workspaceUsers] = await Promise.all([
         TeamService.getTeamMembersWithDetails(team.id),
         UserService.getUsersByWorkspace(team.workspaceId),
       ]);
-
       setMembers(teamMembers);
-      
-      // Filter out users who are already team members
       const memberUserIds = teamMembers.map((m: TeamMemberWithDetails) => m.userId);
       const availableUsersFiltered = workspaceUsers.filter((user: any) => 
         !memberUserIds.includes(user.id)
@@ -102,7 +93,13 @@ export default function ManageMembersDialog({
     } finally {
       setLoading(false);
     }
-  };
+  }, [team]);
+
+  useEffect(() => {
+    if (isOpen && team) {
+      loadData();
+    }
+  }, [isOpen, team, loadData]);
 
   const handleAddMember = async () => {
     if (!selectedUserId || !canManageMembers) return;
@@ -462,7 +459,7 @@ export default function ManageMembersDialog({
                     </h3>
                   </div>
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    This team doesn't have a lead. You can assign one of the current members as team lead.
+                    This team doesn&apos;t have a lead. You can assign one of the current members as team lead.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {members.map((member) => (

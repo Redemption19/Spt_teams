@@ -414,13 +414,29 @@ export function useProjectRole(project: Project | null, userId?: string): {
  * Hook to get user's permissions for a specific project
  */
 export function useProjectPermissions(project: Project | null, userId?: string): ProjectPermissions {
-  const { userRole } = useWorkspace();
+  const { userRole, currentWorkspace } = useWorkspace();
+  const { userProfile } = useAuth();
   const basePermissions = useRolePermissions();
   const projectRole = useProjectRole(project, userId);
 
   if (!project || !userId) {
     return {
       canView: false,
+      canEdit: false,
+      canDelete: false,
+      canCreateTasks: false,
+      canManageTasks: false,
+      canAssignTasks: false,
+      canManageMembers: false,
+      canChangeVisibility: false,
+      canArchive: false,
+    };
+  }
+
+  // --- GUEST PUBLIC OVERRIDE ---
+  if (isGuestWithPublicAccess(userProfile, currentWorkspace)) {
+    return {
+      canView: true,
       canEdit: false,
       canDelete: false,
       canCreateTasks: false,
@@ -544,7 +560,8 @@ export function useProjectPermissions(project: Project | null, userId?: string):
  * Hook to get user's permissions for a specific task
  */
 export function useTaskPermissions(task: Task | null, project: Project | null, userId?: string): TaskPermissions {
-  const { userRole } = useWorkspace();
+  const { userRole, currentWorkspace } = useWorkspace();
+  const { userProfile } = useAuth();
   const projectPermissions = useProjectPermissions(project, userId);
 
   if (!task || !project || !userId) {
@@ -556,6 +573,20 @@ export function useTaskPermissions(task: Task | null, project: Project | null, u
       canAssign: false,
       canChangeStatus: false,
       canViewComments: false,
+      canEditComments: false,
+    };
+  }
+
+  // --- GUEST PUBLIC OVERRIDE ---
+  if (isGuestWithPublicAccess(userProfile, currentWorkspace)) {
+    return {
+      canView: true,
+      canEdit: false,
+      canDelete: false,
+      canComment: false,
+      canAssign: false,
+      canChangeStatus: false,
+      canViewComments: true,
       canEditComments: false,
     };
   }
@@ -879,9 +910,14 @@ export function useCanCreateFolders(): boolean {
  */
 export function useCanAccessFolder(folder?: Folder): boolean {
   const { userProfile } = useAuth();
-  const { userRole } = useWorkspace();
+  const { userRole, currentWorkspace } = useWorkspace();
   
   if (!userProfile || !folder || !userRole) return false;
+  
+  // --- GUEST PUBLIC OVERRIDE ---
+  if (isGuestWithPublicAccess(userProfile, currentWorkspace)) {
+    return true;
+  }
   
   // Owner and Admin have access to all folders
   if (userRole === 'owner' || userRole === 'admin') {
@@ -1084,9 +1120,14 @@ export function useCanCreateMemberFolders(): boolean {
  */
 export function useAccessibleFolders(folders: Folder[]): Folder[] {
   const { userProfile } = useAuth();
-  const { userRole } = useWorkspace();
+  const { userRole, currentWorkspace } = useWorkspace();
   
   if (!userProfile || !userRole) return [];
+  
+  // --- GUEST PUBLIC OVERRIDE ---
+  if (isGuestWithPublicAccess(userProfile, currentWorkspace)) {
+    return folders;
+  }
   
   return folders.filter(folder => {
     // Owner and Admin see all folders
@@ -1650,4 +1691,9 @@ export function getAccessibleCalendarReports(reports: any[], userId: string, cur
            report.visibility === 'public' ||
            !report.visibility;
   });
+} 
+
+// --- RBAC OVERRIDE FOR GUEST ACCESS ---
+function isGuestWithPublicAccess(userProfile: any, currentWorkspace: any) {
+  return userProfile?.isGuest && currentWorkspace?.settings?.allowGuestAccess;
 } 

@@ -148,7 +148,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, currentUserId, c
               ))}
             </span>
             <span className="text-sm text-muted-foreground">Rated {ticket.satisfaction}/5</span>
-            {ticket.feedbackComment && <span className="text-sm text-muted-foreground italic ml-2">"{ticket.feedbackComment}"</span>}
+            {ticket.feedbackComment && <span className="text-sm text-muted-foreground italic ml-2">&quot;{ticket.feedbackComment}&quot;</span>}
           </div>
         )}
         {/* Rate Ticket button for members */}

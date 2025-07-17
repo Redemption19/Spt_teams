@@ -86,14 +86,16 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
 
   // Load reports and templates with cross-workspace support
   const loadData = useCallback(async () => {
+    // Use guest workspace if needed
+    const workspaceId = currentWorkspace?.id || (userProfile?.isGuest ? 'guest-workspace' : undefined);
     console.log('🔄 MyReports loadData started', { 
-      workspaceId: currentWorkspace?.id, 
+      workspaceId, 
       userId: user?.uid,
       showAllWorkspaces,
       accessibleWorkspaces: accessibleWorkspaces?.length || 0
     });
 
-    if (!currentWorkspace?.id || !user?.uid) return;
+    if (!workspaceId || !user?.uid) return;
 
     try {
       setLoading(true);
@@ -101,7 +103,7 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
       // Determine workspace IDs to load from
       const workspaceIds = (isOwner && showAllWorkspaces && accessibleWorkspaces?.length) 
         ? accessibleWorkspaces.map(w => w.id)
-        : [currentWorkspace.id];
+        : [workspaceId];
       
       console.log('🏢 Loading my reports from workspaces:', workspaceIds);
 
@@ -113,17 +115,17 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
         try {
           const [wsUserReports, wsAvailableTemplates] = await Promise.all([
             ReportService.getUserReports(wsId, user.uid, {
-          orderBy: 'updatedAt',
-          orderDirection: 'desc',
-          limit: 50
-        }),
-        userProfile?.departmentId ? ReportTemplateService.getTemplatesForUser(
+              orderBy: 'updatedAt',
+              orderDirection: 'desc',
+              limit: 50
+            }),
+            userProfile?.departmentId ? ReportTemplateService.getTemplatesForUser(
               wsId,
-          userProfile.departmentId,
-          userProfile.role,
-          { status: 'active' }
-        ) : []
-      ]);
+              userProfile.departmentId,
+              userProfile.role,
+              { status: 'active' }
+            ) : []
+          ]);
 
           // Aggregate user reports (avoid duplicates)
           wsUserReports.forEach(report => {
@@ -168,11 +170,18 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
   }, [currentWorkspace?.id, user?.uid, userProfile, isOwner, showAllWorkspaces, accessibleWorkspaces, toast]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if ((currentWorkspace?.id || userProfile?.isGuest) && user?.uid) {
+      loadData();
+    }
+  }, [currentWorkspace?.id, user?.uid, userProfile?.isGuest, loadData]);
 
-  // Filter reports (logic remains here as it depends on local state `reports` and `templates`)
-  const filteredReports = reports.filter(report => {
+  // Helper: guest public access
+  function isGuestWithPublicAccess() {
+    return userProfile?.isGuest && currentWorkspace?.settings?.allowGuestAccess;
+  }
+
+  // When filtering reports for display:
+  const filteredReports = isGuestWithPublicAccess() ? reports : reports.filter(report => {
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -181,15 +190,12 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
         report.title?.toLowerCase().includes(searchLower) ||
         template?.name?.toLowerCase().includes(searchLower) ||
         template?.category?.toLowerCase().includes(searchLower);
-
       if (!matchesSearch) return false;
     }
-
     // Status filter
     if (statusFilter !== 'all' && report.status !== statusFilter) {
       return false;
     }
-
     return true;
   });
 

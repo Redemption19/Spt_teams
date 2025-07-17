@@ -75,6 +75,7 @@ export function PendingApprovals({ showAllWorkspaces, accessibleWorkspaces }: Cr
   // Check permissions
   const canManageReports = permissions.canManageReports;
 
+  const accessibleWorkspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
   // Load all data with cross-workspace support
   const loadData = useCallback(async () => {
     console.log('🔄 PendingApprovals loadData started', { 
@@ -182,7 +183,7 @@ export function PendingApprovals({ showAllWorkspaces, accessibleWorkspaces }: Cr
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, canManageReports, filters, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '', toast]);
+  }, [currentWorkspace?.id, user?.uid, canManageReports, filters, isOwner, showAllWorkspaces, accessibleWorkspaces, toast]);
 
   useEffect(() => {
     loadData();
@@ -316,7 +317,7 @@ export function PendingApprovals({ showAllWorkspaces, accessibleWorkspaces }: Cr
         <Shield className="h-16 w-16 text-muted-foreground" />
         <h2 className="text-xl font-semibold text-foreground">Access Restricted</h2>
         <p className="text-muted-foreground text-center max-w-md">
-          You don't have permission to view pending report approvals. Only administrators and owners can access this page.
+          You don&apos;t have permission to view pending report approvals. Only administrators and owners can access this page.
         </p>
       </div>
     );

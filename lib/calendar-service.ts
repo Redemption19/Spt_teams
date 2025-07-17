@@ -24,16 +24,16 @@ let ReportTemplateService: any;
 // Lazy load services when needed
 const getReportService = async () => {
   if (!ReportService) {
-    const module = await import('./report-service');
-    ReportService = module.ReportService;
+    const importedModule = await import('./report-service');
+    ReportService = importedModule.ReportService;
   }
   return ReportService;
 };
 
 const getReportTemplateService = async () => {
   if (!ReportTemplateService) {
-    const module = await import('./report-template-service');
-    ReportTemplateService = module.ReportTemplateService;
+    const importedModule = await import('./report-template-service');
+    ReportTemplateService = importedModule.ReportTemplateService;
   }
   return ReportTemplateService;
 };

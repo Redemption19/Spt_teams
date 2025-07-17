@@ -227,7 +227,7 @@ export function ReportCard({
                   Reject Report
                 </DialogTitle>
                 <DialogDescription>
-                  Provide feedback for "{report.title}". This will be sent to the author.
+                  Provide feedback for &quot;{report.title}&quot;. This will be sent to the author.
                 </DialogDescription>
               </DialogHeader>
               

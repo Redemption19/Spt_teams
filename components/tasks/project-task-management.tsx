@@ -77,7 +77,7 @@ export const STATUS_COLORS = {
 };
 
 export default function ProjectTaskManagement() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { currentWorkspace, userRole, accessibleWorkspaces } = useWorkspace();
   
   // Cross-workspace management state for owners
@@ -157,6 +157,7 @@ export default function ProjectTaskManagement() {
   });
 
   // Load data with cross-workspace support
+  const workspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
   const loadData = useCallback(async () => {
     console.log('🔄 Tasks loadData started', { 
       workspaceId: currentWorkspace?.id, 
@@ -283,7 +284,7 @@ export default function ProjectTaskManagement() {
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace, user, selectedProject, isOwner, showAllWorkspaces, accessibleWorkspaces?.map(w => w.id).join(',') || '']);
+  }, [currentWorkspace, user, isOwner, selectedProject, accessibleWorkspaces, showAllWorkspaces]);
 
   // Project Handlers
   const handleCreateProject = async () => {
@@ -637,8 +638,45 @@ export default function ProjectTaskManagement() {
   };
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if ((currentWorkspace?.id || userProfile?.isGuest) && user?.uid) {
+      loadData();
+    }
+  }, [currentWorkspace?.id, user?.uid, userProfile?.isGuest, loadData]);
+
+  // Helper: guest public access
+  function isGuestWithPublicAccess() {
+    return userProfile?.isGuest && currentWorkspace?.settings?.allowGuestAccess;
+  }
+
+  // Show all projects/tasks for owners in All Workspaces mode
+  const showAll = isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1;
+
+  const visibleProjects = isGuestWithPublicAccess()
+    ? projects
+    : showAll
+      ? projects
+      : projects.filter(project => {
+          return user && (
+            project.ownerId === user.uid ||
+            project.projectAdmins?.includes(user.uid) ||
+            project.projectMembers?.includes(user.uid)
+          );
+        });
+
+  const visibleTasks = isGuestWithPublicAccess()
+    ? tasks
+    : showAll
+      ? tasks
+      : tasks.filter(task => {
+          return user && (
+            task.assigneeId === user.uid ||
+            (task.projectId ? (
+              projects.find(p => p.id === task.projectId)?.ownerId === user.uid ||
+              projects.find(p => p.id === task.projectId)?.projectAdmins?.includes(user.uid) ||
+              projects.find(p => p.id === task.projectId)?.projectMembers?.includes(user.uid)
+            ) : false)
+          );
+        });
 
   if (loading) {
     return (
@@ -668,17 +706,17 @@ export default function ProjectTaskManagement() {
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center space-x-2">
               <Folder className="h-4 w-4 text-primary" />
-              <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
+              <span>{visibleProjects.length} project{visibleProjects.length !== 1 ? 's' : ''}</span>
             </div>
             <div className="h-4 w-px bg-border hidden sm:block" />
             <div className="flex items-center space-x-2">
               <Target className="h-4 w-4 text-primary" />
-              <span>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
+              <span>{visibleTasks.length} task{visibleTasks.length !== 1 ? 's' : ''}</span>
             </div>
             <div className="h-4 w-px bg-border hidden sm:block" />
             <div className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4 text-primary" />
-              <span>{tasks.filter(t => t.status === 'completed').length} completed</span>
+              <span>{visibleTasks.filter(t => t.status === 'completed').length} completed</span>
             </div>
           </div>
         </div>
@@ -739,7 +777,7 @@ export default function ProjectTaskManagement() {
                 setIsOpen={setIsCreateTaskOpen}
                 taskForm={taskForm}
                 setTaskForm={setTaskForm}
-                projects={getProjectsWhereUserCanCreateTasks()} // ✅ Only show projects where user can create tasks
+                projects={getProjectsWhereUserCanCreateTasks()}
                 users={users}
                 onSubmit={handleCreateTask}
                 submitting={submitting}
@@ -776,7 +814,7 @@ export default function ProjectTaskManagement() {
               <TabsTrigger value="projects" className="text-xs sm:text-sm">
                 <Folder className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">
-                  Projects ({projects.length})
+                  Projects ({visibleProjects.length})
                   {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
                 </span>
                 <span className="sm:hidden">
@@ -795,7 +833,7 @@ export default function ProjectTaskManagement() {
               <TabsTrigger value="list" className="text-xs sm:text-sm">
                 <List className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">
-                  List View ({tasks.length})
+                  List View ({visibleTasks.length})
                   {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
                 </span>
                 <span className="sm:hidden">
@@ -907,7 +945,7 @@ export default function ProjectTaskManagement() {
 
           <TabsContent value="projects" className="mt-6">
             <ProjectCardGrid
-              projects={projects}
+              projects={visibleProjects}
               setSelectedProject={setSelectedProject}
               setActiveTab={setActiveTab}
               handleEditProject={handleEditProject}

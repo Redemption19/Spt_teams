@@ -83,13 +83,16 @@ export default function PerformanceChart({
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PerformanceData[]>([]);
 
+  const accessibleWorkspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
+  const filtersDateRangeFrom = filters.dateRange.from.getTime();
+  const filtersDateRangeTo = filters.dateRange.to.getTime();
+  const filtersDateRangePreset = filters.dateRange.preset;
+
   const fetchPerformanceData = useCallback(async () => {
     if (!workspaceId || !userId) return;
     
     try {
       setLoading(true);
-      
-      const { from, to, preset } = filters.dateRange;
       
       // Determine workspace IDs to load from
       const workspaceIds = showAllWorkspaces && accessibleWorkspaces?.length 
@@ -97,7 +100,7 @@ export default function PerformanceChart({
         : [workspaceId];
       
       // Get time intervals based on preset
-      const intervals = getTimeIntervals(from, to, preset);
+      const intervals = getTimeIntervals(new Date(filtersDateRangeFrom), new Date(filtersDateRangeTo), filtersDateRangePreset);
       
       const performanceData: PerformanceData[] = [];
       
@@ -175,11 +178,11 @@ export default function PerformanceChart({
     workspaceId, 
     userId, 
     userRole, 
-    filters.dateRange.from.getTime(), 
-    filters.dateRange.to.getTime(), 
-    filters.dateRange.preset,
+    filtersDateRangeFrom, 
+    filtersDateRangeTo, 
+    filtersDateRangePreset,
     showAllWorkspaces, 
-    accessibleWorkspaces?.map(w => w.id).join(',') || ''
+    accessibleWorkspaces
   ]);
 
   useEffect(() => {

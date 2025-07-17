@@ -1,4 +1,5 @@
 // components/tasks/dialogs/CreateEditTaskDialog.tsx
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -10,9 +11,12 @@ import { Loader2, Crown, Shield, User as UserIcon } from 'lucide-react';
 import { Project, Task, User as UserType } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
 import { useProjectRole } from '@/lib/rbac-hooks';
-// Import from the main project-task-management.tsx for shared types/constants
 import { TaskWithDisplayInfo } from '../project-task-management';
+import ProjectSelectItem from './ProjectSelectItem'; // Adjust the import path as needed
 
+/**
+ * Props for the CreateEditTaskDialog component.
+ */
 interface CreateEditTaskDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -25,15 +29,7 @@ interface CreateEditTaskDialogProps {
     status: Task['status'];
     estimatedHours: string;
   };
-  setTaskForm: React.Dispatch<React.SetStateAction<{
-    title: string;
-    description: string;
-    projectId: string;
-    assigneeId: string | undefined;
-    priority: Task['priority'];
-    status: Task['status'];
-    estimatedHours: string;
-  }>>;
+  setTaskForm: React.Dispatch<React.SetStateAction<CreateEditTaskDialogProps['taskForm']>>;
   projects: Project[];
   users: UserType[];
   onSubmit: () => Promise<void>;
@@ -42,6 +38,10 @@ interface CreateEditTaskDialogProps {
   editingTask?: TaskWithDisplayInfo | null;
 }
 
+/**
+ * A dialog component for creating and editing tasks.
+ * It includes role-based access control (RBAC) information for project selection.
+ */
 export default function CreateEditTaskDialog({
   isOpen,
   setIsOpen,
@@ -52,14 +52,15 @@ export default function CreateEditTaskDialog({
   onSubmit,
   submitting,
   isEdit,
-  editingTask,
 }: CreateEditTaskDialogProps) {
   const { user } = useAuth();
   
-  // ✅ ENHANCED RBAC - Get selected project role information
+  // Find the currently selected project to display the user's role for it.
   const selectedProject = projects.find(p => p.id === taskForm.projectId);
+  // This hook call is safe as it's at the top level.
   const projectRole = useProjectRole(selectedProject || null, user?.uid);
 
+  // Helper function to get a role-specific icon.
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'owner': return <Crown className="h-3 w-3" />;
@@ -68,6 +69,7 @@ export default function CreateEditTaskDialog({
     }
   };
 
+  // Helper function to get role-specific colors for badges.
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'owner': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
@@ -97,12 +99,7 @@ export default function CreateEditTaskDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="task-project" className="text-xs sm:text-sm">
-                Project * {selectedProject && (
-                  <Badge className={`ml-2 text-xs ${getRoleColor(projectRole.role)}`}>
-                    {getRoleIcon(projectRole.role)}
-                    <span className="ml-1 capitalize">{projectRole.role}</span>
-                  </Badge>
-                )}
+                Project *
               </Label>
               <Select
                 value={taskForm.projectId || "unassigned"}
@@ -113,25 +110,20 @@ export default function CreateEditTaskDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unassigned">Select a project</SelectItem>
-                  {projects.map((project) => {
-                    const role = useProjectRole(project, user?.uid);
-                    return (
-                      <SelectItem key={project.id} value={project.id}>
-                        <div className="flex items-center space-x-2">
-                          <span>{project.name}</span>
-                          <Badge className={`text-xs ${getRoleColor(role.role)}`}>
-                            {getRoleIcon(role.role)}
-                            <span className="ml-1 capitalize">{role.role}</span>
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
+                  {/* ✅ Use the new component inside the loop */}
+                  {projects.map((project) => (
+                    <ProjectSelectItem
+                      key={project.id}
+                      project={project}
+                      userId={user?.uid}
+                      getRoleIcon={getRoleIcon}
+                      getRoleColor={getRoleColor}
+                    />
+                  ))}
                 </SelectContent>
               </Select>
-              {/* ✅ ENHANCED RBAC - Show helpful message if no projects available */}
               {projects.length === 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   No projects available. You must be a member of a project to create tasks.
                 </p>
               )}
@@ -162,9 +154,9 @@ export default function CreateEditTaskDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
+                  {users.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -176,9 +168,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.priority}
                 onValueChange={(value: Task['priority']) => setTaskForm(prev => ({ ...prev, priority: value }))}
               >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -193,9 +183,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.status}
                 onValueChange={(value: Task['status']) => setTaskForm(prev => ({ ...prev, status: value }))}
               >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todo">To Do</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
@@ -217,7 +205,6 @@ export default function CreateEditTaskDialog({
             </div>
           </div>
 
-          {/* ✅ ENHANCED RBAC - Show project role information */}
           {selectedProject && (
             <div className="p-3 bg-muted/50 rounded-lg border">
               <div className="text-xs text-muted-foreground mb-1">Your role in this project:</div>
@@ -238,10 +225,10 @@ export default function CreateEditTaskDialog({
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-2 border-t">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4 mt-4 border-t">
             <Button
               variant="outline"
-              className="w-full sm:w-auto order-2 sm:order-1"
+              className="w-full sm:w-auto"
               onClick={() => setIsOpen(false)}
             >
               Cancel
@@ -249,7 +236,7 @@ export default function CreateEditTaskDialog({
             <Button
               onClick={onSubmit}
               disabled={submitting || !taskForm.title || !taskForm.projectId}
-              className="w-full sm:w-auto order-1 sm:order-2"
+              className="w-full sm:w-auto"
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEdit ? 'Update Task' : 'Create Task'}

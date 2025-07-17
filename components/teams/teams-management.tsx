@@ -252,7 +252,7 @@ export function TeamsManagement() {
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid]);
+  }, [currentWorkspace, user]);
 
   useEffect(() => {
     loadWorkspaceData();
@@ -580,13 +580,10 @@ export function TeamsManagement() {
   const filteredTeams = useMemo(() => {
     return teams.filter(team => {
       const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (team.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+        (team.description || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesBranch = selectedBranch === 'all' || team.branchId === selectedBranch;
       const matchesRegion = selectedRegion === 'all' || team.regionId === selectedRegion;
-
-      const matchesWorkspace = selectedWorkspace === 'all' || 
-                             (team as any).workspaceId === selectedWorkspace;
-
+      const matchesWorkspace = selectedWorkspace === 'all' || (team as any).workspaceId === selectedWorkspace;
       return matchesSearch && matchesBranch && matchesRegion && matchesWorkspace;
     }).reduce((unique: (Team | SystemWideTeam)[], team: Team | SystemWideTeam) => {
       const exists = unique.find(existing => existing.id === team.id);
@@ -602,56 +599,42 @@ export function TeamsManagement() {
     if (!regions || !user || !currentWorkspace) {
       return [];
     }
-    
-    // If user is owner of main workspace, show all regions
     if (!currentWorkspace.parentWorkspaceId && currentWorkspace.ownerId === user.uid) {
       return regions;
     }
-    
-    // For admin/member users, show only regions from current workspace
     const currentWorkspaceRegions = regions.filter(region => region.workspaceId === currentWorkspace.id);
-    
-    // Add regions from teams the user belongs to (cross-workspace access)
     const teamRegionIds = userTeams.map(ut => teams.find(t => t.id === ut.team.id)?.regionId).filter(Boolean);
     const teamRegions = regions.filter(region => teamRegionIds.includes(region.id));
-    
-    // Combine and deduplicate
     const allAccessibleRegions = [...currentWorkspaceRegions];
     teamRegions.forEach(region => {
       if (!allAccessibleRegions.find(r => r.id === region.id)) {
         allAccessibleRegions.push(region);
       }
     });
-    
     return allAccessibleRegions;
-  }, [regions, user?.uid, currentWorkspace?.id, currentWorkspace?.ownerId, currentWorkspace?.parentWorkspaceId, userTeams, teams]);
+  }, [regions, user, currentWorkspace, userTeams, teams]);
 
   const filteredBranches = useMemo(() => {
     if (!branches || !user || !currentWorkspace) return [];
-    
-    // Similar logic for branches
     if (!currentWorkspace.parentWorkspaceId && currentWorkspace.ownerId === user.uid) {
       return branches;
     }
-    
     const currentWorkspaceBranches = branches.filter(branch => branch.workspaceId === currentWorkspace.id);
     const teamBranchIds = userTeams.map(ut => teams.find(t => t.id === ut.team.id)?.branchId).filter(Boolean);
     const teamBranches = branches.filter(branch => teamBranchIds.includes(branch.id));
-    
     const allAccessibleBranches = [...currentWorkspaceBranches];
     teamBranches.forEach(branch => {
       if (!allAccessibleBranches.find(b => b.id === branch.id)) {
         allAccessibleBranches.push(branch);
       }
     });
-    
     return allAccessibleBranches;
-  }, [branches, user?.uid, currentWorkspace?.id, currentWorkspace?.ownerId, currentWorkspace?.parentWorkspaceId, userTeams, teams]);
+  }, [branches, user, currentWorkspace, userTeams, teams]);
 
   // Simple stable ownership check
   const isWorkspaceOwner = useMemo(() => {
     return currentWorkspace && !currentWorkspace.parentWorkspaceId && currentWorkspace.ownerId === user?.uid;
-  }, [currentWorkspace?.id, currentWorkspace?.parentWorkspaceId, currentWorkspace?.ownerId, user?.uid]);
+  }, [currentWorkspace, user]);
 
   if (!currentWorkspace) {
     return (
@@ -682,7 +665,7 @@ export function TeamsManagement() {
                 System-Wide Teams Management
               </h3>
               <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-300 mt-1">
-                You're viewing teams across all {availableWorkspaces.length} workspaces. 
+                {`You&apos;re viewing teams across all ${availableWorkspaces.length} workspaces.`}
                 Teams are displayed with their workspace context.
               </p>
             </div>
@@ -709,7 +692,7 @@ export function TeamsManagement() {
                 )}
                 {userTeams.length > 0 && (
                   <span className="block sm:inline sm:ml-2">
-                    • You're in {userTeams.length} team{userTeams.length !== 1 ? 's' : ''}
+                    • You&apos;re in {userTeams.length} team{userTeams.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </>
@@ -720,7 +703,7 @@ export function TeamsManagement() {
                 </span>
                 {userTeams.length > 0 && (
                   <span className="block sm:inline sm:ml-2">
-                    • You're a member of {userTeams.length} team{userTeams.length !== 1 ? 's' : ''}
+                    • You&apos;re a member of {userTeams.length} team{userTeams.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </>

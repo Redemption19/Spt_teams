@@ -171,11 +171,9 @@ export default function ProductivityTrendsChart({
     workspaceId, 
     userId, 
     userRole, 
-    filters.dateRange.from.getTime(), 
-    filters.dateRange.to.getTime(), 
-    filters.dateRange.preset,
+    filters, 
     showAllWorkspaces, 
-    accessibleWorkspaces?.map(w => w.id).join(',') || ''
+    accessibleWorkspaces
   ]);
 
   useEffect(() => {

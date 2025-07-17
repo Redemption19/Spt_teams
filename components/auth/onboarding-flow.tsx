@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,15 +34,7 @@ export function OnboardingFlow({ inviteToken }: OnboardingFlowProps) {
     type: 'company' as const,
   });
 
-  useEffect(() => {
-    if (inviteToken) {
-      handleInviteFlow();
-    } else {
-      checkExistingWorkspaces();
-    }
-  }, [inviteToken, user]);
-
-  const handleInviteFlow = async () => {
+  const handleInviteFlow = useCallback(async () => {
     if (!inviteToken || !user) return;
 
     try {
@@ -82,9 +74,9 @@ export function OnboardingFlow({ inviteToken }: OnboardingFlowProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [inviteToken, user, router]);
 
-  const checkExistingWorkspaces = async () => {
+  const checkExistingWorkspaces = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -106,7 +98,12 @@ export function OnboardingFlow({ inviteToken }: OnboardingFlowProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, router, clearNewUserFlag]);
+
+  useEffect(() => {
+    handleInviteFlow();
+    checkExistingWorkspaces();
+  }, [handleInviteFlow, checkExistingWorkspaces]);
 
   const handleCreateWorkspace = async () => {
     if (!user || !workspaceForm.name) return;
@@ -157,7 +154,7 @@ export function OnboardingFlow({ inviteToken }: OnboardingFlowProps) {
           Welcome to SPT Teams!
         </h1>
         <p className="text-lg text-muted-foreground">
-          Let's get your workspace set up in just a few steps
+          Let&apos;s get your workspace set up in just a few steps
         </p>
       </div>
       
@@ -266,7 +263,7 @@ export function OnboardingFlow({ inviteToken }: OnboardingFlowProps) {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-3">Create Your Workspace</h2>
         <p className="text-lg text-muted-foreground">
-          Set up your organization's digital headquarters
+          Set up your organization&apos;s digital headquarters
         </p>
       </div>
       
@@ -285,7 +282,7 @@ export function OnboardingFlow({ inviteToken }: OnboardingFlowProps) {
                 className="h-12 text-base"
               />
               <p className="text-sm text-muted-foreground">
-                This is your organization's name
+                This is your organization&apos;s name
               </p>
             </div>
 

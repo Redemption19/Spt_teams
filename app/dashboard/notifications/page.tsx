@@ -21,12 +21,15 @@ import {
 import { useNotifications } from '@/lib/notification-context';
 import { Notification } from '@/lib/notification-service';
 import { useRouter } from 'next/navigation';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '@/lib/auth-context';
+import { useWorkspace } from '@/lib/workspace-context';
+import { db } from '@/lib/firebase';
 
 export default function NotificationsPage() {
   const { 
     notifications, 
     unreadCount, 
-    loading, 
     markAsRead, 
     markAllAsRead, 
     deleteNotification 
@@ -34,6 +37,10 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  // Local loading state (optional, or just remove loading UI)
+  // const [loading, setLoading] = useState(false);
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read if unread
@@ -53,6 +60,33 @@ export default function NotificationsPage() {
 
   const handleMarkAsRead = async (notificationId: string) => {
     await markAsRead(notificationId);
+  };
+
+  const handleSeedNotification = async () => {
+    if (!user || !currentWorkspace?.id) {
+      alert('User or workspace not loaded!');
+      return;
+    }
+    try {
+      await addDoc(
+        collection(db, 'workspaces', currentWorkspace.id, 'notifications'),
+        {
+          userId: user.uid,
+          title: 'Seeded Test Notification',
+          message: 'This is a seeded notification for testing.',
+          type: 'system_alert',
+          read: false,
+          createdAt: serverTimestamp(),
+          deleted: false,
+          priority: 'medium',
+          icon: '🔔',
+        }
+      );
+      alert('Seeded a test notification!');
+    } catch (err) {
+      alert('Error seeding notification: ' + (err as Error).message);
+      console.error('Error seeding notification:', err);
+    }
   };
 
   const getPriorityColor = (priority: Notification['priority']) => {
@@ -89,7 +123,7 @@ export default function NotificationsPage() {
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = searchTerm === '' || 
       notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notification.message.toLowerCase().includes(searchTerm.toLowerCase());
+      (notification.message || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesTab = activeTab === 'all' || 
       (activeTab === 'unread' && !notification.read) ||
@@ -98,17 +132,26 @@ export default function NotificationsPage() {
     return matchesSearch && matchesTab;
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin mr-3" />
-        <span className="text-lg">Loading notifications...</span>
-      </div>
-    );
-  }
+  // Remove loading check or use a local loading state if needed
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-64">
+  //       <Loader2 className="h-8 w-8 animate-spin mr-3" />
+  //       <span className="text-lg">Loading notifications...</span>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
+      {/* DEV ONLY: Seed Test Notification Button */}
+      <button
+        className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/80 mb-2"
+        onClick={handleSeedNotification}
+        type="button"
+      >
+        Seed Test Notification
+      </button>
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>
@@ -186,75 +229,58 @@ export default function NotificationsPage() {
                     <div className="flex items-start space-x-4">
                       {/* Priority indicator */}
                       {!notification.read && (
-                        <div className={`w-1 h-16 rounded-full flex-shrink-0 ${getPriorityColor(notification.priority)}`} />
+                        <div className={`w-1 h-16 rounded-full flex-shrink-0 ${getPriorityColor(notification.priority || 'medium')}`} />
                       )}
 
                       {/* Icon */}
                       <div className="flex-shrink-0 mt-1">
-                        <span className="text-2xl">{notification.icon}</span>
+                        <span className="text-2xl">{notification.icon || '🔔'}</span>
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-3">
-                            <h3 className={`text-lg font-medium ${
-                              !notification.read ? 'font-semibold' : ''
-                            }`}>
-                              {notification.title}
-                            </h3>
-                            {getPriorityBadge(notification.priority)}
+                            <span className="font-semibold text-base line-clamp-1">{notification.title}</span>
+                            {getPriorityBadge(notification.priority || 'medium')}
                           </div>
-                          <span className="text-sm text-muted-foreground whitespace-nowrap ml-4">
-                            {formatDistanceToNow(notification.createdAt.toDate(), {
-                              addSuffix: true
-                            })}
+                          <span className="text-xs text-muted-foreground">
+                            {notification.createdAt?.seconds
+                              ? formatDistanceToNow(new Date(notification.createdAt.seconds * 1000), { addSuffix: true })
+                              : ''}
                           </span>
                         </div>
-
-                        <p className="text-muted-foreground mb-4 leading-relaxed">
-                          {notification.message}
-                        </p>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            {notification.actionLabel && (
-                              <span className="text-sm text-primary font-medium flex items-center">
-                                {notification.actionLabel}
-                                <ExternalLink className="h-4 w-4 ml-1" />
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center space-x-2">
-                            {!notification.read && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMarkAsRead(notification.id);
-                                }}
-                              >
-                                <Check className="h-4 w-4 mr-1" />
-                                Mark read
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteNotification(notification.id);
-                              }}
-                              className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
+                        <div className="text-sm text-muted-foreground mb-2">
+                          {notification.message || ''}
                         </div>
+                        {notification.actionUrl && (
+                          <a
+                            href={notification.actionUrl}
+                            className="inline-flex items-center text-xs text-primary hover:text-primary/80 underline mt-2"
+                            onClick={e => { e.stopPropagation(); handleNotificationClick(notification); }}
+                          >
+                            {notification.actionLabel || 'View details'}
+                            <ExternalLink className="w-3 h-3 ml-1" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={e => { e.stopPropagation(); handleMarkAsRead(notification.id); }}
+                          >
+                            <Check className="h-4 w-4 mr-1" /> Mark as read
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={e => { e.stopPropagation(); handleDeleteNotification(notification.id); }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

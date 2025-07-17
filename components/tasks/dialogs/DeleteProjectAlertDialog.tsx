@@ -32,7 +32,7 @@ export default function DeleteProjectAlertDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
             <p>
-              Are you sure you want to delete the project <strong>"{projectToDelete?.name}"</strong>?
+              Are you sure you want to delete the project &quot;{projectToDelete?.name}&quot;? This action cannot be undone.
             </p>
             {projectToDelete && (
               <>

@@ -42,6 +42,7 @@ export interface User {
   // Password management fields
   requiresPasswordChange?: boolean; // True if admin set initial password
   firstLogin?: boolean; // True if user hasn't logged in yet
+  isGuest?: boolean;
 }
 
 // ===== HIERARCHICAL WORKSPACE TYPES =====
@@ -57,6 +58,7 @@ export interface WorkspaceSettings {
   subWorkspaceNamingPattern?: string;
   // Admin workspace creation control
   allowAdminWorkspaceCreation: boolean;
+  allowGuestAccess?: boolean;
 }
 
 export interface HierarchyPermissions {

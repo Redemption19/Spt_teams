@@ -300,11 +300,9 @@ export default function BranchMetricsChart({
     workspaceId, 
     userId, 
     userRole, 
-    filters.dateRange.from.getTime(), 
-    filters.dateRange.to.getTime(), 
-    filters.dateRange.preset,
+    filters.dateRange,
     showAllWorkspaces, 
-    accessibleWorkspaces?.map(w => w.id).join(',') || ''
+    accessibleWorkspaces,
   ]);
 
   useEffect(() => {

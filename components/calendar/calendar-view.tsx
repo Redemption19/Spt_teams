@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useMemo, forwardRef, useImperativeHandle, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -74,7 +74,7 @@ export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(({
     })), [events]);
 
   // Map view names to FullCalendar views
-  const getCalendarView = () => {
+  const getCalendarView = useCallback(() => {
     switch (view) {
       case 'month':
         return 'dayGridMonth';
@@ -85,7 +85,9 @@ export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(({
       default:
         return 'dayGridMonth';
     }
-  };
+  }, [view]);
+
+  const currentDateTime = currentDate.getTime();
 
   // Update calendar when date changes
   useEffect(() => {
@@ -96,12 +98,12 @@ export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(({
       console.log('Calendar date change - Current:', currentDate, 'Calendar internal:', calendarCurrentDate);
       
       // Only navigate if the dates are significantly different (more than a day apart)
-      if (Math.abs(calendarCurrentDate.getTime() - currentDate.getTime()) > 24 * 60 * 60 * 1000) {
+      if (Math.abs(calendarCurrentDate.getTime() - currentDateTime) > 24 * 60 * 60 * 1000) {
         console.log('Navigating calendar to:', currentDate);
       calendarApi.gotoDate(currentDate);
     }
     }
-  }, [currentDate.getTime()]);
+  }, [currentDateTime, currentDate]);
 
   // Initialize calendar to current date on mount
   useEffect(() => {
@@ -122,7 +124,7 @@ export const CalendarView = forwardRef<CalendarViewRef, CalendarViewProps>(({
       const calendarApi = calendarRef.current.getApi();
       calendarApi.changeView(getCalendarView());
     }
-  }, [view]);
+  }, [view, getCalendarView]);
 
   const handleEventClick = (clickInfo: any) => {
     const event = events.find(e => e.id === clickInfo.event.id);

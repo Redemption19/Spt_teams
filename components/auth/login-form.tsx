@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
-import { Chrome, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Chrome, Mail, Lock, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { FirebaseError } from 'firebase/app';
 
 export function LoginForm() {
@@ -18,7 +18,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, signInAsGuest } = useAuth();
   const router = useRouter();
 
   const getErrorMessage = (error: FirebaseError): string => {
@@ -99,13 +99,38 @@ export function LoginForm() {
     }
   };
 
+  const handleGuestSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await signInAsGuest();
+      toast.success('Welcome! You are now exploring as a guest.');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Guest sign-in error:', error);
+      
+      if (error instanceof FirebaseError) {
+        const errorMessage = getErrorMessage(error);
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        const genericError = 'Guest sign-in failed. Please try again.';
+        setError(genericError);
+        toast.error(genericError);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-secondary/10 p-4">
-      <Card className="w-full max-w-md shadow-2xl border card-enhanced">
+      <Card className="w-full max-w-lg shadow-2xl border card-enhanced">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
             <div className="w-8 h-8 bg-primary-foreground rounded-md shadow-inner"></div>
@@ -119,6 +144,7 @@ export function LoginForm() {
             </CardDescription>
           </div>
         </CardHeader>
+        
         <CardContent className="space-y-6">
           {error && (
             <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-900/20">
@@ -128,7 +154,7 @@ export function LoginForm() {
               </AlertDescription>
             </Alert>
           )}
-          
+
           <Button
             variant="outline"
             className="w-full h-12 border-2 border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
@@ -151,70 +177,73 @@ export function LoginForm() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) clearError();
-                  }}
-                  className="pl-10 h-12 transition-all duration-200 focus:border-primary/50"
-                  required
-                  disabled={loading}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (error) clearError();
+                    }}
+                    className="pl-10 h-12 transition-all duration-200 focus:border-primary/50"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (error) clearError();
+                    }}
+                    className="pl-10 pr-10 h-12 transition-all duration-200 focus:border-primary/50"
+                    required
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={loading}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error) clearError();
-                  }}
-                  className="pl-10 pr-10 h-12 transition-all duration-200 focus:border-primary/50"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
-                  disabled={loading}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            <Button 
-              type="submit" 
+
+            <Button
+              type="submit"
               className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200" 
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
-          
+
           <div className="text-center space-y-2">
             <button 
               onClick={() => router.push('/reset-password')}
               className="text-sm text-primary hover:text-accent font-medium transition-colors duration-200 hover:underline"
-              disabled={loading}
             >
               Forgot your password?
             </button>
@@ -227,6 +256,29 @@ export function LoginForm() {
               >
                 Create account
               </button>
+            </div>
+          </div>
+
+          {/* Guest Mode Notice */}
+          <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <User className="h-5 w-5 text-primary mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground mb-1">Guest Mode</p>
+                <p className="text-muted-foreground">
+                  Explore the app without creating an account. Your data will be temporary and won&apos;t be saved permanently.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGuestSignIn}
+                  disabled={loading}
+                  className="mt-3 border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Try as Guest
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>

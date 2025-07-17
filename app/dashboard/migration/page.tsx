@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,17 +44,12 @@ export default function MigrationPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [workspaceSettingsStatus, setWorkspaceSettingsStatus] = useState<any>(null);
 
-  // Load initial status
-  useEffect(() => {
-    loadSystemStatus();
+  const addLog = useCallback((message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs((prev) => [...prev, `[${timestamp}] ${message}`]);
   }, []);
 
-  const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [...prev, `[${timestamp}] ${message}`]);
-  };
-
-  const checkWorkspaceSettingsStatus = async () => {
+  const checkWorkspaceSettingsStatus = useCallback(async () => {
     try {
       const { WorkspaceService } = await import('@/lib/workspace-service');
       const { collection, getDocs } = await import('firebase/firestore');
@@ -84,7 +79,7 @@ export default function MigrationPage() {
       addLog(`Error checking workspace settings: ${error}`);
       console.error('Error checking workspace settings:', error);
     }
-  };
+  }, [addLog]);
 
   const runWorkspaceSettingsMigration = async () => {
     setIsLoading(true);
@@ -141,7 +136,7 @@ export default function MigrationPage() {
     }
   };
 
-  const loadSystemStatus = async () => {
+  const loadSystemStatus = useCallback(async () => {
     setIsLoading(true);
     addLog('Loading system status...');
     
@@ -180,7 +175,11 @@ export default function MigrationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [checkWorkspaceSettingsStatus, addLog]);
+
+  useEffect(() => {
+    loadSystemStatus();
+  }, [loadSystemStatus]);
 
   const runMigration = async () => {
     setIsLoading(true);
@@ -431,7 +430,7 @@ export default function MigrationPage() {
               {workspaceSettingsStatus.isCompleted && (
                 <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                   <h4 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
-                    ✅ What's Next?
+                     What&apos;s Next?
                   </h4>
                   <ul className="text-sm text-green-700 dark:text-green-400 space-y-1">
                     <li>• All workspaces now have admin workspace creation <strong>disabled by default</strong></li>
@@ -468,8 +467,8 @@ export default function MigrationPage() {
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  This update adds the "allowAdminWorkspaceCreation" setting to your existing workspaces. 
-                  It's set to disabled by default for security. Owners can enable it in workspace settings.
+                  This update adds the &quot;allowAdminWorkspaceCreation&quot; setting to your existing workspaces. 
+                  It&apos;s set to disabled by default for security. Owners can enable it in workspace settings.
                 </AlertDescription>
               </Alert>
 

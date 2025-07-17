@@ -713,15 +713,19 @@ export default function FolderManagement() {
     loadData();
   }, [loadData]);
 
+  // Helper: guest public access
+  function isGuestWithPublicAccess() {
+    return userProfile?.isGuest && currentWorkspace?.settings?.allowGuestAccess;
+  }
+
   // Enhanced filter folders with member folder visibility
-  const filteredFolders = accessibleFolders.filter(folder => {
+  const filteredFolders = isGuestWithPublicAccess() ? folders : accessibleFolders.filter(folder => {
     const matchesSearch = folder.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          folder.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || folder.type === selectedType;
     const matchesTeam = selectedTeam === 'all' || folder.teamId === selectedTeam;
     // Apply workspace filter if showAllWorkspaces is true and a specific workspace is selected
     const matchesWorkspace = !showAllWorkspaces || selectedWorkspaceFilter === 'all' || folder.workspaceId === selectedWorkspaceFilter;
-
     return matchesSearch && matchesType && matchesTeam && matchesWorkspace;
   });
 

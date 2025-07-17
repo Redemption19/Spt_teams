@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -86,7 +86,7 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
   });
 
   // Load templates and user reports
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!currentWorkspace?.id || !user?.uid || !userProfile) return;
     
     try {
@@ -127,11 +127,11 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace?.id, user?.uid, userProfile, toast]);
 
   useEffect(() => {
     loadData();
-  }, [currentWorkspace?.id, user?.uid, userProfile]);
+  }, [loadData]);
 
   // Filter templates based on search
   const filteredTemplates = templates.filter(template =>

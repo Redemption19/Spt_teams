@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Users, Building, MapPin, UserPlus, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,9 +30,11 @@ import { SubWorkspaceData, Region, Branch, User } from '@/lib/types';
 interface SubWorkspaceCreatorProps {
   parentWorkspaceId?: string;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function SubWorkspaceCreator({ parentWorkspaceId, trigger }: SubWorkspaceCreatorProps) {
+export function SubWorkspaceCreator({ parentWorkspaceId, trigger, open, onOpenChange }: SubWorkspaceCreatorProps) {
   const { currentWorkspace, createSubWorkspace, canCreateSubWorkspace, refreshWorkspaces } = useWorkspace();
   const { userProfile } = useAuth();
   const { toast } = useToast();
@@ -67,36 +69,17 @@ export function SubWorkspaceCreator({ parentWorkspaceId, trigger }: SubWorkspace
   // Validation
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const workspaceForCreation = parentWorkspaceId ? 
-    { id: parentWorkspaceId } : 
-    currentWorkspace;
+  const workspaceForCreation = useMemo(() => {
+    return parentWorkspaceId ? 
+      { id: parentWorkspaceId } : 
+      currentWorkspace;
+  }, [parentWorkspaceId, currentWorkspace]);
 
-  // Load data when dialog opens
-  useEffect(() => {
-    if (isOpen && workspaceForCreation) {
-      loadWorkspaceData();
-    }
-  }, [isOpen, workspaceForCreation]);
+  // Use controlled open state if provided
+  const dialogOpen = open !== undefined ? open : isOpen;
+  const handleDialogOpenChange = onOpenChange || setIsOpen;
 
-  // Update region branches when region changes
-  useEffect(() => {
-    if (selectedRegionId) {
-      const filteredBranches = branches.filter(b => b.regionId === selectedRegionId);
-      setRegionBranches(filteredBranches);
-      
-      // Auto-select first branch if available
-      if (filteredBranches.length > 0 && !selectedBranchId) {
-        setSelectedBranchId(filteredBranches[0].id);
-      } else if (filteredBranches.length === 0) {
-        setSelectedBranchId('');
-      }
-    } else {
-      setRegionBranches([]);
-      setSelectedBranchId('');
-    }
-  }, [selectedRegionId, branches]);
-
-  const loadWorkspaceData = async () => {
+  const loadWorkspaceData = useCallback(async () => {
     if (!workspaceForCreation) return;
 
     try {
@@ -125,7 +108,32 @@ export function SubWorkspaceCreator({ parentWorkspaceId, trigger }: SubWorkspace
         variant: 'destructive'
       });
     }
-  };
+  }, [workspaceForCreation, toast]);
+
+  // Load data when dialog opens
+  useEffect(() => {
+    if (dialogOpen && workspaceForCreation) {
+      loadWorkspaceData();
+    }
+  }, [dialogOpen, workspaceForCreation, loadWorkspaceData]);
+
+  // Update region branches when region changes
+  useEffect(() => {
+    if (selectedRegionId) {
+      const filteredBranches = branches.filter(b => b.regionId === selectedRegionId);
+      setRegionBranches(filteredBranches);
+      
+      // Auto-select first branch if available
+      if (filteredBranches.length > 0 && !selectedBranchId) {
+        setSelectedBranchId(filteredBranches[0].id);
+      } else if (filteredBranches.length === 0) {
+        setSelectedBranchId('');
+      }
+    } else {
+      setRegionBranches([]);
+      setSelectedBranchId('');
+    }
+  }, [selectedRegionId, branches, selectedBranchId]);
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
@@ -222,15 +230,12 @@ export function SubWorkspaceCreator({ parentWorkspaceId, trigger }: SubWorkspace
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Create Sub-Workspace</span>
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
 
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>

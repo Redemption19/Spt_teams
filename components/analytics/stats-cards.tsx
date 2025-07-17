@@ -59,6 +59,11 @@ export default function StatsCards({
     projectsDueThisWeek: 0
   });
 
+  const accessibleWorkspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
+  const filtersDateRangeFrom = filters.dateRange.from.getTime();
+  const filtersDateRangeTo = filters.dateRange.to.getTime();
+  const filtersDateRangePreset = filters.dateRange.preset;
+
   const fetchStats = useCallback(async () => {
     if (!workspaceId || !userId) {
       console.log('StatsCards: Missing required data:', { workspaceId, userId });
@@ -243,11 +248,9 @@ export default function StatsCards({
     workspaceId, 
     userId, 
     userRole, 
-    filters.dateRange.from.getTime(), 
-    filters.dateRange.to.getTime(), 
-    filters.dateRange.preset,
+    filters.dateRange,
     showAllWorkspaces, 
-    accessibleWorkspaces?.map(w => w.id).join(',') || ''
+    accessibleWorkspaces
   ]);
 
   useEffect(() => {
