@@ -113,7 +113,7 @@ export function MoveUserBetweenWorkspacesCard({ workspaces }: MoveUserBetweenWor
           </Select>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <Checkbox checked={removeFromSource} onCheckedChange={setRemoveFromSource} id="remove-source" />
+          <Checkbox checked={removeFromSource} onCheckedChange={(checked) => setRemoveFromSource(checked === true)} id="remove-source" />
           <label htmlFor="remove-source" className="text-xs text-muted-foreground">Remove from source</label>
         </div>
         <Button onClick={handleMove} disabled={loading || !selectedUserId || !sourceId || !targetId} className="h-10 min-w-[120px]">

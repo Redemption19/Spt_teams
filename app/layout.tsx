@@ -1,3 +1,5 @@
+'use client';
+
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -7,6 +9,7 @@ import { NotificationProvider } from '@/lib/notification-context';
 import { WorkspaceProvider } from '@/lib/workspace-context';
 import { Toaster } from '@/components/ui/toaster';
 import { WorkspaceAssistantProvider, FloatingWorkspaceAssistant } from '@/components/workspace-assistant';
+import { useAuth } from '@/lib/auth-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -14,6 +17,15 @@ export const metadata: Metadata = {
   title: 'WorkSpace - Collaboration Platform',
   description: 'Advanced workspace collaboration system with branch management and analytics',
 };
+
+function WorkspaceProviderWrapper({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  return (
+    <WorkspaceProvider userId={user?.uid || ''}>
+      {children}
+    </WorkspaceProvider>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -25,7 +37,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>
-            <WorkspaceProvider>
+            <WorkspaceProviderWrapper>
               <NotificationProvider>
                 <WorkspaceAssistantProvider>
                   {children}
@@ -33,7 +45,7 @@ export default function RootLayout({
                   <Toaster />
                 </WorkspaceAssistantProvider>
               </NotificationProvider>
-            </WorkspaceProvider>
+            </WorkspaceProviderWrapper>
           </AuthProvider>
         </ThemeProvider>
       </body>
