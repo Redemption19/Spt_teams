@@ -258,7 +258,7 @@ export function TaskDetailPage() {
       toast({
         title: "🗑️ Task Deleted Successfully",
         description: `"${task.title}" has been permanently removed from the project. All task data, comments, and assignments have been cleared.`,
-        className: "border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 text-green-900",
+        className: "border-primary/20 bg-gradient-to-r from-primary/10 to-accent/10 text-primary",
         duration: 5000,
       });
 

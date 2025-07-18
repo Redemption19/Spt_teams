@@ -241,7 +241,7 @@ export function PendingApprovals({ showAllWorkspaces, accessibleWorkspaces }: Cr
           toast({
             title: 'Report Approved',
             description: `"${report.title}" has been approved successfully.`,
-            className: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white',
+            className: 'bg-gradient-to-r from-primary to-accent text-white', // Brand/dark color
           });
 
           if (viewMode === 'review') {

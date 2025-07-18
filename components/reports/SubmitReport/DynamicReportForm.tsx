@@ -29,6 +29,7 @@ import { ReportTemplate, ReportTemplateField, EnhancedReport } from '@/lib/types
 import { ReportService, ReportSubmissionData } from '@/lib/report-service';
 import { formatFileSize } from '@/lib/utils';
 import { EnhancedDatePicker } from '@/components/ui/enhanced-date-picker';
+import RichTextInput from '@/components/ui/RichTextInput';
 
 interface DynamicReportFormProps {
   template: ReportTemplate;
@@ -618,27 +619,11 @@ export function DynamicReportForm({
 
       case 'textarea':
         return (
-          <Textarea
-            id={field.id}
+          <RichTextInput
             value={value}
-            onChange={(e) => {
-              handleFieldChange(field.id, e.target.value);
-              // Auto-resize on change
-              autoResizeTextarea(e.target);
-            }}
-            onInput={(e) => {
-              // Auto-resize on input (for better responsiveness)
-              autoResizeTextarea(e.target as HTMLTextAreaElement);
-            }}
+            onChange={(val) => handleFieldChange(field.id, val)}
             placeholder={field.placeholder}
-            className={`${fieldClassName} min-h-[100px] resize-none overflow-hidden`}
-            style={{ height: 'auto' }}
-            ref={(el) => {
-              // Auto-resize on initial render and when value changes
-              if (el && value) {
-                setTimeout(() => autoResizeTextarea(el), 0);
-              }
-            }}
+            className={fieldClassName}
           />
         );
 

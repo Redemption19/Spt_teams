@@ -353,4 +353,31 @@ textarea::-webkit-scrollbar-thumb:hover {
 .animate-voice-wave {
   animation: voiceWave 0.8s ease-in-out infinite;
 }
+
+/* --- Rich Text Editor ProseMirror overrides for unified card look --- */
+.rich-text-prosemirror .ProseMirror {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 96px;
+  width: 100%;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  resize: none;
+}
+.rich-text-prosemirror .ProseMirror:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.rich-text-prosemirror .ProseMirror p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  pointer-events: none;
+  height: 0;
+}
 }

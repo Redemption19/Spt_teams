@@ -1,7 +1,9 @@
 // ===== REPORT EXPORT TYPES =====
 
+import type { ReportStatus } from './types';
+
 export interface ReportExportFilters {
-  status: 'all' | 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived';
+  status: 'all' | ReportStatus;
   department: string; // 'all' or specific department ID
   template: string; // 'all' or specific template ID
   user: string; // 'all' or specific user ID

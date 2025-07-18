@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
+import type { ReportStatus } from '@/lib/types';
 import { ReportTemplate, EnhancedReport, User } from '@/lib/types';
 import { ReportTemplateService } from '@/lib/report-template-service';
 import { ReportService } from '@/lib/report-service';
@@ -26,7 +27,7 @@ import { ReportReview } from '@/components/reports/AllReport/ReportReview';
 import { FilterPanel } from '@/components/reports/AllReport/FilterPanel';
 import { ConfirmationDialog } from '@/components/reports/AllReport/ConfirmationDialog';
 
-export type StatusFilter = 'all' | 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived';
+export type StatusFilter = 'all' | ReportStatus;
 export type ViewMode = 'list' | 'review';
 export type DisplayMode = 'grid' | 'table';
 
@@ -83,6 +84,20 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('grid');
+
+  // Add dialog/modal state for comment, delete, archive
+  const [commentDialog, setCommentDialog] = useState({
+    isOpen: false,
+    report: null as EnhancedReport | null,
+  });
+  const [deleteDialog, setDeleteDialog] = useState({
+    isOpen: false,
+    report: null as EnhancedReport | null,
+  });
+  const [archiveDialog, setArchiveDialog] = useState({
+    isOpen: false,
+    report: null as EnhancedReport | null,
+  });
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -385,6 +400,109 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
     });
   };
 
+  // Handlers for admin/owner actions
+  const handleComment = (report: EnhancedReport) => {
+    setCommentDialog({ isOpen: true, report });
+  };
+  const handleDelete = (report: EnhancedReport) => {
+    setDeleteDialog({ isOpen: true, report });
+  };
+  const handleArchive = (report: EnhancedReport) => {
+    setArchiveDialog({ isOpen: true, report });
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!deleteDialog.report) return;
+    setActionLoading(deleteDialog.report.id);
+    try {
+      await ReportService.deleteReport?.(
+        deleteDialog.report.workspaceId || currentWorkspace?.id || '',
+        deleteDialog.report.id,
+        user?.uid || ''
+      );
+      toast({
+        title: 'Report Deleted',
+        description: 'The report has been deleted successfully.',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
+      setDeleteDialog({ isOpen: false, report: null });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete report.',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Confirm archive
+  const confirmArchive = async () => {
+    if (!archiveDialog.report) return;
+    setActionLoading(archiveDialog.report.id);
+    try {
+      await ReportService.updateReportStatus?.(
+        archiveDialog.report.workspaceId || currentWorkspace?.id || '',
+        archiveDialog.report.id,
+        'archived',
+        user?.uid || '',
+        'Report archived by admin/owner'
+      );
+      toast({
+        title: 'Report Archived',
+        description: 'The report has been archived.',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
+      setArchiveDialog({ isOpen: false, report: null });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to archive report.',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Confirm comment (save to backend, notify author, reload report)
+  const confirmComment = async (comment: string) => {
+    if (!commentDialog.report || !currentWorkspace?.id || !user) return;
+    setActionLoading('comment');
+    try {
+      await ReportService.addReportComment(
+        currentWorkspace.id,
+        commentDialog.report.id,
+        comment,
+        user.uid,
+        userProfile?.name || user.email || '',
+        userProfile?.role || ''
+      );
+      toast({
+        title: 'Comment Added',
+        description: 'Your comment has been added and the author notified.',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
+      setCommentDialog({ isOpen: false, report: null });
+      // Reload the selected report to show new comment
+      const updated = await ReportService.getReport(currentWorkspace.id, commentDialog.report.id);
+      setSelectedReport(updated as EnhancedReport);
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add comment.',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Check access permissions
   if (!canViewAllReports) {
     return (
@@ -467,7 +585,6 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
           {(() => {
             const template = templates.find(t => t.id === selectedReport.templateId);
             const author = users.find(u => u.id === selectedReport.authorId);
-            
             return (
               <ReportReview
                 report={selectedReport}
@@ -478,6 +595,8 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
                 onReject={handleRejectReport}
                 isLoading={actionLoading === selectedReport.id}
                 canApprove={permissions.canManageReports}
+                // Pass comments for display
+                comments={selectedReport.comments || []}
               />
             );
           })()}
@@ -581,6 +700,10 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
                   departments={departments}
                   onViewReport={handleViewReport}
                   loading={false}
+                  canManageReports={permissions.canManageReports || isOwner}
+                  onComment={handleComment}
+                  onDelete={handleDelete}
+                  onArchive={handleArchive}
                 />
               ) : (
                 /* Table View */
@@ -837,6 +960,53 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
         variant={confirmDialog.variant}
         onConfirm={confirmDialog.onConfirm}
       />
+      {/* Confirmation Dialogs for Delete and Archive */}
+      <ConfirmationDialog
+        isOpen={deleteDialog.isOpen}
+        onOpenChange={(open) => setDeleteDialog({ isOpen: open, report: open ? deleteDialog.report : null })}
+        title="Delete Report?"
+        description="Are you sure you want to delete this report? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
+      <ConfirmationDialog
+        isOpen={archiveDialog.isOpen}
+        onOpenChange={(open) => setArchiveDialog({ isOpen: open, report: open ? archiveDialog.report : null })}
+        title="Archive Report?"
+        description="Are you sure you want to archive this report? It will be moved to the archive."
+        confirmText="Archive"
+        cancelText="Cancel"
+        variant="warning"
+        onConfirm={confirmArchive}
+      />
+      {/* Simple Comment Dialog (placeholder) */}
+      {commentDialog.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">Add Comment</h3>
+            <textarea 
+              className="w-full border rounded p-2 mb-4 bg-background text-foreground border-border resize-none" 
+              rows={4} 
+              placeholder="Enter your comment..." 
+              id="comment-textarea" 
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCommentDialog({ isOpen: false, report: null })}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  const textarea = document.getElementById('comment-textarea') as HTMLTextAreaElement;
+                  confirmComment(textarea?.value || '');
+                }}
+                className="bg-gradient-to-r from-primary to-accent text-white"
+              >
+                Add Comment
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

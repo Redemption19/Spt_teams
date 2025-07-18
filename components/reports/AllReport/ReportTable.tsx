@@ -25,6 +25,10 @@ interface ReportTableProps {
   departments: any[];
   onViewReport: (report: EnhancedReport) => void;
   loading: boolean;
+  canManageReports?: boolean;
+  onComment?: (report: EnhancedReport) => void;
+  onDelete?: (report: EnhancedReport) => void;
+  onArchive?: (report: EnhancedReport) => void;
 }
 
 export function ReportTable({
@@ -34,6 +38,10 @@ export function ReportTable({
   departments,
   onViewReport,
   loading,
+  canManageReports,
+  onComment,
+  onDelete,
+  onArchive,
 }: ReportTableProps) {
   if (loading) {
     return (
@@ -239,15 +247,27 @@ export function ReportTable({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          {/* View/Review */}
                           <DropdownMenuItem onClick={() => onViewReport(report)}>
                             <Eye className="h-3 w-3 mr-2" />
-                            View Report
+                            {report.status === 'approved' ? 'View Report' : 'Review Report'}
                           </DropdownMenuItem>
-                          {report.attachments && report.attachments.length > 0 && (
-                            <DropdownMenuItem>
-                              <Download className="h-3 w-3 mr-2" />
-                              Download Files
-                            </DropdownMenuItem>
+                          {/* Comment, Archive, Delete for admins/owners on approved */}
+                          {canManageReports && report.status === 'approved' && (
+                            <>
+                              <DropdownMenuItem onClick={() => onComment && onComment(report)}>
+                                <User className="h-3 w-3 mr-2" />
+                                Comment
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onArchive && onArchive(report)}>
+                                <Building className="h-3 w-3 mr-2" />
+                                Archive
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onDelete && onDelete(report)} className="text-destructive">
+                                <FileText className="h-3 w-3 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>

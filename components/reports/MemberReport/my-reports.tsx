@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useIsOwner } from '@/lib/rbac-hooks';
-import { ReportTemplate, EnhancedReport } from '@/lib/types';
+import { ReportTemplate, EnhancedReport, ReportStatus } from '@/lib/types';
 import { ReportTemplateService } from '@/lib/report-template-service';
 import { ReportService } from '@/lib/report-service';
 import Link from 'next/link';
@@ -54,7 +54,7 @@ export const getStatusBadge = (status: string) => {
   };
 
 type ViewMode = 'list' | 'view' | 'edit';
-export type StatusFilter = 'all' | 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived';
+export type StatusFilter = 'all' | ReportStatus;
 
 export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: CrossWorkspaceProps) {
   const { toast } = useToast();
@@ -72,6 +72,7 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [dynamicTemplate, setDynamicTemplate] = useState<ReportTemplate | null>(null);
 
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState({
@@ -146,6 +147,32 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
         }
       }
 
+      // --- Fix: Fetch missing templates for reports ---
+      const loadedTemplateIds = new Set(allTemplates.map(t => t.id));
+      const missingTemplateIds = Array.from(new Set(
+        allUserReports
+          .map(r => r.templateId)
+          .filter(id => id && !loadedTemplateIds.has(id))
+      ));
+      if (missingTemplateIds.length > 0) {
+        const missingTemplates: ReportTemplate[] = [];
+        for (const wsId of workspaceIds) {
+          for (const templateId of missingTemplateIds) {
+            if (!templateId) continue;
+            try {
+              const tpl = await ReportTemplateService.getTemplate(wsId, templateId);
+              if (tpl && !allTemplates.some(t => t.id === tpl.id) && !missingTemplates.some(t => t.id === tpl.id)) {
+                missingTemplates.push(tpl);
+              }
+            } catch (err) {
+              // Ignore missing
+            }
+          }
+        }
+        allTemplates = [...allTemplates, ...missingTemplates];
+      }
+      // --- End fix ---
+
       // Sort reports by updated date (most recent first)
       allUserReports.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
@@ -217,12 +244,11 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
       return;
     }
 
-    // Check if report can be edited
-    const editableStatuses = ['draft', 'rejected'];
-    if (!editableStatuses.includes(report.status)) {
+    // Only block editing for approved reports
+    if (report.status === 'approved') {
       toast({
         title: 'Cannot Edit Report',
-        description: `Reports with status "${report.status}" cannot be edited. Only draft and rejected reports can be modified.`,
+        description: 'Approved reports cannot be edited.',
         variant: 'destructive',
       });
       return;
@@ -311,9 +337,9 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
   // Handle form submission
   const handleReportSubmit = (report: EnhancedReport) => {
     toast({
-      title: 'Report Submitted',
+      title: '🎉 Report Submitted',
       description: 'Your report has been submitted successfully',
-      className: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white',
+      className: 'bg-gradient-to-r from-primary to-accent text-white',
     });
     setViewMode('list');
     loadData();
@@ -337,11 +363,13 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
 
   // Check permissions (can be moved to a helper or hook if used elsewhere)
   const canEditReport = (report: EnhancedReport) => {
-    return ['draft', 'rejected'].includes(report.status);
+    // Allow edit if not approved
+    return report.status !== 'approved';
   };
 
   const canDeleteReport = (report: EnhancedReport) => {
-    return report.status === 'draft';
+    // Allow delete if not approved
+    return report.status !== 'approved';
   };
 
   const canResubmitReport = (report: EnhancedReport) => {
@@ -350,12 +378,37 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
 
 
   // Show report view (read-only)
+  let template: ReportTemplate | null = null;
   if (viewMode === 'view' && selectedReport) {
-    const template = templates.find(t => t.id === selectedReport.templateId);
+    template = templates.find(t => t.id === selectedReport.templateId) || null;
+  }
+
+  useEffect(() => {
+    if (
+      viewMode === 'view' &&
+      selectedReport &&
+      !template &&
+      selectedReport.templateId
+    ) {
+      const wsId = selectedReport.workspaceId || currentWorkspace?.id;
+      if (wsId) {
+        ReportTemplateService.getTemplate(wsId, selectedReport.templateId).then((tpl: ReportTemplate | null) => {
+          if (tpl) setDynamicTemplate(tpl);
+        });
+      }
+    } else {
+      setDynamicTemplate(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, selectedReport, template, currentWorkspace?.id]);
+
+  if (viewMode === 'view' && selectedReport) {
+    let displayTemplate = template;
+    if (!template && dynamicTemplate) displayTemplate = dynamicTemplate;
     return (
       <ReportView
         report={selectedReport}
-        template={template || null}
+        template={displayTemplate}
         onBack={handleBack}
         onEdit={handleEditReport}
         onResubmit={handleResubmitReport}

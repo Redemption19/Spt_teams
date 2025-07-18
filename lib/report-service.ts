@@ -12,7 +12,8 @@ import {
   limit,
   serverTimestamp,
   writeBatch,
-  Timestamp 
+  Timestamp,
+  arrayUnion
 } from 'firebase/firestore';
 import { 
   ref, 
@@ -22,7 +23,7 @@ import {
   getMetadata 
 } from 'firebase/storage';
 import { db, storage } from './firebase';
-import { EnhancedReport, ReportTemplate, ReportTemplateField } from './types';
+import { EnhancedReport, ReportTemplate, ReportTemplateField, ReportStatus } from './types';
 import { ActivityService } from './activity-service';
 import { NotificationService } from './notification-service';
 
@@ -249,7 +250,7 @@ export class ReportService {
     workspaceId: string,
     userId: string,
     reportData: ReportSubmissionData,
-    status: 'draft' | 'submitted' = 'draft',
+    status: ReportStatus = 'draft',
     filesByField: Record<string, File[]> = {}
   ): Promise<EnhancedReport> {
     try {
@@ -486,7 +487,7 @@ export class ReportService {
     workspaceId: string,
     userId: string,
     options: {
-      status?: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected';
+      status?: ReportStatus;
       limit?: number;
       orderBy?: 'createdAt' | 'updatedAt' | 'submittedAt';
       orderDirection?: 'asc' | 'desc';
@@ -601,7 +602,7 @@ export class ReportService {
   static async getWorkspaceReports(
     workspaceId: string,
     options: {
-      status?: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived';
+      status?: ReportStatus;
       authorId?: string;
       templateId?: string;
       startDate?: Date;
@@ -668,7 +669,7 @@ export class ReportService {
   static async updateReportStatus(
     workspaceId: string,
     reportId: string,
-    newStatus: 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived',
+    newStatus: ReportStatus,
     reviewerId: string,
     feedback?: string
   ): Promise<void> {
@@ -740,7 +741,7 @@ export class ReportService {
   private static async updateTemplateUsage(
     workspaceId: string,
     templateId: string,
-    reportStatus: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived'
+    reportStatus: ReportStatus
   ): Promise<void> {
     try {
       // This would typically be in the ReportTemplateService
@@ -955,6 +956,71 @@ export class ReportService {
     } catch (error) {
       console.error('Error rejecting report:', error);
       throw new Error('Failed to reject report');
+    }
+  }
+
+  // Add a comment to a report
+  static async addReportComment(
+    workspaceId: string,
+    reportId: string,
+    content: string,
+    authorId: string,
+    authorName?: string,
+    authorRole?: string
+  ) {
+    try {
+      const reportDoc = this.getReportDoc(workspaceId, reportId);
+      const reportSnap = await getDoc(reportDoc);
+      if (!reportSnap.exists()) throw new Error('Report not found');
+      const report = reportSnap.data() as EnhancedReport;
+      const newComment = {
+        id: `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        content: content.trim(),
+        authorId,
+        authorName,
+        authorRole,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        type: 'general',
+        isInternal: false,
+      };
+      await updateDoc(reportDoc, {
+        comments: arrayUnion(newComment),
+        updatedAt: serverTimestamp(),
+      });
+      // Log activity
+      await ActivityService.logActivity(
+        'report_updated',
+        'report',
+        reportId,
+        {
+          reportTitle: report.title,
+          commentId: newComment.id,
+          commentAuthor: authorName || authorId,
+          commentPreview: content.slice(0, 100) + (content.length > 100 ? '...' : ''),
+        },
+        workspaceId,
+        authorId
+      );
+      // Notify report author (if not self)
+      if (report.authorId && report.authorId !== authorId) {
+        await NotificationService.createNotification({
+          userId: report.authorId,
+          workspaceId,
+          type: 'system_alert',
+          title: 'New Comment on Your Report',
+          message: `${authorName || 'A reviewer'} commented on your report: "${report.title}"`,
+          icon: '💬',
+          priority: 'medium',
+          actionUrl: `/dashboard/reports/view/${reportId}`,
+          actionLabel: 'View Report',
+          metadata: { reportId, commentId: newComment.id },
+        });
+      }
+      return newComment;
+    } catch (error) {
+      console.error('Error adding report comment:', error);
+      throw new Error('Failed to add comment to report');
     }
   }
 } 

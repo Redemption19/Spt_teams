@@ -161,7 +161,11 @@ export function DepartmentManagement() {
         user.uid
       );
 
-      toast({ title: 'Success', description: `Department "${departmentForm.name}" created successfully` });
+      toast({ 
+        title: 'Success', 
+        description: `Department "${departmentForm.name}" created successfully`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsCreateOpen(false);
       setDepartmentForm({ name: '', description: '', headId: 'none', color: '#3B82F6', status: 'active' });
       await loadData();
@@ -210,7 +214,11 @@ export function DepartmentManagement() {
         user.uid
       );
 
-      toast({ title: 'Success', description: `Department "${departmentForm.name}" updated successfully` });
+      toast({ 
+        title: 'Success', 
+        description: `Department "${departmentForm.name}" updated successfully`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsEditOpen(false);
       setSelectedDepartment(null);
       await loadData();
@@ -235,7 +243,11 @@ export function DepartmentManagement() {
     try {
       setSubmitting(true);
       await DepartmentService.deleteDepartment(currentWorkspace.id, departmentToDelete.id, user.uid);
-      toast({ title: 'Success', description: `Department "${departmentToDelete.name}" deleted successfully` });
+      toast({ 
+        title: 'Success', 
+        description: `Department "${departmentToDelete.name}" deleted successfully`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsDeleteOpen(false);
       setDepartmentToDelete(null);
       await loadData();
@@ -273,7 +285,11 @@ export function DepartmentManagement() {
         });
       }
       await DepartmentService.updateDepartmentMemberCounts(currentWorkspace.id); // Sync counts
-      toast({ title: 'Success', description: `${selectedUserIds.length} member(s) assigned to ${selectedDepartment.name}` });
+      toast({ 
+        title: 'Success', 
+        description: `${selectedUserIds.length} member(s) assigned to ${selectedDepartment.name}`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsAssignMembersOpen(false);
       setSelectedUserIds([]);
       await loadData();
@@ -297,7 +313,11 @@ export function DepartmentManagement() {
           departmentId: undefined,
         });
         await DepartmentService.updateDepartmentMemberCounts(currentWorkspace.id); // Sync counts
-        toast({ title: 'Success', description: 'Member removed from department' });
+        toast({ 
+          title: 'Success', 
+          description: 'Member removed from department',
+          className: 'bg-gradient-to-r from-primary to-accent text-white',
+        });
         await loadData();
       } catch (error) {
         console.error('Error removing member:', error);

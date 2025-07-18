@@ -266,9 +266,9 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
   // Handle form submission
   const handleReportSubmit = (report: EnhancedReport) => {
     toast({
-      title: 'Report Submitted',
+      title: '🎉 Report Submitted',
       description: 'Your report has been submitted successfully',
-      className: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white',
+      className: 'bg-gradient-to-r from-primary to-accent text-white',
     });
     setViewMode('templates');
     loadData(); // Refresh data

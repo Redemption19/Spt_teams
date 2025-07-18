@@ -1,3 +1,6 @@
+// Canonical report status type
+export type ReportStatus = 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived';
+
 export interface User {
   id: string;
   email: string;
@@ -549,7 +552,7 @@ export interface Report {
   branchId?: string;
   authorId: string;
   folderId?: string;
-  status: 'draft' | 'submitted' | 'approved' | 'archived';
+  status: ReportStatus;
   attachments: string[];
   metadata: Record<string, any>;
   createdAt: Date;
@@ -739,7 +742,7 @@ export interface EnhancedReport {
   }[];
   
   // Report metadata
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'archived';
+  status: ReportStatus;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   category?: string;
   tags?: string[];

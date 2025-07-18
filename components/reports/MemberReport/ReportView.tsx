@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, AlertCircle, CheckCircle, ArrowLeft, Edit, RefreshCw, User } from 'lucide-react';
 import { EnhancedReport, ReportTemplate } from '@/lib/types';
 import { getStatusBadge } from '@/components/reports/MemberReport/my-reports';
+import SmartRichTextDisplay from '@/components/ui/RichTextDisplay';
 
 interface ReportViewProps {
   report: EnhancedReport;
@@ -25,6 +26,25 @@ export function ReportView({
   canEditReport,
   canResubmitReport,
 }: ReportViewProps) {
+  // Debug log
+  console.log('ReportView debug:', { template, report });
+
+  // Fallback if template is missing or has no fields
+  if (!template || !template.fields || template.fields.length === 0) {
+    return (
+      <Card className="my-8">
+        <CardHeader>
+          <CardTitle>Report Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-muted-foreground italic">
+            This report's template is missing or has no fields. Please contact an administrator.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6 p-4 sm:p-6">
       {/* Header with back button */}
@@ -86,15 +106,13 @@ export function ReportView({
         <CardContent className="space-y-6">
           {template && template.fields.map((field) => {
             const value = report.fieldData[field.id];
-
             return (
-              <div key={field.id} className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
+              <div key={field.id} className="mb-6">
+                <label className="text-sm font-medium flex items-center gap-2 mb-1">
                   {field.label}
                   {field.required && <span className="text-red-500">*</span>}
                 </label>
-
-                <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                <div className="rounded-lg border border-border/30 bg-muted/40 px-4 py-3">
                   {field.type === 'file' ? (
                     <div className="space-y-2">
                       {Array.isArray(value) && value.length > 0 ? (
@@ -124,10 +142,10 @@ export function ReportView({
                     </div>
                   ) : field.type === 'date' ? (
                     <span className="text-sm">{value ? new Date(value).toLocaleDateString() : 'Not set'}</span>
+                  ) : field.type === 'textarea' ? (
+                    <SmartRichTextDisplay value={value || ''} className="prose prose-base max-w-none dark:prose-invert" />
                   ) : (
-                    <div className="text-sm whitespace-pre-wrap break-words">
-                      {value || <span className="text-muted-foreground italic">Not provided</span>}
-                    </div>
+                    <div className="text-base text-foreground">{value || <span className="text-muted-foreground italic">Not provided</span>}</div>
                   )}
                 </div>
               </div>

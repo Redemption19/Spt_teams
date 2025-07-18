@@ -1,64 +1,90 @@
-import Link from 'next/link';
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+'use client'
 
-const menuItems = [
-  { label: 'Home', href: '#' },
-  { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Reviews', href: '#reviews' },
-  { label: 'Contact', href: '#contact' },
-];
+import React, { useState } from 'react'
+import { Menu, X, Zap } from 'lucide-react'
 
-export default function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const navItems = [
+    { name: 'Home', href: '#home' },
+    { name: 'About Us', href: '#about' },
+    { name: 'Features', href: '#features' },
+    { name: 'Pricing', href: '#pricing' },
+    { name: 'Testimonials', href: '#testimonials' },
+  ]
 
   return (
-    <header className="w-full border-b border-border fixed top-0 left-0 z-50 backdrop-blur-md bg-transparent">
-      <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-        {/* Logo/Brand */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-white">
-          {/* You can replace with your logo image if available */}
-          <span className="bg-white rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold">S</span>
-          <span>Spt Teams</span>
-        </Link>
-        {/* Desktop Menu */}
-        <ul className="hidden md:flex gap-8 items-center text-base font-medium">
-          {menuItems.map((item) => (
-            <li key={item.label}>
-              <a href={item.href} className="hover:text-accent text-white transition-colors">
-                {item.label}
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">Workly</span>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className="text-muted-foreground hover:text-primary transition-colors duration-200"
+              >
+                {item.name}
               </a>
-            </li>
-          ))}
-        </ul>
-        {/* Sign Up Button */}
-        <Link href="/register" className="hidden md:inline-block px-6 py-2 rounded-full bg-white text-primary font-semibold shadow hover:bg-accent hover:text-white transition-colors ml-4">
-          Sign Up
-        </Link>
-        {/* Mobile Hamburger */}
-        <button className="md:hidden ml-2 p-2 rounded hover:bg-white/10" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          {mobileOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
-        </button>
-      </nav>
-      {/* Mobile Menu Drawer */}
-      {mobileOpen && (
-        <div className="md:hidden bg-background/90 border-t border-border px-4 py-4 space-y-2 shadow-lg">
-          {menuItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="block py-2 text-base font-medium hover:text-accent text-primary transition-colors"
-              onClick={() => setMobileOpen(false)}
+            ))}
+          </div>
+
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center space-x-4">
+            <button className="text-muted-foreground hover:text-primary transition-colors duration-200">
+              Contact
+            </button>
+            <button className="gradient-primary text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity duration-200">
+              Sign Up
+            </button>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-muted-foreground hover:text-primary transition-colors duration-200"
             >
-              {item.label}
-            </a>
-          ))}
-          <Link href="/register" className="block mt-2 px-6 py-2 rounded-full bg-white text-primary font-semibold shadow hover:bg-accent hover:text-white transition-colors text-center">
-            Sign Up
-          </Link>
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
-      )}
-    </header>
-  );
-} 
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-border">
+            <div className="flex flex-col space-y-4">
+              {navItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </a>
+              ))}
+              <div className="pt-4 border-t border-border">
+                <button className="w-full gradient-primary text-white py-2 rounded-lg hover:opacity-90 transition-opacity duration-200">
+                  Sign Up
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  )
+}
+
+export default Navbar

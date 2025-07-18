@@ -258,11 +258,11 @@ export function ReportTemplates({ showAllWorkspaces, accessibleWorkspaces }: Cro
         visibility: template.visibility,
         allowedRoles: template.allowedRoles || ['owner', 'admin', 'member'],
         departmentAccess: {
-          type: template.departmentAccess.type,
-          allowedDepartments: template.departmentAccess.allowedDepartments || [],
-          restrictedDepartments: template.departmentAccess.restrictedDepartments || [],
-          ownerDepartment: template.departmentAccess.ownerDepartment || '',
-          inheritFromParent: template.departmentAccess.inheritFromParent || false
+          type: template.departmentAccess?.type || 'global',
+          allowedDepartments: template.departmentAccess?.allowedDepartments || [],
+          restrictedDepartments: template.departmentAccess?.restrictedDepartments || [],
+          ownerDepartment: template.departmentAccess?.ownerDepartment || '',
+          inheritFromParent: template.departmentAccess?.inheritFromParent || false
         },
         settings: {
           allowFileAttachments: template.settings.allowFileAttachments,

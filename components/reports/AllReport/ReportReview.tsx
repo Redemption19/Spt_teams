@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { EnhancedReport, ReportTemplate, User as UserType } from '@/lib/types';
 import { getStatusBadge } from './all-reports';
+import SmartRichTextDisplay from '@/components/ui/RichTextDisplay';
 
 interface ReportReviewProps {
   report: EnhancedReport;
@@ -26,6 +27,7 @@ interface ReportReviewProps {
   onReject: (report: EnhancedReport, reason: string) => void;
   isLoading: boolean;
   canApprove: boolean;
+  comments?: any[];
 }
 
 export function ReportReview({
@@ -37,6 +39,7 @@ export function ReportReview({
   onReject,
   isLoading,
   canApprove,
+  comments = [],
 }: ReportReviewProps) {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -196,19 +199,14 @@ export function ReportReview({
           {/* Dynamic fields from template */}
           {template && template.fields.map((field) => {
             const value = report.fieldData[field.id];
-
             return (
-              <div key={field.id} className="space-y-3">
-                <div className="flex items-center gap-2 pb-2 border-b border-border/30">
-                  <label className="font-semibold text-foreground">
-                    {field.label}
-                  </label>
-                  {field.required && (
-                    <span className="text-primary text-sm font-medium">*</span>
-                  )}
+              <div key={field.id} className="mb-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-lg text-foreground">{field.label}</span>
+                  <span className="bg-muted text-xs px-2 py-0.5 rounded-full font-medium border border-border/40">{field.type}</span>
+                  {field.required && <span className="text-primary text-base">*</span>}
                 </div>
-
-                <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                <div className="rounded-lg border border-border/30 bg-muted/40 px-4 py-3">
                   {field.type === 'file' ? (
                     <div className="space-y-3">
                       {Array.isArray(value) && value.length > 0 ? (
@@ -246,52 +244,46 @@ export function ReportReview({
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{value ? new Date(value).toLocaleDateString() : 'Not set'}</span>
                     </div>
+                  ) : field.type === 'textarea' ? (
+                    <SmartRichTextDisplay value={value || ''} className="prose prose-base max-w-none dark:prose-invert" />
                   ) : (
-                    <div className="whitespace-pre-wrap break-words leading-relaxed">
-                      {value || <span className="text-muted-foreground italic">Not provided</span>}
-                    </div>
+                    <div className="text-base text-foreground">{value || <span className="text-muted-foreground italic">Not provided</span>}</div>
                   )}
                 </div>
+                {field.helpText && (
+                  <div className="text-xs text-muted-foreground mt-1">💡 {field.helpText}</div>
+                )}
               </div>
             );
           })}
 
           {/* Comments Section */}
-          {report.comments && report.comments.length > 0 && (
-            <div className="space-y-4 border-t pt-6">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-primary" />
-                Previous Comments ({report.comments.length})
-              </h3>
-              <div className="space-y-4">
-                {report.comments.map((comment) => (
-                  <div key={comment.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-                          <User className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">{comment.authorName}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {comment.createdAt.toLocaleDateString()}
-                          </div>
-                        </div>
+                Comments ({comments.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {comments.length === 0 ? (
+                <div className="text-muted-foreground italic">No comments yet.</div>
+              ) : (
+                <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="rounded-lg border border-border/30 bg-muted/40 px-4 py-3">
+                      <div className="flex items-center gap-2 mb-1 text-xs text-muted-foreground">
+                        <User className="h-3 w-3" />
+                        <span className="font-semibold text-foreground">{comment.authorName || comment.authorId}</span>
+                        <span className="ml-2">{comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ''}</span>
                       </div>
-                      {comment.type === 'approval' && (
-                        <Badge variant="outline" className="text-xs">
-                          Admin Comment
-                        </Badge>
-                      )}
+                      <div className="text-base text-foreground whitespace-pre-line">{comment.content}</div>
                     </div>
-                    <p className="whitespace-pre-wrap break-words leading-relaxed">
-                      {comment.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </div>

@@ -300,7 +300,11 @@ export default function ProjectTaskManagement() {
         comments: [],
       };
       await ProjectService.createProject(projectData, user.uid);
-      toast({ title: 'Success', description: 'Project created successfully' });
+      toast({ 
+        title: 'Success', 
+        description: 'Project created successfully',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsCreateProjectOpen(false);
       setProjectForm({ name: '', description: '', teamId: '', priority: 'medium', status: 'planning' });
       await loadData();
@@ -329,7 +333,11 @@ export default function ProjectTaskManagement() {
         status: projectForm.status, priority: projectForm.priority, teamId: projectForm.teamId,
       };
       await ProjectService.updateProject(editingProject.id, updates, user.uid);
-      toast({ title: 'Success', description: 'Project updated successfully' });
+      toast({ 
+        title: 'Success', 
+        description: 'Project updated successfully',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsEditProjectOpen(false);
       setEditingProject(null);
       setProjectForm({ name: '', description: '', teamId: '', priority: 'medium', status: 'planning' });
@@ -350,7 +358,11 @@ export default function ProjectTaskManagement() {
     setSubmitting(true);
     try {
       await ProjectService.deleteProject(projectToDelete.id, user.uid);
-      toast({ title: 'Success', description: `Project "${projectToDelete.name}" and all associated tasks deleted successfully` });
+      toast({ 
+        title: 'Success', 
+        description: `Project "${projectToDelete.name}" and all associated tasks deleted successfully`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsDeleteProjectOpen(false);
       setProjectToDelete(null);
       await loadData();
@@ -394,7 +406,11 @@ export default function ProjectTaskManagement() {
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       };
       await TaskService.createTask(taskData, user.uid);
-      toast({ title: 'Success', description: 'Task created successfully' });
+      toast({ 
+        title: 'Success', 
+        description: 'Task created successfully',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsCreateTaskOpen(false);
       setTaskForm({ 
         title: '', 
@@ -437,7 +453,11 @@ export default function ProjectTaskManagement() {
         estimatedHours: taskForm.estimatedHours ? parseFloat(taskForm.estimatedHours) : undefined,
       };
       await TaskService.updateTask(viewingTask.id, updates, user.uid);
-      toast({ title: 'Success', description: 'Task updated successfully' });
+      toast({ 
+        title: 'Success', 
+        description: 'Task updated successfully',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsEditTaskOpen(false);
       setViewingTask(null);
       setTaskForm({ 
@@ -469,7 +489,11 @@ export default function ProjectTaskManagement() {
       if (viewingTask?.id === taskToDelete.id) { // Close detail view if the deleted task was open
         setViewingTask(null);
       }
-      toast({ title: 'Success', description: `Task "${taskToDelete.title}" deleted successfully` });
+      toast({ 
+        title: 'Success', 
+        description: `Task "${taskToDelete.title}" deleted successfully`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       setIsDeleteTaskOpen(false);
       setTaskToDelete(null);
       await loadData();
@@ -486,7 +510,11 @@ export default function ProjectTaskManagement() {
       const task = tasks.find(t => t.id === taskId);
       if (task?.projectId) await ProjectService.updateProjectProgress(task.projectId);
       await loadData();
-      toast({ title: 'Success', description: 'Task status updated' });
+      toast({ 
+        title: 'Success', 
+        description: 'Task status updated',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
     } catch (error) {
       console.error('Error updating task status:', error);
       toast({ title: 'Error', description: 'Failed to update task status', variant: 'destructive' });
@@ -567,7 +595,11 @@ export default function ProjectTaskManagement() {
     try {
       await Promise.all(selectedTasks.map(taskId => TaskService.updateTaskStatus(taskId, newStatus, user!.uid)));
       setSelectedTasks([]);
-      toast({ title: 'Success', description: `Updated ${selectedTasks.length} task(s) to ${newStatus.replace('-', ' ')}` });
+      toast({ 
+        title: 'Success', 
+        description: `Updated ${selectedTasks.length} task(s) to ${newStatus.replace('-', ' ')}`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       await loadData();
     } catch (error) {
       console.error('Error bulk updating tasks:', error);
@@ -582,7 +614,11 @@ export default function ProjectTaskManagement() {
     try {
       await Promise.all(selectedTasks.map(taskId => TaskService.deleteTask(taskId, user!.uid)));
       setSelectedTasks([]);
-      toast({ title: 'Success', description: `Deleted ${selectedTasks.length} task(s) successfully` });
+      toast({ 
+        title: 'Success', 
+        description: `Deleted ${selectedTasks.length} task(s) successfully`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
       await loadData();
     } catch (error) {
       console.error('Error bulk deleting tasks:', error);
@@ -599,7 +635,11 @@ export default function ProjectTaskManagement() {
       } else {
         await ExportService.exportProjectsWithStats(projects, tasks, users, format);
       }
-      toast({ title: 'Export Successful', description: `Projects exported as ${format.toUpperCase()}` });
+      toast({ 
+        title: 'Export Successful', 
+        description: `Projects exported as ${format.toUpperCase()}`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
     } catch (error) {
       console.error('Export error:', error);
       toast({ title: 'Export Failed', description: error instanceof Error ? error.message : 'Failed to export projects', variant: 'destructive' });
@@ -614,7 +654,11 @@ export default function ProjectTaskManagement() {
         ? filteredTasks
         : tasks;
       await ExportService.exportTasksWithDetails(tasksToExport, users, projects, format);
-      toast({ title: 'Export Successful', description: `${tasksToExport.length} tasks exported as ${format.toUpperCase()}` });
+      toast({ 
+        title: 'Export Successful', 
+        description: `${tasksToExport.length} tasks exported as ${format.toUpperCase()}`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
     } catch (error) {
       console.error('Export error:', error);
       toast({ title: 'Export Failed', description: error instanceof Error ? error.message : 'Failed to export tasks', variant: 'destructive' });
@@ -630,7 +674,11 @@ export default function ProjectTaskManagement() {
     try {
       const tasksToExport = tasks.filter(task => selectedTasks.includes(task.id));
       await ExportService.exportTasksWithDetails(tasksToExport, users, projects, format);
-      toast({ title: 'Export Successful', description: `${tasksToExport.length} selected tasks exported as ${format.toUpperCase()}` });
+      toast({ 
+        title: 'Export Successful', 
+        description: `${tasksToExport.length} selected tasks exported as ${format.toUpperCase()}`,
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
     } catch (error) {
       console.error('Export error:', error);
       toast({ title: 'Export Failed', description: error instanceof Error ? error.message : 'Failed to export selected tasks', variant: 'destructive' });

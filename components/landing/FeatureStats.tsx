@@ -1,35 +1,63 @@
-import { BarChart2, Users, CheckCircle } from 'lucide-react';
+'use client'
 
-const stats = [
-  {
-    icon: <BarChart2 className="w-8 h-8 text-primary" />,
-    value: '500K+',
-    label: 'Projects Managed',
-  },
-  {
-    icon: <Users className="w-8 h-8 text-accent" />,
-    value: '250K+',
-    label: 'Users',
-  },
-  {
-    icon: <CheckCircle className="w-8 h-8 text-primary" />,
-    value: '100%',
-    label: 'Uptime',
-  },
-];
+import React from 'react'
+import { Building2, BarChart3, Shield, Brain } from 'lucide-react'
 
-export default function FeatureStats() {
+const FeatureStats = () => {
+  const stats = [
+    {
+      icon: Building2,
+      number: '500+',
+      label: 'Enterprise Clients',
+      description: 'Organizations managing complex hierarchies'
+    },
+    {
+      icon: BarChart3,
+      number: '10M+',
+      label: 'Reports Generated',
+      description: 'Dynamic reports created monthly'
+    },
+    {
+      icon: Shield,
+      number: '99.9%',
+      label: 'Security Uptime',
+      description: 'Enterprise-grade reliability'
+    },
+    {
+      icon: Brain,
+      number: '85%',
+      label: 'AI Accuracy',
+      description: 'Document analysis precision'
+    }
+  ]
+
   return (
-    <section className="w-full py-8 bg-background">
-      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="flex flex-col items-center text-center px-6">
-            <div className="mb-2">{stat.icon}</div>
-            <div className="text-2xl font-bold text-primary mb-1">{stat.value}</div>
-            <div className="text-muted-foreground text-sm font-medium">{stat.label}</div>
-          </div>
-        ))}
+    <section className="py-20 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 opacity-100">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            Trusted by Enterprise Leaders
+          </h2>
+          <p className="text-xl text-foreground max-w-3xl mx-auto">
+            Join hundreds of enterprises who have revolutionized their organizational management with our comprehensive platform
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {stats.map((stat, index) => (
+            <div key={index} className={`text-center p-6 card-hover opacity-100`}>
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg mb-4 bg-gradient-to-r from-primary to-accent">
+                <stat.icon className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-accent mb-2">{stat.number}</div>
+              <div className="text-lg font-semibold text-foreground mb-1">{stat.label}</div>
+              <div className="text-foreground text-sm">{stat.description}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
-  );
-} 
+  )
+}
+
+export default FeatureStats

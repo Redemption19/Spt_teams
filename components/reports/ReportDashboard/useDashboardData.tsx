@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useIsOwner } from '@/lib/rbac-hooks';
@@ -307,9 +307,13 @@ export function useDashboardData(
     };
   }, [filters]);
 
-  const workspaceIds = (isOwner && showAllWorkspaces && accessibleWorkspaces?.length) 
-    ? accessibleWorkspaces.map(w => w.id).join(',')
-    : currentWorkspace?.id;
+  // Memoize workspaceIds to prevent infinite loop
+  const workspaceIds = useMemo(() => (
+    isOwner && showAllWorkspaces && accessibleWorkspaces?.length
+      ? accessibleWorkspaces.map(w => w.id)
+      : currentWorkspace?.id ? [currentWorkspace.id] : []
+  ), [isOwner, showAllWorkspaces, accessibleWorkspaces, currentWorkspace?.id]);
+
   const fetchData = useCallback(async () => {
     console.log('🔄 Dashboard fetchData started', { 
       workspaceId: currentWorkspace?.id, 
@@ -324,11 +328,7 @@ export function useDashboardData(
       setLoading(true);
       setError(null);
 
-      // Determine workspace IDs to load from
-      const workspaceIds = (isOwner && showAllWorkspaces && accessibleWorkspaces?.length) 
-        ? accessibleWorkspaces.map(w => w.id).join(',')
-        : currentWorkspace?.id;
-      
+      // Use the fixed workspaceIds array
       console.log('🏢 Loading dashboard data from workspaces:', workspaceIds);
 
       // Load data from all relevant workspaces

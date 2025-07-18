@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Building, User, Eye, Calendar } from 'lucide-react';
+import { FileText, Building, User, Eye, Calendar, MessageCircle } from 'lucide-react';
 import { EnhancedReport, ReportTemplate, User as UserType } from '@/lib/types';
 import { getStatusBadge } from './all-reports';
 
@@ -12,6 +12,10 @@ interface ReportCardProps {
   users: UserType[];
   departments: any[];
   onView: (report: EnhancedReport) => void;
+  canManageReports?: boolean;
+  onComment?: (report: EnhancedReport) => void;
+  onDelete?: (report: EnhancedReport) => void;
+  onArchive?: (report: EnhancedReport) => void;
 }
 
 export function ReportCard({
@@ -20,6 +24,10 @@ export function ReportCard({
   users,
   departments,
   onView,
+  canManageReports,
+  onComment,
+  onDelete,
+  onArchive,
 }: ReportCardProps) {
   const template = templates.find(t => t.id === report.templateId);
   const author = users.find(u => u.id === report.authorId);
@@ -102,16 +110,46 @@ export function ReportCard({
         </div>
 
         {/* Actions - Matching Folder Card Button Style */}
-        <div className="flex space-x-2 pt-2">
+        <div className="flex w-full gap-2 pt-2 min-w-0">
           <Button
             onClick={() => onView(report)}
             variant="outline"
             size="sm"
-            className="flex-1 text-xs"
+            className="flex-1 text-xs min-w-0"
           >
             <Eye className="h-3 w-3 mr-1" />
-            Review
+            {canManageReports && report.status === 'approved' ? 'View' : 'Review'}
           </Button>
+          {/* Admin/Owner-only actions for approved reports */}
+          {canManageReports && report.status === 'approved' && (
+            <>
+              <Button
+                onClick={() => onComment && onComment(report)}
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs min-w-0 flex items-center gap-1"
+              >
+                <MessageCircle className="h-3 w-3" />
+                Comment
+              </Button>
+              <Button
+                onClick={() => onArchive && onArchive(report)}
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs min-w-0"
+              >
+                🗄️ Archive
+              </Button>
+              <Button
+                onClick={() => onDelete && onDelete(report)}
+                variant="destructive"
+                size="sm"
+                className="flex-1 text-xs min-w-0"
+              >
+                🗑️ Delete
+              </Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

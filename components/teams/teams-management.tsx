@@ -525,7 +525,7 @@ export function TeamsManagement() {
       toast({
         title: "🗑️ Team Deleted Successfully",
         description: `"${teamName}" has been permanently removed from the workspace. All team data and associations have been cleared.`,
-        className: "border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 text-green-900",
+        className: "border-primary/20 bg-gradient-to-r from-primary/10 to-accent/10 text-primary",
         duration: 5000,
       });
 
@@ -665,7 +665,7 @@ export function TeamsManagement() {
                 System-Wide Teams Management
               </h3>
               <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-300 mt-1">
-                {`You&apos;re viewing teams across all ${availableWorkspaces.length} workspaces.`}
+                {`You're viewing teams across all ${availableWorkspaces.length} workspaces.`}
                 Teams are displayed with their workspace context.
               </p>
             </div>

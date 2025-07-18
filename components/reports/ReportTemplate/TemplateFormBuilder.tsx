@@ -123,13 +123,14 @@ export function TemplateFormBuilder({
   // Update builder state validation
   useEffect(() => {
     const isValid = templateForm.name.trim().length > 0 && builderState.fields.length > 0;
-    
-    setBuilderState({
-      ...builderState,
-      isValid,
-      isDirty: true
-    });
-  }, [templateForm, builderState, setBuilderState]);
+    if (builderState.isValid !== isValid || builderState.isDirty !== true) {
+      setBuilderState({
+        ...builderState,
+        isValid,
+        isDirty: true
+      });
+    }
+  }, [templateForm.name, builderState.fields, builderState.isValid, builderState.isDirty, setBuilderState]);
 
   // Handle basic form changes
   const handleFormChange = (field: string, value: any) => {

@@ -22,7 +22,7 @@ interface ReportItem {
   department?: string;
   region?: string;
   dueDate: Date;
-  status: 'pending' | 'submitted' | 'draft' | 'approved' | 'rejected';
+  status: 'under_review' | 'submitted' | 'draft' | 'approved' | 'rejected';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   submittedBy?: string;
   type: 'weekly' | 'monthly' | 'quarterly' | 'annual' | 'custom';
@@ -41,8 +41,8 @@ interface ReportCardsProps {
 export function ReportCards({ reports, onSubmit, onView, onContinue }: ReportCardsProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'bg-red-100 text-red-700 border-red-200';
+      case 'under_review':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'submitted':
         return 'bg-green-100 text-green-700 border-green-200';
       case 'draft':

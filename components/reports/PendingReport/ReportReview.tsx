@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import SmartRichTextDisplay from '@/components/ui/RichTextDisplay';
 
 interface ReportReviewProps {
   report: EnhancedReport;
@@ -61,7 +62,7 @@ export function ReportReview({
   
   // Look up department information
   const authorDepartment = author?.department ? 
-    departments.find(d => d.id === author.department)?.name || author.department 
+    departments.find(d => d.departmentId === author.department)?.name || author.department 
     : 'Not specified';
   
   // Calculate days since submission
@@ -237,6 +238,8 @@ export function ReportReview({
                     <span className="text-sm">
                       {value ? new Date(value).toLocaleDateString() : 'Not set'}
                     </span>
+                  ) : field.type === 'textarea' ? (
+                    <SmartRichTextDisplay value={value || ''} className="prose prose-base max-w-none dark:prose-invert" />
                   ) : (
                     <span className="text-sm whitespace-pre-wrap">
                       {value || 'Not provided'}

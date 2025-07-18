@@ -13,6 +13,10 @@ interface ReportListProps {
   departments: any[];
   onViewReport: (report: EnhancedReport) => void;
   loading: boolean;
+  canManageReports?: boolean;
+  onComment?: (report: EnhancedReport) => void;
+  onDelete?: (report: EnhancedReport) => void;
+  onArchive?: (report: EnhancedReport) => void;
 }
 
 export function ReportList({
@@ -22,6 +26,10 @@ export function ReportList({
   departments,
   onViewReport,
   loading,
+  canManageReports,
+  onComment,
+  onDelete,
+  onArchive,
 }: ReportListProps) {
   if (loading) {
     return (
@@ -102,7 +110,7 @@ export function ReportList({
       </div>
       
       {/* Reports Grid - Enhanced Mobile-First Layout */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch">
         {reports.map((report) => (
           <ReportCard
             key={report.id}
@@ -111,6 +119,10 @@ export function ReportList({
             users={users}
             departments={departments}
             onView={onViewReport}
+            canManageReports={canManageReports}
+            onComment={onComment}
+            onDelete={onDelete}
+            onArchive={onArchive}
           />
         ))}
       </div>
