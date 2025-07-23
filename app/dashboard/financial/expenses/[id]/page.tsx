@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserNames } from '@/hooks/use-user-names';
 import { Expense } from '@/lib/types/financial-types';
 import { safeNumber, formatNumber } from '@/lib/utils';
+import { ExpensesLoadingSkeleton } from '@/components/financial/ExpensesLoadingSkeleton';
 
 interface ExpenseDetailPageProps {
   params: {
@@ -257,12 +258,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-2">Loading expense details...</span>
-      </div>
-    );
+    return <ExpensesLoadingSkeleton />;
   }
 
   if (error || !expense) {
