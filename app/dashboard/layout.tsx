@@ -1,3 +1,4 @@
+import { SpeedInsights } from '@vercel/speed-insights/next';
 'use client';
 
 import { useEffect } from 'react';
@@ -67,6 +68,7 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
       <DashboardContent>{children}</DashboardContent>
+      <SpeedInsights />
     </AuthProvider>
   );
 }
