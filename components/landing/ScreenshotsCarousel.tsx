@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MotionDiv, MotionSection, MotionButton } from '@/components/ui/motion'
+import Image from 'next/image'
 
 const ScreenshotsCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -38,28 +41,46 @@ const ScreenshotsCarousel = () => {
   }
 
   return (
-    <section className="py-20 bg-muted/30">
+    <MotionSection 
+      className="py-20 bg-muted/30"
+      variant="fadeInUp"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <MotionDiv 
+          className="text-center mb-16"
+          variant="fadeInUp"
+          delay={0.2}
+        >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             See Workly in Action
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Experience the power of our platform through these interactive screenshots
           </p>
-        </div>
+        </MotionDiv>
 
-        <div className="relative">
-          <div className="overflow-hidden rounded-2xl shadow-2xl">
+        <MotionDiv 
+          className="relative"
+          variant="fadeInUp"
+          delay={0.4}
+        >
+          <MotionDiv 
+            className="overflow-hidden rounded-2xl shadow-2xl"
+            variant="scaleIn"
+            delay={0.5}
+          >
             <div className="flex transition-transform duration-300 ease-in-out"
                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
               {screenshots.map((screenshot, index) => (
                 <div key={index} className="w-full flex-shrink-0">
                   <div className="relative">
-                    <img
+                    <Image
                       src={screenshot.image}
                       alt={screenshot.title}
+                      width={1260}
+                      height={600}
                       className="w-full h-[600px] object-cover"
+                      priority={index === 0}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                       <div className="p-8 text-white">
@@ -71,37 +92,56 @@ const ScreenshotsCarousel = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </MotionDiv>
 
           {/* Navigation Buttons */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-colors duration-200"
+          <MotionDiv 
+            variant="fadeInLeft"
+            delay={0.6}
           >
-            <ChevronLeft className="w-6 h-6 text-gray-800" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-colors duration-200"
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-colors duration-200 hover:scale-110"
+            >
+              <ChevronLeft className="w-6 h-6 text-gray-800" />
+            </button>
+          </MotionDiv>
+          <MotionDiv 
+            variant="fadeInRight"
+            delay={0.6}
           >
-            <ChevronRight className="w-6 h-6 text-gray-800" />
-          </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-colors duration-200 hover:scale-110"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-800" />
+            </button>
+          </MotionDiv>
 
           {/* Dots Indicator */}
-          <div className="flex justify-center mt-8 space-x-2">
+          <MotionDiv 
+            className="flex justify-center mt-8 space-x-2"
+            variant="fadeInUp"
+            delay={0.7}
+          >
             {screenshots.map((_, index) => (
-              <button
+              <motion.button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`w-3 h-3 rounded-full transition-colors duration-200 ${
                   index === currentSlide ? 'bg-primary' : 'bg-gray-300'
                 }`}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
               />
             ))}
-          </div>
-        </div>
+          </MotionDiv>
+        </MotionDiv>
       </div>
-    </section>
+    </MotionSection>
   )
 }
 

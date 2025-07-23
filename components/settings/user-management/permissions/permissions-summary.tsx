@@ -13,6 +13,7 @@ interface PermissionsSummaryProps {
   userName: string;
   userRole: string;
   disabled?: boolean;
+  onManagePermissions?: () => void; // Add callback for managing permissions
 }
 
 export function PermissionsSummary({
@@ -20,7 +21,8 @@ export function PermissionsSummary({
   workspaceId,
   userName,
   userRole,
-  disabled = false
+  disabled = false,
+  onManagePermissions
 }: PermissionsSummaryProps) {
   const [userPermissions, setUserPermissions] = useState<UserPermission | null>(null);
   const [loading, setLoading] = useState(false);

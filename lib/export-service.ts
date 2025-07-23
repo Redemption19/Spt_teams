@@ -4,7 +4,7 @@ import { Project, Task, User, Team, ActivityLog } from './types';
 import { format as formatDate } from 'date-fns';
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf' | 'json' | 'summary';
-export type ExportType = 'projects' | 'tasks' | 'users' | 'teams' | 'activities' | 'reports';
+export type ExportType = 'projects' | 'tasks' | 'users' | 'teams' | 'activities' | 'reports' | 'expenses';
 
 export interface ExportOptions {
   format: ExportFormat;
@@ -161,6 +161,13 @@ export class ExportService {
           'ID', 'User ID', 'Action', 'Entity', 'Entity ID', 'Workspace ID',
           'Details', 'Timestamp'
         ];
+      case 'expenses':
+        return [
+          'ID', 'Title', 'Description', 'Amount', 'Currency', 'Amount (GHS)', 
+          'Category', 'Status', 'Receipt', 'Merchant', 'Payment Method',
+          'Submitted By', 'Submitted Date', 'Approved By', 'Approved Date',
+          'Created At', 'Updated At'
+        ];
       default:
         return ['ID', 'Data'];
     }
@@ -261,6 +268,28 @@ export class ExportService {
           escapeCSV(formatDate(activity.timestamp, 'yyyy-MM-dd HH:mm:ss'))
         ];
 
+      case 'expenses':
+        const expense = item as any; // Using any since we need to import the expense type
+        return [
+          escapeCSV(expense.id),
+          escapeCSV(expense.title),
+          escapeCSV(expense.description || ''),
+          escapeCSV(expense.amount?.toFixed(2) || ''),
+          escapeCSV(expense.currency || ''),
+          escapeCSV(expense.amountInBaseCurrency?.toFixed(2) || ''),
+          escapeCSV(expense.category?.name || ''),
+          escapeCSV(expense.status || ''),
+          escapeCSV(expense.hasReceipt ? 'Yes' : 'No'),
+          escapeCSV(expense.merchant || ''),
+          escapeCSV(expense.paymentMethod || ''),
+          escapeCSV(expense.submittedBy || ''),
+          escapeCSV(expense.submittedAt ? formatDate(new Date(expense.submittedAt), 'yyyy-MM-dd HH:mm:ss') : ''),
+          escapeCSV(expense.approvedBy || ''),
+          escapeCSV(expense.approvedAt ? formatDate(new Date(expense.approvedAt), 'yyyy-MM-dd HH:mm:ss') : ''),
+          escapeCSV(formatDate(new Date(expense.createdAt), 'yyyy-MM-dd HH:mm:ss')),
+          escapeCSV(formatDate(new Date(expense.updatedAt), 'yyyy-MM-dd HH:mm:ss'))
+        ];
+
       default:
         return [escapeCSV(item.id || ''), escapeCSV(JSON.stringify(item))];
     }
@@ -332,6 +361,7 @@ export class ExportService {
       case 'teams': return 'Teams';
       case 'activities': return 'Activity Log';
       case 'reports': return 'Reports';
+      case 'expenses': return 'Expenses';
       default: return 'Data Export';
     }
   }
@@ -490,5 +520,379 @@ export class ExportService {
       data: [summary],
       filename: `summary_report_${formatDate(new Date(), 'yyyy-MM-dd')}`
     });
+  }
+
+  /**
+   * Export expenses to various formats
+   */
+  static async exportExpenses(
+    expenses: any[], 
+    format: ExportFormat = 'csv',
+    filename?: string
+  ): Promise<void> {
+    const defaultFilename = `expenses_export_${formatDate(new Date(), 'yyyy-MM-dd_HH-mm-ss')}`;
+    await this.exportData({
+      format,
+      type: 'expenses',
+      data: expenses,
+      filename: filename || defaultFilename
+    });
+  }
+
+  /**
+   * Export expense summary report
+   */
+  static async exportExpenseSummary(
+    expenses: any[],
+    analytics: any,
+    format: ExportFormat = 'pdf'
+  ): Promise<void> {
+    const summary = {
+      reportDate: new Date(),
+      totalExpenses: expenses.length,
+      totalAmount: expenses.reduce((sum, exp) => sum + (exp.amountInBaseCurrency || 0), 0),
+      approvedExpenses: expenses.filter(e => e.status === 'approved').length,
+      pendingExpenses: expenses.filter(e => e.status === 'submitted').length,
+      rejectedExpenses: expenses.filter(e => e.status === 'rejected').length,
+      approvedAmount: expenses
+        .filter(e => e.status === 'approved')
+        .reduce((sum, exp) => sum + (exp.amountInBaseCurrency || 0), 0),
+      pendingAmount: expenses
+        .filter(e => e.status === 'submitted')
+        .reduce((sum, exp) => sum + (exp.amountInBaseCurrency || 0), 0),
+      categoryBreakdown: this.getCategoryBreakdown(expenses),
+      topCategories: this.getTopCategories(expenses, 5),
+      monthlyTrend: this.getMonthlyTrend(expenses),
+      averageExpenseAmount: expenses.length > 0 
+        ? expenses.reduce((sum, exp) => sum + (exp.amountInBaseCurrency || 0), 0) / expenses.length 
+        : 0
+    };
+
+    if (format === 'pdf') {
+      await this.exportExpenseSummaryToPDF(summary, expenses);
+    } else {
+      await this.exportData({
+        format,
+        type: 'reports',
+        data: [summary],
+        filename: `expense_summary_${formatDate(new Date(), 'yyyy-MM-dd')}`
+      });
+    }
+  }
+
+  /**
+   * Export tax report for expenses
+   */
+  static async exportTaxReport(
+    expenses: any[],
+    format: ExportFormat = 'csv'
+  ): Promise<void> {
+    // Filter only approved expenses for tax reporting
+    const taxableExpenses = expenses
+      .filter(e => e.status === 'approved')
+      .map(expense => ({
+        id: expense.id,
+        title: expense.title,
+        description: expense.description,
+        amount: expense.amountInBaseCurrency,
+        currency: 'GHS',
+        category: expense.category?.name || '',
+        merchant: expense.merchant || '',
+        date: expense.createdAt,
+        hasReceipt: expense.hasReceipt,
+        taxDeductible: expense.category?.taxDeductible || false,
+        businessExpense: expense.category?.businessExpense || false
+      }));
+
+    await this.exportData({
+      format,
+      type: 'expenses',
+      data: taxableExpenses,
+      filename: `tax_report_${formatDate(new Date(), 'yyyy-MM-dd')}`
+    });
+  }
+
+  /**
+   * Helper method to get category breakdown
+   */
+  private static getCategoryBreakdown(expenses: any[]): Record<string, number> {
+    return expenses.reduce((acc, expense) => {
+      const categoryName = expense.category?.name || 'Uncategorized';
+      acc[categoryName] = (acc[categoryName] || 0) + (expense.amountInBaseCurrency || 0);
+      return acc;
+    }, {} as Record<string, number>);
+  }
+
+  /**
+   * Helper method to get top categories
+   */
+  private static getTopCategories(expenses: any[], limit: number = 5): Array<{name: string, amount: number, count: number}> {
+    const breakdown = this.getCategoryBreakdown(expenses);
+    const categoryStats = Object.entries(breakdown).map(([name, amount]) => ({
+      name,
+      amount,
+      count: expenses.filter(e => (e.category?.name || 'Uncategorized') === name).length
+    }));
+    
+    return categoryStats
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, limit);
+  }
+
+  /**
+   * Helper method to get monthly trend
+   */
+  private static getMonthlyTrend(expenses: any[]): Array<{month: string, amount: number, count: number}> {
+    const monthlyData = expenses.reduce((acc, expense) => {
+      const date = new Date(expense.createdAt);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!acc[monthKey]) {
+        acc[monthKey] = { month: monthKey, amount: 0, count: 0 };
+      }
+      
+      acc[monthKey].amount += expense.amountInBaseCurrency || 0;
+      acc[monthKey].count += 1;
+      
+      return acc;
+    }, {} as Record<string, {month: string, amount: number, count: number}>);
+
+    return (Object.values(monthlyData) as Array<{month: string, amount: number, count: number}>)
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .slice(-12); // Last 12 months
+  }
+
+  /**
+   * Export expense summary to PDF with enhanced formatting
+   */
+  private static async exportExpenseSummaryToPDF(summary: any, expenses: any[]): Promise<void> {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Expense Summary Report</title>
+        <style>
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f8f9fa;
+          }
+          .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
+          .header { 
+            text-align: center; 
+            border-bottom: 3px solid #007bff; 
+            padding-bottom: 20px; 
+            margin-bottom: 30px;
+          }
+          h1 { 
+            color: #007bff; 
+            margin: 0;
+            font-size: 28px;
+          }
+          .report-date { 
+            color: #6c757d; 
+            margin-top: 10px;
+            font-size: 14px;
+          }
+          .summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 30px;
+          }
+          .summary-card { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 8px; 
+            border-left: 4px solid #007bff;
+          }
+          .summary-card h3 { 
+            margin: 0 0 10px 0; 
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .summary-card .value { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #007bff;
+          }
+          .categories-section { 
+            margin-top: 30px;
+          }
+          .section-title { 
+            font-size: 20px; 
+            color: #495057; 
+            border-bottom: 2px solid #dee2e6; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px;
+          }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px;
+            font-size: 14px;
+          }
+          th, td { 
+            border: 1px solid #dee2e6; 
+            padding: 12px; 
+            text-align: left;
+          }
+          th { 
+            background-color: #007bff; 
+            color: white; 
+            font-weight: 600;
+          }
+          tr:nth-child(even) { 
+            background-color: #f8f9fa;
+          }
+          tr:hover { 
+            background-color: #e3f2fd;
+          }
+          .amount { 
+            text-align: right; 
+            font-weight: 600;
+          }
+          .status-approved { color: #28a745; }
+          .status-pending { color: #ffc107; }
+          .status-rejected { color: #dc3545; }
+          .footer { 
+            margin-top: 30px; 
+            text-align: center; 
+            color: #6c757d; 
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+          }
+          @media print {
+            body { background-color: white; }
+            .container { box-shadow: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Expense Summary Report</h1>
+            <div class="report-date">Generated on ${formatDate(summary.reportDate, 'PPP')}</div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-card">
+              <h3>Total Expenses</h3>
+              <div class="value">${summary.totalExpenses}</div>
+            </div>
+            <div class="summary-card">
+              <h3>Total Amount</h3>
+              <div class="value">GHS ${summary.totalAmount.toFixed(2)}</div>
+            </div>
+            <div class="summary-card">
+              <h3>Approved Amount</h3>
+              <div class="value status-approved">GHS ${summary.approvedAmount.toFixed(2)}</div>
+            </div>
+            <div class="summary-card">
+              <h3>Pending Amount</h3>
+              <div class="value status-pending">GHS ${summary.pendingAmount.toFixed(2)}</div>
+            </div>
+            <div class="summary-card">
+              <h3>Average Amount</h3>
+              <div class="value">GHS ${summary.averageExpenseAmount.toFixed(2)}</div>
+            </div>
+            <div class="summary-card">
+              <h3>Approval Rate</h3>
+              <div class="value">${summary.totalExpenses > 0 ? ((summary.approvedExpenses / summary.totalExpenses) * 100).toFixed(1) : 0}%</div>
+            </div>
+          </div>
+
+          <div class="categories-section">
+            <h2 class="section-title">Top Categories</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Count</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${summary.topCategories.map((cat: any) => `
+                  <tr>
+                    <td>${cat.name}</td>
+                    <td class="amount">GHS ${cat.amount.toFixed(2)}</td>
+                    <td>${cat.count}</td>
+                    <td>${summary.totalAmount > 0 ? ((cat.amount / summary.totalAmount) * 100).toFixed(1) : 0}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="categories-section">
+            <h2 class="section-title">Status Breakdown</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Count</th>
+                  <th>Amount</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="status-approved">Approved</td>
+                  <td>${summary.approvedExpenses}</td>
+                  <td class="amount">GHS ${summary.approvedAmount.toFixed(2)}</td>
+                  <td>${summary.totalExpenses > 0 ? ((summary.approvedExpenses / summary.totalExpenses) * 100).toFixed(1) : 0}%</td>
+                </tr>
+                <tr>
+                  <td class="status-pending">Pending</td>
+                  <td>${summary.pendingExpenses}</td>
+                  <td class="amount">GHS ${summary.pendingAmount.toFixed(2)}</td>
+                  <td>${summary.totalExpenses > 0 ? ((summary.pendingExpenses / summary.totalExpenses) * 100).toFixed(1) : 0}%</td>
+                </tr>
+                <tr>
+                  <td class="status-rejected">Rejected</td>
+                  <td>${summary.rejectedExpenses}</td>
+                  <td class="amount">GHS 0.00</td>
+                  <td>${summary.totalExpenses > 0 ? ((summary.rejectedExpenses / summary.totalExpenses) * 100).toFixed(1) : 0}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="footer">
+            <p>This report was generated automatically by SPT Teams Financial Management System.</p>
+            <p>Report contains ${summary.totalExpenses} expenses with a total value of GHS ${summary.totalAmount.toFixed(2)}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create and open print window
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      throw new Error('Could not open print window. Please allow popups.');
+    }
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    
+    // Trigger print dialog
+    setTimeout(() => {
+      printWindow.print();
+      // Don't close automatically to allow user to save as PDF
+    }, 500);
   }
 } 

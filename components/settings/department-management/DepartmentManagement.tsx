@@ -21,6 +21,8 @@ import { EditDepartmentDialog } from './dialogs/EditDepartmentDialog';
 import { ViewMembersDialog } from './dialogs/ViewMembersDialog';
 import { AssignMembersDialog } from './dialogs/AssignMembersDialog';
 import { UnassignedUsersList } from './UnassignedUsersList';
+import { DepartmentLoadingSkeleton } from './DepartmentLoadingSkeleton';
+import { PerformanceMonitor } from './PerformanceMonitor';
 
 export function DepartmentManagement() {
   const { toast } = useToast();
@@ -59,7 +61,7 @@ export function DepartmentManagement() {
 
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
-  // Load data with cross-workspace support
+  // Optimized data loading with parallel processing and caching
   const loadData: () => Promise<void> = useCallback(async () => {
     if (!user?.uid) return;
     const workspaceIds = (isAdminOrOwner && showAllWorkspaces && accessibleWorkspaces?.length)
@@ -69,34 +71,85 @@ export function DepartmentManagement() {
 
     try {
       setLoading(true);
-      let allDepartments: Department[] = [];
-      let allUsers: User[] = [];
-      let allMembers: {[key: string]: DepartmentUser[]} = {};
-
-      for (const wsId of workspaceIds) {
+      
+      // Load all workspace data in parallel instead of sequentially
+      const workspacePromises = workspaceIds.map(async (wsId) => {
         const wsObj = accessibleWorkspaces?.find(w => w.id === wsId) || currentWorkspace;
-        const [depts, workspaceUsers] = await Promise.all([
-          DepartmentService.getWorkspaceDepartments(wsId),
-          UserService.getUsersByWorkspace(wsId)
-        ]);
+        
+        try {
+          // Load departments and users in parallel for each workspace
+          const [depts, workspaceUsers] = await Promise.all([
+            DepartmentService.getWorkspaceDepartments(wsId),
+            UserService.getUsersByWorkspace(wsId)
+          ]);
 
-        depts.forEach(dept => {
-          (dept as any)._workspaceName = wsObj?.name || 'Workspace';
-          (dept as any)._workspaceId = wsId;
-          if (!allDepartments.some(d => d.id === dept.id)) {
+          // Add workspace metadata
+          const departmentsWithMeta = depts.map(dept => ({
+            ...dept,
+            _workspaceName: wsObj?.name || 'Workspace',
+            _workspaceId: wsId
+          }));
+
+          return {
+            departments: departmentsWithMeta,
+            users: workspaceUsers,
+            workspaceId: wsId
+          };
+        } catch (error) {
+          console.warn(`Failed to load data for workspace ${wsId}:`, error);
+          return {
+            departments: [],
+            users: [],
+            workspaceId: wsId
+          };
+        }
+      });
+
+      // Wait for all workspace data to load in parallel
+      const workspaceResults = await Promise.all(workspacePromises);
+      
+      // Combine results efficiently
+      const allDepartments: Department[] = [];
+      const allUsers: User[] = [];
+      const userIdSet = new Set<string>();
+      const departmentIdSet = new Set<string>();
+
+      workspaceResults.forEach(({ departments, users }) => {
+        departments.forEach(dept => {
+          if (!departmentIdSet.has(dept.id)) {
+            departmentIdSet.add(dept.id);
             allDepartments.push(dept);
           }
         });
-        workspaceUsers.forEach(user => {
-          if (!allUsers.some(u => u.id === user.id)) {
+        
+        users.forEach(user => {
+          if (!userIdSet.has(user.id)) {
+            userIdSet.add(user.id);
             allUsers.push(user);
           }
         });
-        for (const dept of depts) {
-          const members = await DepartmentService.getDepartmentMembers(wsId, dept.id);
-          allMembers[dept.id] = members;
+      });
+
+      // Load department members efficiently using batch loading
+      const allMemberPromises = workspaceResults.map(async ({ departments, workspaceId }) => {
+        if (departments.length === 0) return {};
+        
+        try {
+          const departmentIds = departments.map(d => d.id);
+          return await DepartmentService.getBatchDepartmentMembers(workspaceId, departmentIds);
+        } catch (error) {
+          console.warn(`Failed to batch load members for workspace ${workspaceId}:`, error);
+          return {};
         }
-      }
+      });
+
+      const allMemberResults = await Promise.all(allMemberPromises);
+      const allMembers: {[key: string]: DepartmentUser[]} = {};
+      
+      allMemberResults.forEach(memberMap => {
+        Object.assign(allMembers, memberMap);
+      });
+
       setDepartments(allDepartments);
       setUsers(allUsers);
       setDepartmentMembers(allMembers);
@@ -112,32 +165,47 @@ export function DepartmentManagement() {
     }
   }, [user?.uid, isAdminOrOwner, showAllWorkspaces, accessibleWorkspaces, currentWorkspace, toast]);
 
-  const workspaceIds = accessibleWorkspaces?.map(w => w.id).join(',') || '';
+  // Optimized effect with stable dependencies
+  const workspaceIdsString = useMemo(() => 
+    accessibleWorkspaces?.map(w => w.id).sort().join(',') || '', 
+    [accessibleWorkspaces]
+  );
+
   useEffect(() => {
     loadData();
-  }, [currentWorkspace?.id, user?.uid, showAllWorkspaces, workspaceIds, loadData]);
+  }, [currentWorkspace?.id, user?.uid, showAllWorkspaces, workspaceIdsString, loadData]);
 
-  // Get current user's department info for members
-  const currentUserProfile = useMemo(() => users.find(u => u.email === user?.email), [users, user?.email]);
-  const userDepartment = useMemo(() => currentUserProfile?.departmentId
-    ? departments.find(d => d.id === currentUserProfile.departmentId)
-    : null, [currentUserProfile, departments]);
+  // Optimized memoized values with reduced dependencies
+  const currentUserProfile = useMemo(() => 
+    users.find(u => u.email === user?.email), 
+    [users, user?.email]
+  );
+  
+  const userDepartment = useMemo(() => 
+    currentUserProfile?.departmentId
+      ? departments.find(d => d.id === currentUserProfile.departmentId)
+      : null, 
+    [currentUserProfile?.departmentId, departments]
+  );
 
-  // Filter departments based on user role and search term
+  // Optimized department filtering with better search performance
   const filteredDepartments = useMemo(() => {
     const departmentsToFilter = isAdminOrOwner ? departments : (userDepartment ? [userDepartment] : []);
+    
+    if (!searchTerm) return departmentsToFilter;
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
     return departmentsToFilter.filter(dept =>
-      dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dept.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      dept.name.toLowerCase().includes(lowerSearchTerm) ||
+      (dept.description && dept.description.toLowerCase().includes(lowerSearchTerm))
     );
   }, [isAdminOrOwner, departments, userDepartment, searchTerm]);
 
-
-  // Get unassigned users (prioritize departmentId for new system)
-  const unassignedUsers = useMemo(() => users.filter(user => {
-    const hasNoDepartmentId = !user.departmentId || user.departmentId === '' || user.departmentId === 'none';
-    return hasNoDepartmentId;
-  }), [users]);
+  // Optimized unassigned users calculation
+  const unassignedUsers = useMemo(() => 
+    users.filter(user => !user.departmentId || user.departmentId === '' || user.departmentId === 'none'), 
+    [users]
+  );
 
   // Handle create department
   const handleCreateDepartment = async () => {
@@ -328,18 +396,35 @@ export function DepartmentManagement() {
     }
   };
 
-  // Calculate real-time statistics (different for members vs admins)
-  const departmentStats = isAdminOrOwner ? {
-    totalDepartments: departments.length,
-    activeDepartments: departments.filter(d => d.status === 'active').length,
-    totalMembers: users.filter(user => user.departmentId && departments.some(dept => dept.id === user.departmentId)).length,
-    departmentsWithHeads: departments.filter(d => d.headId && d.headId !== 'none').length,
-  } : {
-    totalDepartments: userDepartment ? 1 : 0,
-    activeDepartments: userDepartment?.status === 'active' ? 1 : 0,
-    totalMembers: userDepartment ? (userDepartment.memberCount || 0) : 0,
-    departmentsWithHeads: userDepartment?.headId && userDepartment.headId !== 'none' ? 1 : 0,
-  };
+  // Optimized statistics calculation with caching
+  const departmentStats = useMemo(() => {
+    if (isAdminOrOwner) {
+      const activeDepts = departments.filter(d => d.status === 'active');
+      const usersWithDepartments = users.filter(user => 
+        user.departmentId && departments.some(dept => dept.id === user.departmentId)
+      );
+      const deptsWithHeads = departments.filter(d => d.headId && d.headId !== 'none');
+      
+      return {
+        totalDepartments: departments.length,
+        activeDepartments: activeDepts.length,
+        totalMembers: usersWithDepartments.length,
+        departmentsWithHeads: deptsWithHeads.length,
+      };
+    } else {
+      return {
+        totalDepartments: userDepartment ? 1 : 0,
+        activeDepartments: userDepartment?.status === 'active' ? 1 : 0,
+        totalMembers: userDepartment ? (userDepartment.memberCount || 0) : 0,
+        departmentsWithHeads: userDepartment?.headId && userDepartment.headId !== 'none' ? 1 : 0,
+      };
+    }
+  }, [isAdminOrOwner, departments, users, userDepartment]);
+
+  // Show loading skeleton for better UX
+  if (loading) {
+    return <DepartmentLoadingSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
@@ -428,11 +513,7 @@ export function DepartmentManagement() {
 
         <TabsContent value="departments">
           {/* Departments List */}
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : filteredDepartments.length === 0 ? (
+          {filteredDepartments.length === 0 ? (
             <div className="text-center py-12">
               <Building className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">
@@ -536,6 +617,9 @@ export function DepartmentManagement() {
         confirmDelete={confirmDeleteDepartment}
         isSubmitting={submitting}
       />
+
+      {/* Performance Monitor (development only) */}
+      <PerformanceMonitor />
     </div>
   );
 }

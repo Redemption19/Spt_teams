@@ -138,6 +138,23 @@ export const SYSTEM_PERMISSIONS: Permission[] = [
   // AI Assistant
   { id: 'ai.view', name: 'View AI Assistant', description: 'Can access AI assistant features', category: 'AI Assistant', feature: 'ai' },
   { id: 'ai.configure', name: 'Configure AI', description: 'Can configure AI assistant settings', category: 'AI Assistant', feature: 'ai' },
+
+  // Financial Management
+  { id: 'expenses.view', name: 'View Expenses', description: 'Can view expense list and details', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.view.all', name: 'View All Expenses', description: 'Can view all expenses across all departments', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.view.department', name: 'View Department Expenses', description: 'Can view expenses within their department only', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.view.own', name: 'View Own Expenses', description: 'Can view only their own expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.create', name: 'Create Expenses', description: 'Can create new expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.edit', name: 'Edit Expenses', description: 'Can edit expense information', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.edit.own', name: 'Edit Own Expenses', description: 'Can edit only their own expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.delete', name: 'Delete Expenses', description: 'Can delete expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.delete.own', name: 'Delete Own Expenses', description: 'Can delete only their own expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.approve', name: 'Approve Expenses', description: 'Can approve submitted expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.approve.department', name: 'Approve Department Expenses', description: 'Can approve expenses within their department', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.reject', name: 'Reject Expenses', description: 'Can reject submitted expenses', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.export', name: 'Export Expenses', description: 'Can export expense data', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.analytics', name: 'View Expense Analytics', description: 'Can view expense analytics and reports', category: 'Financial Management', feature: 'expenses' },
+  { id: 'expenses.categories', name: 'Manage Expense Categories', description: 'Can create and manage expense categories', category: 'Financial Management', feature: 'expenses' },
 ];
 
 // Group permissions by category
@@ -300,15 +317,37 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
         permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'ai')
       }
     ]
+  },
+  {
+    id: 'financial-management',
+    name: 'Financial Management',
+    description: 'Manage financial operations and expenses',
+    features: [
+      {
+        id: 'expenses',
+        name: 'Expenses',
+        description: 'Expense management operations',
+        permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'expenses')
+      }
+    ]
   }
 ];
 
 export class PermissionsService {
   /**
-   * Get user permissions for a specific workspace
+   * Get user permissions for a specific workspace with inheritance support
+   * 
+   * This method implements hierarchical permission inheritance:
+   * 1. First checks for permissions directly assigned in the current workspace
+   * 2. If none found, checks parent workspace permissions recursively
+   * 3. Returns inherited permissions with current workspace context
+   * 
+   * This ensures consistent access control across the workspace hierarchy.
+   * See PERMISSION_INHERITANCE_GUIDE.md for detailed documentation.
    */
   static async getUserPermissions(userId: string, workspaceId: string): Promise<UserPermission | null> {
     try {
+      // First, try to get permissions for the current workspace
       const docRef = doc(db, 'userPermissions', `${userId}_${workspaceId}`);
       const docSnap = await getDoc(docRef);
       
@@ -321,6 +360,32 @@ export class PermissionsService {
           createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
           updatedAt: data.updatedAt?.toDate?.() || data.updatedAt || new Date(),
         } as UserPermission;
+      }
+      
+      // If not found, try to get workspace details to check for parent workspace
+      try {
+        // Import WorkspaceService to get workspace details
+        const { WorkspaceService } = await import('./workspace-service');
+        const workspace = await WorkspaceService.getWorkspace(workspaceId);
+        
+        if (workspace && workspace.parentWorkspaceId) {
+          // Check for permissions in parent workspace
+          const parentDocRef = doc(db, 'userPermissions', `${userId}_${workspace.parentWorkspaceId}`);
+          const parentDocSnap = await getDoc(parentDocRef);
+          
+          if (parentDocSnap.exists()) {
+            const data = parentDocSnap.data();
+            return {
+              userId: data.userId,
+              workspaceId: workspaceId, // Keep the current workspace ID
+              permissions: data.permissions || {},
+              createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
+              updatedAt: data.updatedAt?.toDate?.() || data.updatedAt || new Date(),
+            } as UserPermission;
+          }
+        }
+      } catch (error) {
+        console.warn('Error checking parent workspace permissions:', error);
       }
       
       return null;
@@ -347,12 +412,18 @@ export class PermissionsService {
         userId,
         workspaceId,
         permissions: Object.keys(permissions).reduce((acc, permissionId) => {
-          acc[permissionId] = {
+          const permissionData: any = {
             granted: permissions[permissionId].granted,
             grantedBy: grantedBy,
-            grantedAt: now,
-            expiresAt: permissions[permissionId].expiresAt
+            grantedAt: now
           };
+          
+          // Only include expiresAt if it's actually provided and not undefined
+          if (permissions[permissionId].expiresAt !== undefined) {
+            permissionData.expiresAt = permissions[permissionId].expiresAt;
+          }
+          
+          acc[permissionId] = permissionData;
           return acc;
         }, {} as any),
         createdAt: now,
@@ -382,31 +453,53 @@ export class PermissionsService {
       // Get existing permissions
       const existingDoc = await getDoc(docRef);
       let existingPermissions = {};
+      let isNewDocument = false;
       
       if (existingDoc.exists()) {
         existingPermissions = existingDoc.data().permissions || {};
+      } else {
+        isNewDocument = true;
       }
       
       // Update permissions
       const updatedPermissions = {
         ...existingPermissions,
         ...Object.keys(permissionUpdates).reduce((acc, permissionId) => {
-          acc[permissionId] = {
+          const permissionData: any = {
             granted: permissionUpdates[permissionId].granted,
             grantedBy: updatedBy,
-            grantedAt: now,
-            expiresAt: permissionUpdates[permissionId].expiresAt
+            grantedAt: now
           };
+          
+          // Only include expiresAt if it's actually provided and not undefined
+          if (permissionUpdates[permissionId].expiresAt !== undefined) {
+            permissionData.expiresAt = permissionUpdates[permissionId].expiresAt;
+          }
+          
+          acc[permissionId] = permissionData;
           return acc;
         }, {} as any)
       };
       
-      await updateDoc(docRef, {
-        permissions: updatedPermissions,
-        updatedAt: now
-      });
+      if (isNewDocument) {
+        // Create new document with all required fields
+        const userPermission: UserPermission = {
+          userId,
+          workspaceId,
+          permissions: updatedPermissions,
+          createdAt: now,
+          updatedAt: now
+        };
+        await setDoc(docRef, userPermission);
+      } else {
+        // Update existing document
+        await updateDoc(docRef, {
+          permissions: updatedPermissions,
+          updatedAt: now
+        });
+      }
     } catch (error) {
-      console.error('Error updating user permissions:', error);
+      console.error('💾 Error updating user permissions:', error);
       throw error;
     }
   }
@@ -441,6 +534,127 @@ export class PermissionsService {
     } catch (error) {
       console.error('Error checking permission:', error);
       return false;
+    }
+  }
+
+  /**
+   * Check if user has any of the specified permissions (OR logic)
+   * Useful for checking alternative permissions (e.g., view.all OR view.department OR view.own)
+   */
+  static async hasAnyPermission(userId: string, workspaceId: string, permissionIds: string[]): Promise<boolean> {
+    try {
+      const userPermissions = await this.getUserPermissions(userId, workspaceId);
+      
+      if (!userPermissions) {
+        return false;
+      }
+      
+      for (const permissionId of permissionIds) {
+        const permission = userPermissions.permissions[permissionId];
+        if (permission && permission.granted && (!permission.expiresAt || new Date() <= permission.expiresAt)) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking any permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user has all of the specified permissions (AND logic)
+   * Useful for checking combined permissions requirements
+   */
+  static async hasAllPermissions(userId: string, workspaceId: string, permissionIds: string[]): Promise<boolean> {
+    try {
+      const userPermissions = await this.getUserPermissions(userId, workspaceId);
+      
+      if (!userPermissions) {
+        return false;
+      }
+      
+      for (const permissionId of permissionIds) {
+        const permission = userPermissions.permissions[permissionId];
+        if (!permission || !permission.granted || (permission.expiresAt && new Date() > permission.expiresAt)) {
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking all permissions:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get effective permissions for a user (including inheritance source info)
+   * Useful for debugging and audit trails
+   */
+  static async getEffectivePermissions(userId: string, workspaceId: string): Promise<{
+    permissions: UserPermission | null;
+    source: 'direct' | 'inherited' | 'none';
+    inheritedFrom?: string;
+  }> {
+    try {
+      // First, try to get permissions for the current workspace
+      const docRef = doc(db, 'userPermissions', `${userId}_${workspaceId}`);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+          permissions: {
+            userId: data.userId,
+            workspaceId: data.workspaceId,
+            permissions: data.permissions || {},
+            createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
+            updatedAt: data.updatedAt?.toDate?.() || data.updatedAt || new Date(),
+          } as UserPermission,
+          source: 'direct'
+        };
+      }
+      
+      // Try to get workspace details to check for parent workspace
+      try {
+        const { WorkspaceService } = await import('./workspace-service');
+        const workspace = await WorkspaceService.getWorkspace(workspaceId);
+        
+        if (workspace && workspace.parentWorkspaceId) {
+          const parentDocRef = doc(db, 'userPermissions', `${userId}_${workspace.parentWorkspaceId}`);
+          const parentDocSnap = await getDoc(parentDocRef);
+          
+          if (parentDocSnap.exists()) {
+            const data = parentDocSnap.data();
+            return {
+              permissions: {
+                userId: data.userId,
+                workspaceId: workspaceId, // Keep the current workspace ID
+                permissions: data.permissions || {},
+                createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
+                updatedAt: data.updatedAt?.toDate?.() || data.updatedAt || new Date(),
+              } as UserPermission,
+              source: 'inherited',
+              inheritedFrom: workspace.parentWorkspaceId
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('Error checking parent workspace permissions:', error);
+      }
+      
+      return {
+        permissions: null,
+        source: 'none'
+      };
+    } catch (error) {
+      console.error('Error getting effective permissions:', error);
+      return {
+        permissions: null,
+        source: 'none'
+      };
     }
   }
 

@@ -30,8 +30,6 @@ import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
 import { UserService } from '@/lib/user-service';
 import { PermissionsService } from '@/lib/permissions-service';
 
-// Import the existing components
-import { PermissionsDialog } from '@/components/settings/user-management/permissions/permissions-dialog';
 import { PermissionsSummary } from '@/components/settings/user-management/permissions/permissions-summary';
 import { PermissionsTemplates } from '@/components/settings/user-management/permissions/permissions-templates';
 
@@ -56,8 +54,7 @@ export default function PermissionsPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('all-users');
   
-  // Permissions dialog states
-  const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
+  // Permissions dialog states  
   const [isPermissionsTemplatesOpen, setIsPermissionsTemplatesOpen] = useState(false);
   const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<UserItem | null>(null);
 
@@ -98,26 +95,6 @@ export default function PermissionsPage() {
       loadUsers();
     }
   }, [loadUsers, currentWorkspace?.id, user?.uid]);
-
-  const handleOpenPermissions = (userItem: UserItem) => {
-    // Debug: Log workspace validity and userItem
-    console.log('DEBUG handleOpenPermissions:', {
-      userItem,
-      validWorkspaceIds,
-      isWorkspaceValid: validWorkspaceIds.includes(userItem.workspaceId)
-    });
-    // Defensive: Only allow if workspace is valid
-    if (!validWorkspaceIds.includes(userItem.workspaceId)) {
-      toast({
-        title: 'Workspace Not Found',
-        description: 'Cannot manage permissions for users in missing or deleted workspaces.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    setSelectedUserForPermissions(userItem);
-    setIsPermissionsOpen(true);
-  };
 
   const handleOpenPermissionsTemplates = (userItem?: UserItem) => {
     if (!userItem && !selectedUserForPermissions) {
@@ -548,21 +525,7 @@ export default function PermissionsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Use the existing components */}
-      {selectedUserForPermissions && (
-        <PermissionsDialog
-          isOpen={isPermissionsOpen}
-          onClose={() => {
-            setIsPermissionsOpen(false);
-            setSelectedUserForPermissions(null);
-          }}
-          userId={selectedUserForPermissions.user.id}
-          userName={selectedUserForPermissions.user.name || `${selectedUserForPermissions.user.firstName || ''} ${selectedUserForPermissions.user.lastName || ''}`.trim()}
-          workspaceId={currentWorkspace?.id || ''}
-          workspaceName={currentWorkspace?.name || ''}
-          currentUserRole={selectedUserForPermissions.role}
-        />
-      )}
+
 
       <PermissionsTemplates
         isOpen={isPermissionsTemplatesOpen}

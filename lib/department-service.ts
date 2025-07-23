@@ -42,24 +42,147 @@ export interface DepartmentUser {
 }
 
 export class DepartmentService {
+  // Simple cache for department data (3 minute TTL)
+  private static departmentCache = new Map<string, { departments: Department[], timestamp: number }>();
+  private static memberCache = new Map<string, { members: DepartmentUser[], timestamp: number }>();
+  private static CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+
+  private static isCacheValid(timestamp: number): boolean {
+    return Date.now() - timestamp < this.CACHE_TTL;
+  }
+
+  private static getCachedDepartments(workspaceId: string): Department[] | null {
+    const cached = this.departmentCache.get(workspaceId);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      return cached.departments;
+    }
+    return null;
+  }
+
+  private static setCachedDepartments(workspaceId: string, departments: Department[]): void {
+    this.departmentCache.set(workspaceId, {
+      departments: [...departments], // Clone array
+      timestamp: Date.now()
+    });
+  }
+
+  private static getCachedMembers(key: string): DepartmentUser[] | null {
+    const cached = this.memberCache.get(key);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      return cached.members;
+    }
+    return null;
+  }
+
+  private static setCachedMembers(key: string, members: DepartmentUser[]): void {
+    this.memberCache.set(key, {
+      members: [...members], // Clone array
+      timestamp: Date.now()
+    });
+  }
+
+  // Clear cache when departments are modified
+  private static clearCache(workspaceId?: string): void {
+    if (workspaceId) {
+      this.departmentCache.delete(workspaceId);
+      // Clear member cache for this workspace
+      for (const key of this.memberCache.keys()) {
+        if (key.startsWith(`${workspaceId}:`)) {
+          this.memberCache.delete(key);
+        }
+      }
+    } else {
+      this.departmentCache.clear();
+      this.memberCache.clear();
+    }
+  }
+  // Optimized batch loading for multiple departments' members
+  static async getBatchDepartmentMembers(workspaceId: string, departmentIds: string[]): Promise<{[key: string]: DepartmentUser[]}> {
+    try {
+      const memberPromises = departmentIds.map(async (deptId) => {
+        try {
+          const members = await this.getDepartmentMembers(workspaceId, deptId);
+          return { departmentId: deptId, members };
+        } catch (error) {
+          console.warn(`Failed to load members for department ${deptId}:`, error);
+          return { departmentId: deptId, members: [] };
+        }
+      });
+
+      const results = await Promise.all(memberPromises);
+      const memberMap: {[key: string]: DepartmentUser[]} = {};
+      
+      results.forEach(({ departmentId, members }) => {
+        memberMap[departmentId] = members;
+      });
+
+      return memberMap;
+    } catch (error) {
+      console.error('Error in batch loading department members:', error);
+      throw new Error('Failed to batch load department members');
+    }
+  }
+
   // Get all departments for a workspace
   static async getWorkspaceDepartments(workspaceId: string): Promise<Department[]> {
     try {
+      // Check cache first
+      const cached = this.getCachedDepartments(workspaceId);
+      if (cached) {
+        return cached;
+      }
+
       const q = query(
         collection(db, 'workspaces', workspaceId, 'departments'),
         orderBy('name', 'asc')
       );
       
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
+      const departments = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
         updatedAt: doc.data().updatedAt?.toDate() || new Date(),
       })) as Department[];
+
+      // Cache the results
+      this.setCachedDepartments(workspaceId, departments);
+      
+      return departments;
     } catch (error) {
       console.error('Error fetching departments:', error);
       throw new Error('Failed to fetch departments');
+    }
+  }
+
+  // Get departments from workspace and all its sub-workspaces (for cross-workspace support)
+  static async getWorkspaceDepartmentsWithSubs(workspaceId: string, subWorkspaceIds: string[] = []): Promise<Department[]> {
+    try {
+      // Get departments from main workspace
+      const mainDepartments = await this.getWorkspaceDepartments(workspaceId);
+      
+      // Get departments from all sub-workspaces
+      const subDepartments: Department[] = [];
+      
+      for (const subWorkspaceId of subWorkspaceIds) {
+        try {
+          const depts = await this.getWorkspaceDepartments(subWorkspaceId);
+          // Add workspace identifier to distinguish departments
+          const departmentsWithWorkspace = depts.map(dept => ({
+            ...dept,
+            name: `${dept.name} (Sub-workspace)` // Add identifier
+          }));
+          subDepartments.push(...departmentsWithWorkspace);
+        } catch (error) {
+          console.warn(`Failed to load departments from sub-workspace ${subWorkspaceId}:`, error);
+        }
+      }
+      
+      return [...mainDepartments, ...subDepartments];
+    } catch (error) {
+      console.error('Error fetching departments with sub-workspaces:', error);
+      // Fallback to just main workspace departments
+      return await this.getWorkspaceDepartments(workspaceId);
     }
   }
 
@@ -137,6 +260,9 @@ export class DepartmentService {
         userId
       );
 
+      // Clear cache after creating department
+      this.clearCache(workspaceId);
+
       // Return the created department
       const newDept = await this.getDepartment(workspaceId, docRef.id);
       if (!newDept) throw new Error('Failed to retrieve created department');
@@ -200,6 +326,9 @@ export class DepartmentService {
         workspaceId,
         userId
       );
+
+      // Clear cache after updating department
+      this.clearCache(workspaceId);
     } catch (error) {
       console.error('Error updating department:', error);
       throw error;
@@ -238,6 +367,9 @@ export class DepartmentService {
         workspaceId,
         userId
       );
+
+      // Clear cache after deleting department
+      this.clearCache(workspaceId);
     } catch (error) {
       console.error('Error deleting department:', error);
       throw error;
@@ -271,6 +403,13 @@ export class DepartmentService {
   // Get department members
   static async getDepartmentMembers(workspaceId: string, departmentId: string): Promise<DepartmentUser[]> {
     try {
+      // Check cache first
+      const cacheKey = `${workspaceId}:${departmentId}`;
+      const cached = this.getCachedMembers(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
       const { UserService } = await import('./user-service');
       const allUsers = await UserService.getUsersByWorkspace(workspaceId);
       
@@ -290,6 +429,9 @@ export class DepartmentService {
           departmentRole: 'member' as 'head' | 'member',
           joinedAt: user.createdAt,
         }));
+
+      // Cache the results
+      this.setCachedMembers(cacheKey, departmentUsers);
 
       return departmentUsers;
     } catch (error) {

@@ -19,6 +19,7 @@ interface PermissionsDialogProps {
   workspaceId: string;
   workspaceName: string;
   currentUserRole: string;
+  currentUserId?: string; // Add current user ID f
 }
 
 export function PermissionsDialog({
@@ -28,7 +29,8 @@ export function PermissionsDialog({
   userName,
   workspaceId,
   workspaceName,
-  currentUserRole
+  currentUserRole,
+  currentUserId
 }: PermissionsDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -98,17 +100,19 @@ export function PermissionsDialog({
         if (currentGranted !== newGranted) {
           permissionUpdates[permissionId] = {
             granted: newGranted,
-            grantedBy: 'current-user' // Replace with actual current user ID
+            grantedBy: currentUserId || 'system'
           };
         }
       });
+      
+      console.log('Permission updates to save:', permissionUpdates);
       
       if (Object.keys(permissionUpdates).length > 0) {
         await PermissionsService.updateUserPermissions(
           userId,
           workspaceId,
           permissionUpdates,
-          'current-user' // Replace with actual current user ID
+          currentUserId || 'system'
         );
         
         toast({
@@ -118,8 +122,14 @@ export function PermissionsDialog({
         
         // Reload permissions to get updated data
         await loadPermissions();
+      } else {
+        toast({
+          title: 'No Changes',
+          description: 'No permission changes were made.',
+        });
       }
       
+      // Always close the dialog after attempting to save
       onClose();
     } catch (error) {
       console.error('Error saving permissions:', error);

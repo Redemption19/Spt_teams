@@ -19,6 +19,37 @@ import { ActivityService } from './activity-service';
 
 // User management service functions
 export class UserService {
+  // Simple cache for workspace users (5 minute TTL)
+  private static userCache = new Map<string, { users: User[], timestamp: number }>();
+  private static CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  private static isCacheValid(timestamp: number): boolean {
+    return Date.now() - timestamp < this.CACHE_TTL;
+  }
+
+  private static getCachedUsers(workspaceId: string): User[] | null {
+    const cached = this.userCache.get(workspaceId);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      return cached.users;
+    }
+    return null;
+  }
+
+  private static setCachedUsers(workspaceId: string, users: User[]): void {
+    this.userCache.set(workspaceId, {
+      users: [...users], // Clone array to prevent mutations
+      timestamp: Date.now()
+    });
+  }
+
+  // Clear cache when users are updated
+  private static clearUserCache(workspaceId?: string): void {
+    if (workspaceId) {
+      this.userCache.delete(workspaceId);
+    } else {
+      this.userCache.clear();
+    }
+  }
   
   /**
    * Check if any owner exists in the workspace
@@ -350,6 +381,11 @@ export class UserService {
         ...cleanUpdates,
         updatedAt: new Date(),
       });
+
+      // Clear cache when user is updated
+      if (currentUser.workspaceId) {
+        this.clearUserCache(currentUser.workspaceId);
+      }
       
       // Log activity
       try {
@@ -390,8 +426,17 @@ export class UserService {
       console.error('Error updating user:', error);
       throw error;
     }
-  }  static async getUsersByWorkspace(workspaceId: string): Promise<User[]> {
+  }
+
+  static async getUsersByWorkspace(workspaceId: string): Promise<User[]> {
     try {
+      // Check cache first
+      const cachedUsers = this.getCachedUsers(workspaceId);
+      if (cachedUsers) {
+        console.log(`UserService: Returning ${cachedUsers.length} cached users for workspace ${workspaceId}`);
+        return cachedUsers;
+      }
+
       const usersRef = collection(db, 'users');
       
       // For development: remove orderBy to avoid index requirement
@@ -435,11 +480,16 @@ export class UserService {
       console.log(`UserService: Found ${users.length} users for workspace ${workspaceId}`);
       
       // Sort in memory for development
-      return users.sort((a, b) => {
+      const sortedUsers = users.sort((a, b) => {
         const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
         const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
         return dateB.getTime() - dateA.getTime();
       });
+
+      // Cache the results
+      this.setCachedUsers(workspaceId, sortedUsers);
+      
+      return sortedUsers;
     } catch (error) {
       console.error('Error fetching workspace users:', error);
       throw error;
