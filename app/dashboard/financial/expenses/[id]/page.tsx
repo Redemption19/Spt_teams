@@ -29,7 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserNames } from '@/hooks/use-user-names';
 import { Expense } from '@/lib/types/financial-types';
 import { safeNumber, formatNumber } from '@/lib/utils';
-import { ExpensesLoadingSkeleton } from '@/components/financial/ExpensesLoadingSkeleton';
+import { ExpenseDetailSkeleton } from '@/components/financial/ExpenseDetailSkeleton';
 
 interface ExpenseDetailPageProps {
   params: {
@@ -258,7 +258,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   };
 
   if (loading) {
-    return <ExpensesLoadingSkeleton />;
+    return <ExpenseDetailSkeleton />;
   }
 
   if (error || !expense) {
