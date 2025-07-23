@@ -11,9 +11,9 @@ export function ExpenseDetailSkeleton() {
         <div className="flex items-center gap-4">
           <div className="h-9 w-9 bg-muted rounded animate-pulse" />
           <div>
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-              <div className="h-6 w-24 bg-blue-100 rounded animate-pulse" />
+      <div className="flex items-center gap-3">
+        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+        <div className="h-6 w-24 bg-muted/70 rounded animate-pulse" />
             </div>
             <div className="h-4 w-40 bg-muted/70 rounded animate-pulse mt-2" />
           </div>
@@ -48,7 +48,7 @@ export function ExpenseDetailSkeleton() {
                 </div>
                 <div>
                   <div className="h-4 w-24 bg-muted/70 rounded animate-pulse mb-2" />
-                  <div className="h-8 w-32 bg-green-100 rounded animate-pulse" />
+                  <div className="h-8 w-32 bg-muted rounded animate-pulse" />
                   <div className="h-3 w-24 bg-muted/50 rounded animate-pulse mt-2" />
                 </div>
                 <div>
