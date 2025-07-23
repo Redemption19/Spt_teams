@@ -1,5 +1,6 @@
-import { SpeedInsights } from '@vercel/speed-insights/next';
+
 'use client';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
