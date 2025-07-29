@@ -519,30 +519,8 @@ export default function FinancialDashboard() {
     return `${sign}${trend.toFixed(1)}%`;
   };
 
-  // Check permissions first
-  if (!financialPermissions.loading && !financialPermissions.canViewOverview) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Financial Management</h1>
-        </div>
-        <Card className="card-enhanced">
-          <CardContent className="text-center py-12">
-            <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
-            <p className="text-muted-foreground mb-4">
-              You don&apos;t have permission to view the financial overview. Please contact your administrator.
-            </p>
-            <Badge variant="destructive">
-              Requires: View Financial Overview
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (loading && !financialData) {
+  // Show loading state when either permissions or data are loading
+  if (financialPermissions.loading || (loading && !financialData)) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -570,6 +548,29 @@ export default function FinancialDashboard() {
             </Card>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Check permissions after loading is complete
+  if (!financialPermissions.canViewOverview) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Financial Management</h1>
+        </div>
+        <Card className="card-enhanced">
+          <CardContent className="text-center py-12">
+            <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+            <p className="text-muted-foreground mb-4">
+              You don&apos;t have permission to view the financial overview. Please contact your administrator.
+            </p>
+            <Badge variant="destructive">
+              Requires: View Financial Overview
+            </Badge>
+          </CardContent>
+        </Card>
       </div>
     );
   }

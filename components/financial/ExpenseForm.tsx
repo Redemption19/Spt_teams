@@ -27,8 +27,8 @@ interface ExpenseFormProps {
 }
 
 export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
-  const { currentWorkspace } = useWorkspace();
-  const { user } = useAuth();
+  const { currentWorkspace, accessibleWorkspaces } = useWorkspace();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
@@ -50,16 +50,42 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
     receiptFile: undefined
   });
 
+  // Check if user is owner
+  const isOwner = userProfile?.role === 'owner';
+
   // Load expense categories and departments when component mounts
   useEffect(() => {
     const loadData = async () => {
       if (!currentWorkspace?.id) return;
       
       try {
-        const [workspaceCategories, workspaceDepartments] = await Promise.all([
-          ExpenseManagementService.getWorkspaceExpenseCategories(currentWorkspace.id),
-          DepartmentService.getWorkspaceDepartments(currentWorkspace.id)
-        ]);
+        let workspaceDepartments: any[] = [];
+        
+        // For owners, load from all accessible workspaces
+        if (isOwner && accessibleWorkspaces?.length > 0) {
+          const departmentPromises = accessibleWorkspaces.map(async (workspace) => {
+            try {
+              const depts = await DepartmentService.getWorkspaceDepartments(workspace.id);
+              return depts.map(dept => ({
+                ...dept,
+                _workspaceName: workspace.name,
+                _workspaceId: workspace.id
+              }));
+            } catch (error) {
+              console.warn(`Failed to load departments for workspace ${workspace.name}:`, error);
+              return [];
+            }
+          });
+          
+          const departmentResults = await Promise.all(departmentPromises);
+          workspaceDepartments = departmentResults.flat();
+        } else {
+          // For non-owners, load from current workspace only
+          workspaceDepartments = await DepartmentService.getWorkspaceDepartments(currentWorkspace.id);
+        }
+        
+        const workspaceCategories = await ExpenseManagementService.getWorkspaceExpenseCategories(currentWorkspace.id);
+        
         setCategories(workspaceCategories);
         setDepartments(workspaceDepartments);
       } catch (error) {
@@ -71,7 +97,7 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
     };
 
     loadData();
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, isOwner, accessibleWorkspaces]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -297,7 +323,7 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                       <SelectItem value="none">No Department</SelectItem>
                       {departments.map((department) => (
                         <SelectItem key={department.id} value={department.id}>
-                          {department.name}
+                          {department._workspaceName ? `${department.name} (${department._workspaceName})` : department.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

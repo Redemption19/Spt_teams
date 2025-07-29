@@ -1,0 +1,35 @@
+export interface FormData {
+  workspaceId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: 'male' | 'female' | 'other';
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  emergencyContactName: string;
+  emergencyContactRelationship: string;
+  emergencyContactPhone: string;
+  role: string;
+  department: string;
+  departmentId: string;
+  manager: string;
+  managerId: string;
+  hireDate: string;
+  employmentType: 'full-time' | 'part-time' | 'contract' | 'intern';
+  workLocation: 'office' | 'remote' | 'hybrid';
+  probationEndDate: string;
+  contractEndDate: string;
+  baseSalary: string;
+  currency: string;
+  payFrequency: 'monthly' | 'bi-weekly' | 'weekly';
+  housingAllowance: string;
+  transportAllowance: string;
+  medicalAllowance: string;
+  otherAllowance: string;
+  benefits: string;
+} 

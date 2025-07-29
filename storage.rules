@@ -124,6 +124,24 @@ service firebase.storage {
       allow read, write: if isAuthenticated() && hasWorkspaceAccess();
     }
     
+    // ==================== EMPLOYEE DOCUMENTS ====================
+    
+    match /employees/{employeeId}/documents/{fileName} {
+      // Employee documents - authenticated users can upload/view
+      allow read, write: if isAuthenticated() &&
+                         // Basic file validation
+                         isValidFileSize(10 * 1024 * 1024) && // 10MB max
+                         isValidFileType([
+                           'image/jpeg',
+                           'image/png', 
+                           'image/gif',
+                           'application/pdf',
+                           'application/msword',
+                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                           'text/plain'
+                         ]);
+    }
+    
     // ==================== PROFILE FILES ====================
     
     match /profiles/{userId}/{allPaths=**} {

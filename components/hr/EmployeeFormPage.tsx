@@ -2,28 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   User, 
   Briefcase, 
   DollarSign, 
   Loader2, 
-  AlertCircle,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
   ArrowLeft,
-  Save,
-  X,
-  Building
+  Upload,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Employee, CreateEmployeeData, UpdateEmployeeData, EmployeeService } from '@/lib/employee-service';
 import { DepartmentService } from '@/lib/department-service';
@@ -33,53 +22,16 @@ import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/hooks/use-currency';
+import { FormData } from './types';
+import { EmployeePersonalInfoTab } from './EmployeePersonalInfoTab';
+import { EmployeeEmploymentTab } from './EmployeeEmploymentTab';
+import { EmployeeCompensationTab } from './EmployeeCompensationTab';
+import { EmployeeImportDialog } from './EmployeeImportDialog';
+import { ImportedEmployee } from '@/lib/employee-import-service';
 
 interface EmployeeFormPageProps {
   employee?: Employee | null;
   mode: 'create' | 'edit';
-}
-
-interface FormData {
-  // Workspace Selection (for owners)
-  workspaceId: string;
-  
-  // Personal Information
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  gender: 'male' | 'female' | 'other';
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  emergencyContactName: string;
-  emergencyContactRelationship: string;
-  emergencyContactPhone: string;
-  
-  // Employment Details
-  role: string;
-  department: string;
-  departmentId: string;
-  manager: string;
-  managerId: string;
-  hireDate: string;
-  employmentType: 'full-time' | 'part-time' | 'contract' | 'intern';
-  workLocation: 'office' | 'remote' | 'hybrid';
-  probationEndDate: string;
-  contractEndDate: string;
-  
-  // Compensation
-  baseSalary: string;
-  currency: string;
-  payFrequency: 'monthly' | 'bi-weekly' | 'weekly';
-  housingAllowance: string;
-  transportAllowance: string;
-  medicalAllowance: string;
-  otherAllowance: string;
-  benefits: string;
 }
 
 export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
@@ -95,6 +47,7 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
   const [managers, setManagers] = useState<any[]>([]);
   const [availableWorkspaces, setAvailableWorkspaces] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('personal');
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     workspaceId: currentWorkspace?.id || '',
     firstName: '',
@@ -166,15 +119,84 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
     if (!formData.workspaceId) return;
     
     try {
-      const [departmentsData, managersData] = await Promise.all([
-        DepartmentService.getWorkspaceDepartments(formData.workspaceId),
-        UserService.getUsersByWorkspace(formData.workspaceId)
-      ]);
+      let departmentsData: any[] = [];
+      let managersData: any[] = [];
+
+      // For owners, load from all accessible workspaces
+      if (isOwner && accessibleWorkspaces?.length > 0) {
+        // Load departments and managers from all accessible workspaces in parallel
+        const workspacePromises = accessibleWorkspaces.map(async (workspace) => {
+          try {
+            const [depts, users] = await Promise.all([
+              DepartmentService.getWorkspaceDepartments(workspace.id),
+              UserService.getUsersByWorkspace(workspace.id)
+            ]);
+
+            // Add workspace metadata to departments
+            const departmentsWithMeta = depts.map(dept => ({
+              ...dept,
+              _workspaceName: workspace.name,
+              _workspaceId: workspace.id
+            }));
+
+            // Filter managers and add workspace metadata
+            const workspaceManagers = users.filter(user => 
+              ['admin', 'owner', 'manager'].includes(user.role || '')
+            ).map(manager => ({
+              ...manager,
+              _workspaceName: workspace.name,
+              _workspaceId: workspace.id
+            }));
+
+            return {
+              departments: departmentsWithMeta,
+              managers: workspaceManagers
+            };
+          } catch (error) {
+            console.warn(`Failed to load data for workspace ${workspace.name}:`, error);
+            return {
+              departments: [],
+              managers: []
+            };
+          }
+        });
+
+        const workspaceResults = await Promise.all(workspacePromises);
+        
+        // Combine results and remove duplicates
+        const departmentIdSet = new Set<string>();
+        const managerIdSet = new Set<string>();
+
+        workspaceResults.forEach(({ departments, managers }) => {
+          departments.forEach(dept => {
+            if (!departmentIdSet.has(dept.id)) {
+              departmentIdSet.add(dept.id);
+              departmentsData.push(dept);
+            }
+          });
+          
+          managers.forEach(manager => {
+            if (!managerIdSet.has(manager.id)) {
+              managerIdSet.add(manager.id);
+              managersData.push(manager);
+            }
+          });
+        });
+      } else {
+        // For non-owners or when no accessible workspaces, load from single workspace
+        const [departmentsDataSingle, managersDataSingle] = await Promise.all([
+          DepartmentService.getWorkspaceDepartments(formData.workspaceId),
+          UserService.getUsersByWorkspace(formData.workspaceId)
+        ]);
+        
+        departmentsData = departmentsDataSingle;
+        managersData = managersDataSingle.filter(user => 
+          ['admin', 'owner', 'manager'].includes(user.role || '')
+        );
+      }
       
       setDepartments(departmentsData);
-      setManagers(managersData.filter(user => 
-        ['admin', 'owner', 'manager'].includes(user.role || '')
-      ));
+      setManagers(managersData);
     } catch (error) {
       console.error('Error loading workspace data:', error);
       toast({
@@ -183,7 +205,7 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
         variant: 'destructive'
       });
     }
-  }, [formData.workspaceId, toast]);
+  }, [formData.workspaceId, isOwner, accessibleWorkspaces, toast]);
 
   const populateFormData = useCallback(() => {
     if (!employee) return;
@@ -408,6 +430,95 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
     }
   };
 
+  const handleImportEmployees = async (importedEmployees: ImportedEmployee[]) => {
+    try {
+      setSaving(true);
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const importedEmployee of importedEmployees) {
+        try {
+          const employeeData = {
+            personalInfo: {
+              firstName: importedEmployee.firstName,
+              lastName: importedEmployee.lastName,
+              email: importedEmployee.email,
+              phone: importedEmployee.phone,
+              dateOfBirth: importedEmployee.dateOfBirth,
+              gender: importedEmployee.gender,
+              address: {
+                street: importedEmployee.street,
+                city: importedEmployee.city,
+                state: importedEmployee.state,
+                zipCode: importedEmployee.zipCode,
+                country: importedEmployee.country
+              },
+              emergencyContact: {
+                name: importedEmployee.emergencyContactName,
+                relationship: importedEmployee.emergencyContactRelationship,
+                phone: importedEmployee.emergencyContactPhone
+              }
+            },
+            employmentDetails: {
+              role: importedEmployee.role,
+              department: importedEmployee.department,
+              departmentId: '',
+              manager: importedEmployee.manager,
+              managerId: '',
+              hireDate: importedEmployee.hireDate,
+              employmentType: importedEmployee.employmentType,
+              workLocation: importedEmployee.workLocation,
+              probationEndDate: importedEmployee.probationEndDate || undefined,
+              contractEndDate: importedEmployee.contractEndDate || undefined
+            },
+            compensation: {
+              baseSalary: parseFloat(importedEmployee.baseSalary),
+              currency: importedEmployee.currency,
+              payFrequency: importedEmployee.payFrequency,
+              allowances: {
+                housing: parseFloat(importedEmployee.housingAllowance),
+                transport: parseFloat(importedEmployee.transportAllowance),
+                medical: parseFloat(importedEmployee.medicalAllowance),
+                other: parseFloat(importedEmployee.otherAllowance)
+              },
+              benefits: importedEmployee.benefits ? importedEmployee.benefits.split(',').map(b => b.trim()) : []
+            }
+          };
+
+          const createData: CreateEmployeeData = {
+            ...employeeData,
+            workspaceId: formData.workspaceId,
+            createdBy: user?.uid || 'system'
+          };
+          
+          await EmployeeService.createEmployee(createData);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to create employee ${importedEmployee.firstName} ${importedEmployee.lastName}:`, error);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: 'Bulk Import Completed',
+        description: `Successfully imported ${successCount} employees. ${errorCount} failed.`,
+        variant: errorCount > 0 ? 'default' : 'default'
+      });
+
+      // Redirect to employees list
+      router.push('/dashboard/hr/employees');
+    } catch (error) {
+      console.error('Error during bulk import:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'Failed to import employees. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -457,6 +568,18 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
             </p>
           </div>
         </div>
+        
+        {/* Import Button (only for create mode) */}
+        {mode === 'create' && (
+          <Button
+            variant="outline"
+            onClick={() => setImportDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Import Employees
+          </Button>
+        )}
       </div>
 
       {/* Form Content */}
@@ -478,527 +601,55 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="personal" className="mt-6 space-y-6">
-              {/* Workspace Selection (for owners) */}
-              {isOwner && mode === 'create' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="w-5 h-5" />
-                      Workspace Selection
-                    </CardTitle>
-                    <CardDescription>Select the workspace where this employee will be assigned</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div>
-                      <Label htmlFor="workspaceId">Workspace *</Label>
-                      <Select value={formData.workspaceId} onValueChange={handleWorkspaceChange}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select workspace" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableWorkspaces.map((workspace) => (
-                            <SelectItem key={workspace.id} value={workspace.id}>
-                              {workspace.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Basic Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Personal details and contact information</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name *</Label>
-                      <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        placeholder="John"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name *</Label>
-                      <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        placeholder="Doe"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email Address *</Label>
-                      <div className="relative mt-1">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
-                          placeholder="john.doe@company.com"
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <div className="relative mt-1">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <Input
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
-                          placeholder="+1234567890"
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        value={formData.dateOfBirth}
-                        onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="gender">Gender</Label>
-                      <Select value={formData.gender} onValueChange={(value: any) => handleInputChange('gender', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Address Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Address Information
-                  </CardTitle>
-                  <CardDescription>Residential address details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="street">Street Address</Label>
-                    <Input
-                      id="street"
-                      value={formData.street}
-                      onChange={(e) => handleInputChange('street', e.target.value)}
-                      placeholder="123 Main Street"
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        placeholder="New York"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="state">State/Province</Label>
-                      <Input
-                        id="state"
-                        value={formData.state}
-                        onChange={(e) => handleInputChange('state', e.target.value)}
-                        placeholder="NY"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="zipCode">ZIP/Postal Code</Label>
-                      <Input
-                        id="zipCode"
-                        value={formData.zipCode}
-                        onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                        placeholder="10001"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="country">Country</Label>
-                      <Input
-                        id="country"
-                        value={formData.country}
-                        onChange={(e) => handleInputChange('country', e.target.value)}
-                        placeholder="United States"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Emergency Contact */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Emergency Contact</CardTitle>
-                  <CardDescription>Contact information for emergencies</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="emergencyContactName">Contact Name</Label>
-                      <Input
-                        id="emergencyContactName"
-                        value={formData.emergencyContactName}
-                        onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
-                        placeholder="Jane Doe"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emergencyContactRelationship">Relationship</Label>
-                      <Input
-                        id="emergencyContactRelationship"
-                        value={formData.emergencyContactRelationship}
-                        onChange={(e) => handleInputChange('emergencyContactRelationship', e.target.value)}
-                        placeholder="Spouse"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
-                    <Input
-                      id="emergencyContactPhone"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
-                      placeholder="+1234567890"
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons for Personal Tab */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmit} disabled={saving}>
-                  {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <Save className="w-4 h-4 mr-2" />
-                  {mode === 'create' ? 'Create Employee' : 'Update Employee'}
-                </Button>
-              </div>
+            <TabsContent value="personal" className="mt-6">
+              <EmployeePersonalInfoTab
+                formData={formData}
+                onInputChange={handleInputChange}
+                onWorkspaceChange={handleWorkspaceChange}
+                onCancel={handleCancel}
+                onSubmit={handleSubmit}
+                saving={saving}
+                isOwner={isOwner}
+                mode={mode}
+                availableWorkspaces={availableWorkspaces}
+              />
             </TabsContent>
 
-            <TabsContent value="employment" className="mt-6 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Job Information</CardTitle>
-                  <CardDescription>Role, department, and employment details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="role">Job Title/Role *</Label>
-                      <Input
-                        id="role"
-                        value={formData.role}
-                        onChange={(e) => handleInputChange('role', e.target.value)}
-                        placeholder="Software Engineer"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="department">Department *</Label>
-                      <Select value={formData.department} onValueChange={handleDepartmentChange}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {departments.map((dept) => (
-                            <SelectItem key={dept.id} value={dept.name}>
-                              {dept.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="manager">Manager</Label>
-                      <Select value={formData.manager} onValueChange={handleManagerChange}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select manager" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {managers.map((manager) => (
-                            <SelectItem key={manager.id} value={manager.name}>
-                              {manager.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="hireDate">Hire Date *</Label>
-                      <Input
-                        id="hireDate"
-                        type="date"
-                        value={formData.hireDate}
-                        onChange={(e) => handleInputChange('hireDate', e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="employmentType">Employment Type</Label>
-                      <Select value={formData.employmentType} onValueChange={(value: any) => handleInputChange('employmentType', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="full-time">Full-time</SelectItem>
-                          <SelectItem value="part-time">Part-time</SelectItem>
-                          <SelectItem value="contract">Contract</SelectItem>
-                          <SelectItem value="intern">Intern</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="workLocation">Work Location</Label>
-                      <Select value={formData.workLocation} onValueChange={(value: any) => handleInputChange('workLocation', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="office">Office</SelectItem>
-                          <SelectItem value="remote">Remote</SelectItem>
-                          <SelectItem value="hybrid">Hybrid</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {formData.employmentType === 'contract' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="probationEndDate">Probation End Date</Label>
-                        <Input
-                          id="probationEndDate"
-                          type="date"
-                          value={formData.probationEndDate}
-                          onChange={(e) => handleInputChange('probationEndDate', e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="contractEndDate">Contract End Date</Label>
-                        <Input
-                          id="contractEndDate"
-                          type="date"
-                          value={formData.contractEndDate}
-                          onChange={(e) => handleInputChange('contractEndDate', e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons for Employment Tab */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmit} disabled={saving}>
-                  {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <Save className="w-4 h-4 mr-2" />
-                  {mode === 'create' ? 'Create Employee' : 'Update Employee'}
-                </Button>
-              </div>
+            <TabsContent value="employment" className="mt-6">
+              <EmployeeEmploymentTab
+                formData={formData}
+                onInputChange={handleInputChange}
+                onDepartmentChange={handleDepartmentChange}
+                onManagerChange={handleManagerChange}
+                onCancel={handleCancel}
+                onSubmit={handleSubmit}
+                saving={saving}
+                mode={mode}
+                departments={departments}
+                managers={managers}
+              />
             </TabsContent>
 
-            <TabsContent value="compensation" className="mt-6 space-y-6">
-              {/* Base Salary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Base Compensation</CardTitle>
-                  <CardDescription>Primary salary and payment details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="baseSalary">Base Salary *</Label>
-                      <Input
-                        id="baseSalary"
-                        type="number"
-                        value={formData.baseSalary}
-                        onChange={(e) => handleInputChange('baseSalary', e.target.value)}
-                        placeholder="50000"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="currency">Currency</Label>
-                      <Input
-                        id="currency"
-                        value={formData.currency}
-                        onChange={(e) => handleInputChange('currency', e.target.value)}
-                        placeholder="USD"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="payFrequency">Pay Frequency</Label>
-                      <Select value={formData.payFrequency} onValueChange={(value: any) => handleInputChange('payFrequency', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Allowances */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Allowances</CardTitle>
-                  <CardDescription>Additional compensation and allowances</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="housingAllowance">Housing Allowance</Label>
-                      <Input
-                        id="housingAllowance"
-                        type="number"
-                        value={formData.housingAllowance}
-                        onChange={(e) => handleInputChange('housingAllowance', e.target.value)}
-                        placeholder="0"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="transportAllowance">Transport Allowance</Label>
-                      <Input
-                        id="transportAllowance"
-                        type="number"
-                        value={formData.transportAllowance}
-                        onChange={(e) => handleInputChange('transportAllowance', e.target.value)}
-                        placeholder="0"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="medicalAllowance">Medical Allowance</Label>
-                      <Input
-                        id="medicalAllowance"
-                        type="number"
-                        value={formData.medicalAllowance}
-                        onChange={(e) => handleInputChange('medicalAllowance', e.target.value)}
-                        placeholder="0"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="otherAllowance">Other Allowance</Label>
-                      <Input
-                        id="otherAllowance"
-                        type="number"
-                        value={formData.otherAllowance}
-                        onChange={(e) => handleInputChange('otherAllowance', e.target.value)}
-                        placeholder="0"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Benefits */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Benefits</CardTitle>
-                  <CardDescription>Employee benefits and perks</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <Label htmlFor="benefits">Benefits (comma-separated)</Label>
-                    <Textarea
-                      id="benefits"
-                      value={formData.benefits}
-                      onChange={(e) => handleInputChange('benefits', e.target.value)}
-                      placeholder="Health Insurance, Dental Coverage, Life Insurance"
-                      rows={3}
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons for Compensation Tab */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmit} disabled={saving}>
-                  {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <Save className="w-4 h-4 mr-2" />
-                  {mode === 'create' ? 'Create Employee' : 'Update Employee'}
-                </Button>
-              </div>
+            <TabsContent value="compensation" className="mt-6">
+              <EmployeeCompensationTab
+                formData={formData}
+                onInputChange={handleInputChange}
+                onCancel={handleCancel}
+                onSubmit={handleSubmit}
+                saving={saving}
+                mode={mode}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Import Dialog */}
+      <EmployeeImportDialog
+        onImport={handleImportEmployees}
+        isOpen={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+      />
     </div>
   );
 } 

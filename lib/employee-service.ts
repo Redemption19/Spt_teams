@@ -1,19 +1,26 @@
-import { db } from './firebase';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  Timestamp,
-  writeBatch
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  writeBatch,
+  Timestamp 
 } from 'firebase/firestore';
+import { 
+  ref, 
+  uploadBytes, 
+  getDownloadURL, 
+  deleteObject 
+} from 'firebase/storage';
+import { db, storage } from './firebase';
+import { cleanFirestoreData } from './firestore-utils';
 
 export interface Employee {
   id: string;
@@ -123,6 +130,35 @@ export interface EmployeeStats {
 
 export class EmployeeService {
   /**
+   * Clean employee data by removing undefined values
+   */
+  private static cleanEmployeeData(data: any): any {
+    const clean = (obj: any): any => {
+      if (obj === null || obj === undefined) {
+        return null;
+      }
+      
+      if (Array.isArray(obj)) {
+        return obj.map(clean);
+      }
+      
+      if (typeof obj === 'object') {
+        const cleaned: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          if (value !== undefined) {
+            cleaned[key] = clean(value);
+          }
+        }
+        return cleaned;
+      }
+      
+      return obj;
+    };
+    
+    return clean(data);
+  }
+
+  /**
    * Create a new employee
    */
   static async createEmployee(employeeData: CreateEmployeeData): Promise<string> {
@@ -144,8 +180,11 @@ export class EmployeeService {
         updatedBy: employeeData.createdBy,
       };
 
+      // Clean the data to remove undefined values
+      const cleanedEmployee = this.cleanEmployeeData(employee);
+
       const docRef = await addDoc(collection(db, 'employees'), {
-        ...employee,
+        ...cleanedEmployee,
         createdAt: Timestamp.fromDate(employee.createdAt),
         updatedAt: Timestamp.fromDate(employee.updatedAt),
       });
@@ -199,7 +238,10 @@ export class EmployeeService {
         updatedAt: Timestamp.fromDate(new Date()),
       };
 
-      await updateDoc(docRef, updates);
+      // Clean the data to remove undefined values
+      const cleanedUpdates = this.cleanEmployeeData(updates);
+
+      await updateDoc(docRef, cleanedUpdates);
     } catch (error) {
       console.error('Error updating employee:', error);
       throw new Error('Failed to update employee');
@@ -368,29 +410,41 @@ export class EmployeeService {
   }
 
   /**
-   * Add document to employee
+   * Add document to employee with file upload
    */
   static async addEmployeeDocument(
     employeeId: string,
-    document: Omit<EmployeeDocument, 'id' | 'uploadDate'>,
+    file: File,
+    documentData: {
+      name: string;
+      type: EmployeeDocument['type'];
+      notes?: string;
+      expiryDate?: Date;
+    },
     uploadedBy: string
   ): Promise<void> {
     try {
       const employee = await this.getEmployee(employeeId);
       if (!employee) throw new Error('Employee not found');
 
+      // Upload file to Firebase Storage
+      const fileUrl = await this.uploadEmployeeDocument(file, employeeId);
+
       const newDocument: EmployeeDocument = {
-        ...document,
         id: Date.now().toString(),
+        name: documentData.name,
+        type: documentData.type,
+        fileName: file.name,
+        fileUrl: fileUrl,
+        fileSize: file.size,
         uploadDate: new Date(),
         uploadedBy,
+        status: 'uploaded',
+        expiryDate: documentData.expiryDate,
+        notes: documentData.notes,
       };
 
       const updatedDocuments = [...employee.documents, newDocument];
-
-      await this.updateEmployee(employeeId, {
-        updatedBy: uploadedBy,
-      });
 
       const docRef = doc(db, 'employees', employeeId);
       await updateDoc(docRef, {
@@ -409,6 +463,29 @@ export class EmployeeService {
   }
 
   /**
+   * Upload employee document to Firebase Storage
+   */
+  private static async uploadEmployeeDocument(file: File, employeeId: string): Promise<string> {
+    try {
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `employees/${employeeId}/documents/${timestamp}_${sanitizedFileName}`;
+      const storageRef = ref(storage, filePath);
+      
+      // Upload file
+      const uploadResult = await uploadBytes(storageRef, file);
+      
+      // Get download URL
+      const downloadURL = await getDownloadURL(uploadResult.ref);
+      
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading employee document:', error);
+      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Remove document from employee
    */
   static async removeEmployeeDocument(
@@ -419,6 +496,19 @@ export class EmployeeService {
     try {
       const employee = await this.getEmployee(employeeId);
       if (!employee) throw new Error('Employee not found');
+
+      const documentToRemove = employee.documents.find(doc => doc.id === documentId);
+      if (!documentToRemove) throw new Error('Document not found');
+
+      // Delete file from Firebase Storage if it exists
+      if (documentToRemove.fileUrl) {
+        try {
+          await this.deleteEmployeeDocumentFromStorage(documentToRemove.fileUrl);
+        } catch (storageError) {
+          console.warn('Failed to delete file from storage:', storageError);
+          // Continue with Firestore deletion even if storage deletion fails
+        }
+      }
 
       const updatedDocuments = employee.documents.filter(doc => doc.id !== documentId);
 
@@ -435,6 +525,26 @@ export class EmployeeService {
     } catch (error) {
       console.error('Error removing employee document:', error);
       throw new Error('Failed to remove document');
+    }
+  }
+
+  /**
+   * Delete employee document from Firebase Storage
+   */
+  private static async deleteEmployeeDocumentFromStorage(fileUrl: string): Promise<void> {
+    try {
+      // Extract the file path from the URL
+      const url = new URL(fileUrl);
+      const pathSegments = url.pathname.split('/');
+      const storagePath = pathSegments.slice(pathSegments.indexOf('o') + 1).join('/');
+      
+      if (storagePath) {
+        const storageRef = ref(storage, decodeURIComponent(storagePath));
+        await deleteObject(storageRef);
+      }
+    } catch (error) {
+      console.error('Error deleting file from storage:', error);
+      throw error;
     }
   }
 

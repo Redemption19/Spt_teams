@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Employee, EmployeeService } from '@/lib/employee-service';
 import { EmployeeDetailSkeleton } from '@/components/hr/EmployeeLoadingSkeleton';
+import { EmployeeDocumentUploadDialog } from '@/components/hr/EmployeeDocumentUploadDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { format } from 'date-fns';
@@ -45,6 +46,7 @@ export default function EmployeeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -491,7 +493,7 @@ export default function EmployeeDetailPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Documents</CardTitle>
-                <Button size="sm">
+                <Button size="sm" onClick={() => setUploadDialogOpen(true)}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Document
                 </Button>
@@ -515,8 +517,37 @@ export default function EmployeeDetailPage() {
                         <Badge variant={doc.status === 'uploaded' ? 'default' : 'secondary'}>
                           {doc.status}
                         </Badge>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => window.open(doc.fileUrl, '_blank')}
+                        >
                           <Download className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this document?')) {
+                              try {
+                                await EmployeeService.removeEmployeeDocument(employee.id, doc.id, user?.uid || 'system');
+                                toast({
+                                  title: 'Document deleted',
+                                  description: 'The document has been removed successfully.',
+                                });
+                                loadEmployee(); // Refresh the employee data
+                              } catch (error) {
+                                console.error('Error deleting document:', error);
+                                toast({
+                                  title: 'Delete failed',
+                                  description: 'Failed to delete document. Please try again.',
+                                  variant: 'destructive'
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -529,7 +560,7 @@ export default function EmployeeDetailPage() {
                   <p className="text-muted-foreground mb-4">
                     Upload employment documents like contracts, certificates, etc.
                   </p>
-                  <Button>
+                  <Button onClick={() => setUploadDialogOpen(true)}>
                     <Upload className="w-4 h-4 mr-2" />
                     Upload First Document
                   </Button>
@@ -539,6 +570,16 @@ export default function EmployeeDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Document Upload Dialog */}
+      {employee && (
+        <EmployeeDocumentUploadDialog
+          employeeId={employee.id}
+          onUpload={loadEmployee}
+          isOpen={uploadDialogOpen}
+          onOpenChange={setUploadDialogOpen}
+        />
+      )}
     </div>
   );
 } 
