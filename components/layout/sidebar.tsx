@@ -44,6 +44,8 @@ import {
   Target,
   Building,
   CreditCard,
+  Clock,
+  UserPlus,
 } from 'lucide-react';
 import { useNotifications } from '@/lib/notification-context';
 
@@ -237,6 +239,55 @@ const navigationGroups = [
         icon: CreditCard,
         description: 'Manage subscription and billing settings',
         ownerOnly: true,
+      },
+    ],
+  },
+  {
+    type: 'dropdown',
+    name: 'HR Management',
+    icon: UserPlus,
+    requiresPermission: true,
+    items: [
+      {
+        name: 'HR Overview',
+        href: '/dashboard/hr',
+        icon: BarChart3,
+        description: 'HR dashboard with key metrics and insights',
+        adminOnly: true
+      },
+      {
+        name: 'Employee Management',
+        href: '/dashboard/hr/employees',
+        icon: Users,
+        description: 'Manage employee profiles and information',
+        adminOnly: true
+      },
+      {
+        name: 'Attendance Management',
+        href: '/dashboard/hr/attendance',
+        icon: Clock,
+        description: 'Track attendance and work hours',
+        adminOnly: true
+      },
+      {
+        name: 'Leave Management',
+        href: '/dashboard/hr/leaves',
+        icon: Calendar,
+        description: 'Handle leave requests and approvals',
+      },
+      {
+        name: 'Payroll Management',
+        href: '/dashboard/hr/payroll',
+        icon: DollarSign,
+        description: 'Process payroll and manage salaries',
+        adminOnly: true,
+      },
+      {
+        name: 'Recruitment',
+        href: '/dashboard/hr/recruitment',
+        icon: UserPlus,
+        description: 'Job postings and candidate tracking',
+        adminOnly: true,
       },
     ],
   },

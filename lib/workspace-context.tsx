@@ -73,11 +73,11 @@ export function WorkspaceProvider({ children, userId, authLoading = false, isGue
     
     setLoading(true);
     try {
-      console.log('🔄 Loading workspaces for user:', userId, 'isGuest:', isGuest);
+
       
       // Use the isGuest prop from auth context instead of detecting by UID length
       if (isGuest) {
-        console.log('👤 Setting up guest workspace for:', userId);
+
         setIsGuestState(true);
         
         // Create guest workspace data
@@ -97,8 +97,8 @@ export function WorkspaceProvider({ children, userId, authLoading = false, isGue
         // Create sample data for guest
         await GuestService.createSampleGuestData(userId);
         
-        console.log('✅ Guest workspace loaded for user:', userId);
-        setLoading(false);
+
+        // Don't set loading to false here, let loadCurrentWorkspaceContext handle it
         return;
       }
       
@@ -125,18 +125,22 @@ export function WorkspaceProvider({ children, userId, authLoading = false, isGue
       setSubWorkspaces(subs);
       setAccessibleWorkspaces(workspaces.map(uw => uw.workspace));
       
-      console.log('✅ Regular user workspaces loaded:', workspaces.length);
+
       
     } catch (error) {
       console.error('Error loading user workspaces:', error);
-    } finally {
       setLoading(false);
     }
+    // Don't set loading to false in finally block for regular users,
+    // let loadCurrentWorkspaceContext handle it
   }, [userId, isGuest]);
 
   // Load workspaces when userId changes
   useEffect(() => {
+
+    
     if (!authLoading && userId) {
+
       // Clear any previous workspace state and localStorage before loading new user workspaces
       setUserWorkspaces([]);
       setCurrentWorkspace(null);
@@ -172,18 +176,22 @@ export function WorkspaceProvider({ children, userId, authLoading = false, isGue
   // Memoize switchToWorkspace to prevent infinite loops
   const switchToWorkspace = useCallback(async (workspace: Workspace) => {
     try {
+
+      
       // For guest users, always allow switching to guest workspace
       if (isGuestState) {
         setCurrentWorkspace(workspace);
         setUserRole('member');
         localStorage.setItem('currentWorkspaceId', workspace.id);
-        console.log(`Guest switched to workspace: ${workspace.name}`);
+
         return;
       }
       
       // Find user's role in this workspace
       const userWorkspace = userWorkspaces.find(uw => uw.workspace.id === workspace.id);
       const role = userWorkspace?.role || null;
+      
+
       
       // Update state
       setCurrentWorkspace(workspace);
@@ -197,7 +205,7 @@ export function WorkspaceProvider({ children, userId, authLoading = false, isGue
         await WorkspaceService.switchUserWorkspace(userId, workspace.id);
       }
       
-      console.log(`Switched to workspace: ${workspace.name} (${workspace.workspaceType}) with role: ${role}`);
+
     } catch (error) {
       console.error('Error switching to workspace:', error);
       throw error;
@@ -255,7 +263,10 @@ export function WorkspaceProvider({ children, userId, authLoading = false, isGue
   // Load current workspace and set context
   useEffect(() => {
     if (userWorkspaces.length > 0 && accessibleWorkspaces.length > 0) {
-      loadCurrentWorkspaceContext();
+      setLoading(true);
+      loadCurrentWorkspaceContext().finally(() => {
+        setLoading(false);
+      });
     }
   }, [userWorkspaces.length, accessibleWorkspaces.length, loadCurrentWorkspaceContext]);
 

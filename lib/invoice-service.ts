@@ -156,10 +156,163 @@ export class InvoiceService {
   static async getInvoice(invoiceId: string): Promise<Invoice | null> {
     try {
       const docSnap = await getDoc(doc(db, 'invoices', invoiceId));
-      return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Invoice : null;
+      if (!docSnap.exists()) return null;
+      
+      const data = { id: docSnap.id, ...docSnap.data() } as Invoice;
+      
+      // Convert Firestore timestamps to Date objects
+      const convertTimestamp = (timestamp: any): Date => {
+        if (!timestamp) return new Date();
+        if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+          return timestamp.toDate();
+        }
+        if (timestamp instanceof Date) {
+          return timestamp;
+        }
+        return new Date(timestamp);
+      };
+      
+      return {
+        ...data,
+        issueDate: convertTimestamp(data.issueDate),
+        dueDate: convertTimestamp(data.dueDate),
+        paidDate: data.paidDate ? convertTimestamp(data.paidDate) : undefined,
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
+      };
     } catch (error) {
       console.error('Error fetching invoice:', error);
       return null;
+    }
+  }
+  
+  /**
+   * Get invoices from all sub-workspaces under a main workspace
+   */
+  static async getSubWorkspaceInvoices(
+    mainWorkspaceId: string,
+    options?: {
+      status?: Invoice['status'];
+      clientId?: string;
+      limit?: number;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<Invoice[]> {
+    try {
+      // Import WorkspaceService to get sub-workspaces
+      const { WorkspaceService } = await import('./workspace-service');
+      
+      // Get all sub-workspaces under the main workspace
+      const subWorkspaces = await WorkspaceService.getSubWorkspaces(mainWorkspaceId);
+      
+      if (subWorkspaces.length === 0) {
+        return [];
+      }
+      
+      // Get invoices from all sub-workspaces
+      const invoicePromises = subWorkspaces.map(subWorkspace => 
+        this.getWorkspaceInvoices(subWorkspace.id, options)
+      );
+      
+      const results = await Promise.all(invoicePromises);
+      const allInvoices = results.flat();
+      
+      // Sort by issue date descending
+      allInvoices.sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
+      
+      // Apply limit if specified
+      if (options?.limit) {
+        return allInvoices.slice(0, options.limit);
+      }
+      
+      return allInvoices;
+    } catch (error) {
+      console.error('Error fetching sub-workspace invoices:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get invoices from entire workspace hierarchy (main + all sub-workspaces)
+   */
+  static async getHierarchicalInvoices(
+    workspaceId: string,
+    options?: {
+      status?: Invoice['status'];
+      clientId?: string;
+      limit?: number;
+      startDate?: Date;
+      endDate?: Date;
+      includeSubWorkspaces?: boolean;
+    }
+  ): Promise<{
+    invoices: Invoice[];
+    workspaceBreakdown: { [workspaceId: string]: { name: string; count: number; total: number } };
+  }> {
+    try {
+      const { WorkspaceService } = await import('./workspace-service');
+      
+      // Get the current workspace
+      const currentWorkspace = await WorkspaceService.getWorkspace(workspaceId);
+      if (!currentWorkspace) {
+        throw new Error('Workspace not found');
+      }
+      
+      let allInvoices: Invoice[] = [];
+      const workspaceBreakdown: { [workspaceId: string]: { name: string; count: number; total: number } } = {};
+      
+      // Determine the main workspace ID
+      let mainWorkspaceId = workspaceId;
+      if (currentWorkspace.workspaceType === 'sub' && currentWorkspace.parentWorkspaceId) {
+        mainWorkspaceId = currentWorkspace.parentWorkspaceId;
+      }
+      
+      // Get invoices from main workspace
+      const mainWorkspaceInvoices = await this.getWorkspaceInvoices(mainWorkspaceId, options);
+      allInvoices.push(...mainWorkspaceInvoices);
+      
+      // Add to breakdown
+      const mainWorkspace = await WorkspaceService.getWorkspace(mainWorkspaceId);
+      if (mainWorkspace) {
+        workspaceBreakdown[mainWorkspaceId] = {
+          name: mainWorkspace.name,
+          count: mainWorkspaceInvoices.length,
+          total: mainWorkspaceInvoices.reduce((sum, inv) => sum + inv.total, 0)
+        };
+      }
+      
+      // Get invoices from sub-workspaces if requested
+      if (options?.includeSubWorkspaces !== false) {
+        const subWorkspaces = await WorkspaceService.getSubWorkspaces(mainWorkspaceId);
+        
+        for (const subWorkspace of subWorkspaces) {
+          const subWorkspaceInvoices = await this.getWorkspaceInvoices(subWorkspace.id, options);
+          allInvoices.push(...subWorkspaceInvoices);
+          
+          workspaceBreakdown[subWorkspace.id] = {
+            name: subWorkspace.name,
+            count: subWorkspaceInvoices.length,
+            total: subWorkspaceInvoices.reduce((sum, inv) => sum + inv.total, 0)
+          };
+        }
+      }
+      
+      // Sort by issue date descending
+      allInvoices.sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
+      
+      // Apply limit if specified
+      if (options?.limit) {
+        allInvoices = allInvoices.slice(0, options.limit);
+      }
+      
+      return {
+        invoices: allInvoices,
+        workspaceBreakdown
+      };
+    } catch (error) {
+      console.error('Error fetching hierarchical invoices:', error);
+      throw error;
     }
   }
   
@@ -205,10 +358,31 @@ export class InvoiceService {
       }
       
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Invoice[];
+      
+      // Convert Firestore timestamps to Date objects
+      const convertTimestamp = (timestamp: any): Date => {
+        if (!timestamp) return new Date();
+        if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+          return timestamp.toDate();
+        }
+        if (timestamp instanceof Date) {
+          return timestamp;
+        }
+        return new Date(timestamp);
+      };
+      
+      return snapshot.docs.map(doc => {
+        const data = { id: doc.id, ...doc.data() } as Invoice;
+        
+        return {
+          ...data,
+          issueDate: convertTimestamp(data.issueDate),
+          dueDate: convertTimestamp(data.dueDate),
+          paidDate: data.paidDate ? convertTimestamp(data.paidDate) : undefined,
+          createdAt: convertTimestamp(data.createdAt),
+          updatedAt: convertTimestamp(data.updatedAt),
+        };
+      });
     } catch (error) {
       console.error('Error fetching workspace invoices:', error);
       throw error;
@@ -293,6 +467,231 @@ export class InvoiceService {
   }
   
   /**
+   * Get hierarchical invoice analytics (main workspace + all sub-workspaces)
+   */
+  static async getHierarchicalInvoiceAnalytics(
+    workspaceId: string, 
+    dateRange?: { start: Date; end: Date },
+    includeSubWorkspaces: boolean = true
+  ): Promise<{
+    totalInvoices: number;
+    totalAmount: number;
+    paidAmount: number;
+    pendingAmount: number;
+    overdueAmount: number;
+    statusBreakdown: { [status: string]: number };
+    monthlyTrend: { month: string; amount: number; count: number }[];
+    averageInvoiceValue: number;
+    paymentTimeAverage: number;
+    workspaceBreakdown: { [workspaceId: string]: {
+      name: string;
+      totalInvoices: number;
+      totalAmount: number;
+      paidAmount: number;
+      pendingAmount: number;
+    } };
+  }> {
+    try {
+      const { WorkspaceService } = await import('./workspace-service');
+      
+      // Get the current workspace
+      const currentWorkspace = await WorkspaceService.getWorkspace(workspaceId);
+      if (!currentWorkspace) {
+        throw new Error('Workspace not found');
+      }
+      
+      // Determine the main workspace ID
+      let mainWorkspaceId = workspaceId;
+      if (currentWorkspace.workspaceType === 'sub' && currentWorkspace.parentWorkspaceId) {
+        mainWorkspaceId = currentWorkspace.parentWorkspaceId;
+      }
+      
+      const workspaceBreakdown: { [workspaceId: string]: {
+        name: string;
+        totalInvoices: number;
+        totalAmount: number;
+        paidAmount: number;
+        pendingAmount: number;
+      } } = {};
+      
+      let allInvoices: Invoice[] = [];
+      
+      // Get invoices from main workspace
+      const mainWorkspaceInvoices = await this.getWorkspaceInvoices(mainWorkspaceId, {
+        startDate: dateRange?.start,
+        endDate: dateRange?.end
+      });
+      allInvoices.push(...mainWorkspaceInvoices);
+      
+      // Add main workspace to breakdown
+      const mainWorkspace = await WorkspaceService.getWorkspace(mainWorkspaceId);
+      if (mainWorkspace) {
+        const mainPaidAmount = mainWorkspaceInvoices
+          .filter(inv => inv.status === 'paid')
+          .reduce((sum, inv) => sum + inv.total, 0);
+        const mainPendingAmount = mainWorkspaceInvoices
+          .filter(inv => inv.status === 'sent' || inv.status === 'draft')
+          .reduce((sum, inv) => sum + inv.total, 0);
+          
+        workspaceBreakdown[mainWorkspaceId] = {
+          name: mainWorkspace.name,
+          totalInvoices: mainWorkspaceInvoices.length,
+          totalAmount: mainWorkspaceInvoices.reduce((sum, inv) => sum + inv.total, 0),
+          paidAmount: mainPaidAmount,
+          pendingAmount: mainPendingAmount
+        };
+      }
+      
+      // Get invoices from sub-workspaces if requested
+      if (includeSubWorkspaces) {
+        const subWorkspaces = await WorkspaceService.getSubWorkspaces(mainWorkspaceId);
+        
+        for (const subWorkspace of subWorkspaces) {
+          const subWorkspaceInvoices = await this.getWorkspaceInvoices(subWorkspace.id, {
+            startDate: dateRange?.start,
+            endDate: dateRange?.end
+          });
+          allInvoices.push(...subWorkspaceInvoices);
+          
+          const subPaidAmount = subWorkspaceInvoices
+            .filter(inv => inv.status === 'paid')
+            .reduce((sum, inv) => sum + inv.total, 0);
+          const subPendingAmount = subWorkspaceInvoices
+            .filter(inv => inv.status === 'sent' || inv.status === 'draft')
+            .reduce((sum, inv) => sum + inv.total, 0);
+            
+          workspaceBreakdown[subWorkspace.id] = {
+            name: subWorkspace.name,
+            totalInvoices: subWorkspaceInvoices.length,
+            totalAmount: subWorkspaceInvoices.reduce((sum, inv) => sum + inv.total, 0),
+            paidAmount: subPaidAmount,
+            pendingAmount: subPendingAmount
+          };
+        }
+      }
+      
+      // Calculate analytics from all invoices
+      const totalInvoices = allInvoices.length;
+      const totalAmount = allInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+      const paidAmount = allInvoices
+        .filter(invoice => invoice.status === 'paid')
+        .reduce((sum, invoice) => sum + invoice.total, 0);
+      const pendingAmount = allInvoices
+        .filter(invoice => invoice.status === 'sent' || invoice.status === 'draft')
+        .reduce((sum, invoice) => sum + invoice.total, 0);
+      
+      const now = new Date();
+      const overdueAmount = allInvoices
+        .filter(invoice => {
+          const convertTimestamp = (timestamp: any): Date => {
+            if (!timestamp) return new Date();
+            if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+              return timestamp.toDate();
+            }
+            if (timestamp instanceof Date) {
+              return timestamp;
+            }
+            return new Date(timestamp);
+          };
+          
+          const dueDate = convertTimestamp(invoice.dueDate);
+          return invoice.status !== 'paid' && dueDate < now;
+        })
+        .reduce((sum, invoice) => sum + invoice.total, 0);
+      
+      // Status breakdown
+      const statusBreakdown = allInvoices.reduce((acc, invoice) => {
+        const convertTimestamp = (timestamp: any): Date => {
+          if (!timestamp) return new Date();
+          if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+            return timestamp.toDate();
+          }
+          if (timestamp instanceof Date) {
+            return timestamp;
+          }
+          return new Date(timestamp);
+        };
+        
+        const dueDate = convertTimestamp(invoice.dueDate);
+        const status = invoice.status !== 'paid' && dueDate < now ? 'overdue' : invoice.status;
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {} as { [status: string]: number });
+      
+      // Monthly trend
+      const monthlyData = allInvoices.reduce((acc, invoice) => {
+        const convertTimestamp = (timestamp: any): Date => {
+          if (!timestamp) return new Date();
+          if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+            return timestamp.toDate();
+          }
+          if (timestamp instanceof Date) {
+            return timestamp;
+          }
+          return new Date(timestamp);
+        };
+        
+        const issueDate = convertTimestamp(invoice.issueDate);
+        const monthKey = `${issueDate.getFullYear()}-${String(issueDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!acc[monthKey]) {
+          acc[monthKey] = { amount: 0, count: 0 };
+        }
+        
+        acc[monthKey].amount += invoice.total;
+        acc[monthKey].count += 1;
+        
+        return acc;
+      }, {} as { [month: string]: { amount: number; count: number } });
+      
+      const monthlyTrend = Object.entries(monthlyData)
+        .map(([month, data]) => ({ month, ...data }))
+        .sort((a, b) => a.month.localeCompare(b.month));
+      
+      // Calculate averages
+      const averageInvoiceValue = totalInvoices > 0 ? totalAmount / totalInvoices : 0;
+      
+      // Payment time average (for paid invoices)
+      const paidInvoices = allInvoices.filter(invoice => invoice.status === 'paid' && invoice.paidDate);
+      const paymentTimeAverage = paidInvoices.length > 0 
+        ? paidInvoices.reduce((sum, invoice) => {
+            const convertTimestamp = (timestamp: any): Date => {
+              if (!timestamp) return new Date();
+              if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+                return timestamp.toDate();
+              }
+              if (timestamp instanceof Date) {
+                return timestamp;
+              }
+              return new Date(timestamp);
+            };
+            
+            const issueDate = convertTimestamp(invoice.issueDate);
+            const paidDate = convertTimestamp(invoice.paidDate!);
+            const daysDiff = Math.ceil((paidDate.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
+            return sum + daysDiff;
+          }, 0) / paidInvoices.length
+        : 0;
+      
+      return {
+        totalInvoices,
+        totalAmount,
+        paidAmount,
+        pendingAmount,
+        overdueAmount,
+        statusBreakdown,
+        monthlyTrend,
+        averageInvoiceValue,
+        paymentTimeAverage,
+        workspaceBreakdown
+      };
+    } catch (error) {
+      console.error('Error fetching hierarchical invoice analytics:', error);
+      throw error;
+    }
+  }
+  
+  /**
    * Get invoice analytics
    */
   static async getInvoiceAnalytics(workspaceId: string, dateRange?: { start: Date; end: Date }): Promise<{
@@ -320,10 +719,31 @@ export class InvoiceService {
       }
       
       const snapshot = await getDocs(q);
-      const invoices = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Invoice[];
+      
+      // Convert Firestore timestamps to Date objects
+      const convertTimestamp = (timestamp: any): Date => {
+        if (!timestamp) return new Date();
+        if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+          return timestamp.toDate();
+        }
+        if (timestamp instanceof Date) {
+          return timestamp;
+        }
+        return new Date(timestamp);
+      };
+      
+      const invoices = snapshot.docs.map(doc => {
+        const data = { id: doc.id, ...doc.data() } as Invoice;
+        
+        return {
+          ...data,
+          issueDate: convertTimestamp(data.issueDate),
+          dueDate: convertTimestamp(data.dueDate),
+          paidDate: data.paidDate ? convertTimestamp(data.paidDate) : undefined,
+          createdAt: convertTimestamp(data.createdAt),
+          updatedAt: convertTimestamp(data.updatedAt),
+        };
+      });
       
       const totalInvoices = invoices.length;
       const totalAmount = invoices.reduce((sum, inv) => sum + inv.total, 0);
@@ -383,16 +803,243 @@ export class InvoiceService {
   }
   
   /**
-   * Generate invoice PDF (placeholder)
+   * Generate invoice PDF using jsPDF and html2canvas
    */
-  static async generateInvoicePDF(invoiceId: string): Promise<string> {
+  static async generateInvoicePDF(invoiceId: string): Promise<void> {
     try {
-      // TODO: Implement PDF generation
-      // For now, return a placeholder URL
-      return `https://api.yourplatform.com/invoices/${invoiceId}/pdf`;
+      // Dynamic imports to avoid SSR issues
+      const jsPDF = (await import('jspdf')).default;
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Get the invoice data
+      const invoice = await this.getInvoice(invoiceId);
+      if (!invoice) {
+        throw new Error('Invoice not found');
+      }
+
+      // Get client data if clientId exists
+      let client = null;
+      if (invoice.clientId) {
+        const { ClientService } = await import('./client-service');
+        client = await ClientService.getClient(invoice.clientId);
+      }
+
+      // Create a temporary container for the invoice content
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.width = '210mm'; // A4 width
+      tempContainer.style.background = 'white';
+      tempContainer.style.padding = '20mm';
+      tempContainer.style.fontFamily = 'Arial, sans-serif';
+      
+      // Generate HTML content for the invoice
+      tempContainer.innerHTML = this.generateInvoiceHTML(invoice, client);
+      document.body.appendChild(tempContainer);
+
+      try {
+        // Convert HTML to canvas
+        const canvas = await html2canvas(tempContainer, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: 794, // A4 width in pixels at 96 DPI
+          height: 1123 // A4 height in pixels at 96 DPI
+        });
+
+        // Create PDF
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 295; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Add first page
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Add additional pages if needed
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // Save the PDF
+        const fileName = `invoice-${invoice.invoiceNumber || invoiceId}.pdf`;
+        pdf.save(fileName);
+
+      } finally {
+        // Clean up temporary container
+        document.body.removeChild(tempContainer);
+      }
+
     } catch (error) {
       console.error('Error generating invoice PDF:', error);
-      throw error;
+      throw new Error('Failed to generate PDF. Please try again.');
+    }
+  }
+
+  /**
+   * Generate HTML content for PDF
+   */
+  private static generateInvoiceHTML(invoice: Invoice, client?: any): string {
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: invoice.currency || 'USD'
+      }).format(amount);
+    };
+
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }).format(new Date(date));
+    };
+
+    const itemsHTML = invoice.items.map(item => `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${item.description}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.unitPrice)}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600;">${formatCurrency(item.amount)}</td>
+      </tr>
+    `).join('');
+
+    return `
+      <div style="max-width: 800px; margin: 0 auto; background: white; font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #3b82f6;">
+          <h1 style="font-size: 32px; font-weight: bold; color: #1f2937; margin: 0 0 8px 0;">ABC Company</h1>
+          <p style="color: #6b7280; margin: 0; font-size: 14px;">123 Business Street, Accra, Ghana</p>
+        </div>
+
+        <!-- Invoice Title -->
+        <div style="text-align: right; margin-bottom: 40px;">
+          <h2 style="font-size: 36px; font-weight: bold; color: #3b82f6; margin: 0;">INVOICE</h2>
+        </div>
+
+        <!-- Invoice Details and Bill To -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
+          <div style="flex: 1;">
+            <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Bill To:</h3>
+            <div style="color: #4b5563;">
+              <p style="margin: 0 0 4px 0; font-weight: 600;">${client?.name || 'Client Name'}</p>
+              ${client?.company ? `<p style="margin: 0 0 4px 0;">${client.company}</p>` : ''}
+              <p style="margin: 0 0 4px 0;">${client?.email || 'client@example.com'}</p>
+              ${client?.phone ? `<p style="margin: 0 0 4px 0;">${client.phone}</p>` : '<p style="margin: 0 0 4px 0;">+233 XX XXX XXXX</p>'}
+              ${client?.address ? `<p style="margin: 0;">${client.address}</p>` : ''}
+            </div>
+          </div>
+          <div style="flex: 1; text-align: right;">
+            <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Invoice Details:</h3>
+            <div style="color: #4b5563;">
+              <p style="margin: 0 0 8px 0;"><span style="font-weight: 600;">Invoice #:</span> ${invoice.invoiceNumber}</p>
+              <p style="margin: 0 0 8px 0;"><span style="font-weight: 600;">Date:</span> ${formatDate(invoice.issueDate)}</p>
+              <p style="margin: 0 0 8px 0;"><span style="font-weight: 600;">Due Date:</span> ${formatDate(invoice.dueDate)}</p>
+              <p style="margin: 0;"><span style="font-weight: 600;">Currency:</span> ${invoice.currency}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Table -->
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Items:</h3>
+          <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb;">
+            <thead>
+              <tr style="background-color: #f9fafb;">
+                <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">DESCRIPTION</th>
+                <th style="padding: 16px 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">QTY</th>
+                <th style="padding: 16px 12px; text-align: right; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">UNIT PRICE</th>
+                <th style="padding: 16px 12px; text-align: right; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHTML}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totals -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 40px;">
+          <div style="width: 300px;">
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+              <span style="color: #6b7280;">Subtotal:</span>
+              <span style="font-weight: 600;">${formatCurrency(invoice.subtotal)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+              <span style="color: #6b7280;">Tax (${invoice.taxRate}%):</span>
+              <span style="font-weight: 600;">${formatCurrency(invoice.taxAmount)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 2px solid #3b82f6; font-size: 18px;">
+              <span style="font-weight: 600; color: #1f2937;">Total:</span>
+              <span style="font-weight: bold; color: #3b82f6;">${formatCurrency(invoice.total)}</span>
+            </div>
+          </div>
+        </div>
+
+        ${invoice.notes ? `
+        <!-- Notes -->
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Notes:</h3>
+          <p style="color: #4b5563; margin: 0; padding: 16px; background-color: #f9fafb; border-left: 4px solid #3b82f6;">${invoice.notes}</p>
+        </div>
+        ` : ''}
+
+        <!-- Terms & Conditions -->
+        <div style="margin-top: 60px; padding: 30px 0; border-top: 2px solid #e5e7eb;">
+          <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 20px 0; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">Terms & Conditions</h3>
+          <div style="color: #4b5563; font-size: 14px; line-height: 1.8;">
+            <p style="margin: 0 0 16px 0;"><strong>Payment Terms:</strong> Payment is due within 30 days of invoice date. Late payments may incur additional charges of 1.5% per month on the outstanding balance.</p>
+            
+            <p style="margin: 0 0 16px 0;"><strong>Payment Methods:</strong> We accept bank transfers, checks, and online payments. Please include the invoice number with your payment for proper processing.</p>
+            
+            <p style="margin: 0 0 16px 0;"><strong>Dispute Resolution:</strong> Any disputes regarding this invoice must be raised within 7 days of receipt. After this period, the invoice will be considered accepted.</p>
+            
+            <p style="margin: 0 0 16px 0;"><strong>Late Payment:</strong> Accounts not paid within the specified terms may be subject to collection proceedings and additional legal fees.</p>
+            
+            <p style="margin: 0 0 16px 0;"><strong>Cancellation Policy:</strong> Services rendered cannot be cancelled once completed. Any cancellations must be made in writing before work commences.</p>
+            
+            <p style="margin: 0 0 16px 0;"><strong>Liability:</strong> Our liability is limited to the amount of this invoice. We are not responsible for any consequential or indirect damages.</p>
+            
+            <p style="margin: 0 0 20px 0;"><strong>Governing Law:</strong> This invoice and all related matters shall be governed by the laws of Ghana. Any legal proceedings shall be conducted in the courts of Accra, Ghana.</p>
+          </div>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 12px;">
+            <p style="margin: 0 0 4px 0;">Thank you for your business!</p>
+            <p style="margin: 0;">For questions about this invoice, please contact us at info@abccompany.com</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Print invoice
+   */
+  static printInvoice(invoiceId: string): void {
+    // Open the print page in a new window
+    const printUrl = `/dashboard/financial/invoices/${invoiceId}/print`;
+    const printWindow = window.open(printUrl, '_blank', 'width=800,height=600');
+    
+    if (printWindow) {
+      // Focus the new window
+      printWindow.focus();
+    } else {
+      // Fallback: navigate to print page in current window
+      window.location.href = printUrl;
     }
   }
   

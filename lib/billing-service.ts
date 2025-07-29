@@ -471,6 +471,23 @@ export class BillingService {
     }
   }
   
+  /**
+   * Get total monthly revenue for multiple workspaces (cross-workspace)
+   */
+  static async getTotalMonthlyRevenueForWorkspaces(workspaceIds: string[]): Promise<number> {
+    try {
+      let total = 0;
+      for (const wsId of workspaceIds) {
+        const analytics = await this.getBillingAnalytics(wsId);
+        total += analytics.monthlyRevenue || 0;
+      }
+      return total;
+    } catch (error) {
+      console.error('Error aggregating monthly revenue:', error);
+      throw error;
+    }
+  }
+  
   // ===== HELPER METHODS =====
   
   private static async getSubscriptionPlan(planId: string): Promise<SubscriptionPlan | null> {

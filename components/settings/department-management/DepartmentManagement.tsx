@@ -13,6 +13,8 @@ import { DepartmentService, type Department, type DepartmentUser } from '@/lib/d
 import { UserService } from '@/lib/user-service';
 import { type User } from '@/lib/types';
 import DeleteDepartmentAlertDialog from '@/components/folders/dialogs/DeleteDepartmentAlertDialog'; // Keep this as is if it's already a separate component
+import { DeleteDialog } from '@/components/ui/delete-dialog';
+import { useDeleteDialog } from '@/components/ui/delete-dialog';
 
 import { DepartmentStats } from './DepartmentStats';
 import { DepartmentCard } from './DepartmentCard';
@@ -49,6 +51,17 @@ export function DepartmentManagement() {
   const [isAssignMembersOpen, setIsAssignMembersOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
+
+  // Delete dialog for member removal
+  const {
+    isOpen: isDeleteMemberOpen,
+    openDialog: openDeleteMemberDialog,
+    closeDialog: closeDeleteMemberDialog,
+    handleConfirm: confirmDeleteMember,
+    isLoading: isDeletingMember,
+    item: itemToDelete
+  } = useDeleteDialog();
+  const [memberToRemove, setMemberToRemove] = useState<{userId: string, departmentName: string} | null>(null);
 
   // Form states for Create/Edit
   const [departmentForm, setDepartmentForm] = useState({
@@ -373,26 +386,38 @@ export function DepartmentManagement() {
   const handleRemoveMember = async (userId: string, departmentName: string) => {
     if (!currentWorkspace?.id) return;
 
-    if (window.confirm(`Remove this member from ${departmentName}?`)) {
-      try {
-        setSubmitting(true);
-        await UserService.updateUser(userId, {
-          department: undefined,
-          departmentId: undefined,
-        });
-        await DepartmentService.updateDepartmentMemberCounts(currentWorkspace.id); // Sync counts
-        toast({ 
-          title: 'Success', 
-          description: 'Member removed from department',
-          className: 'bg-gradient-to-r from-primary to-accent text-white',
-        });
-        await loadData();
-      } catch (error) {
-        console.error('Error removing member:', error);
-        toast({ title: 'Error', description: 'Failed to remove member. Please try again.', variant: 'destructive' });
-      } finally {
-        setSubmitting(false);
-      }
+    const user = users.find(u => u.id === userId);
+    const memberItem = {
+      id: userId,
+      name: user?.name || 'Unknown User',
+      type: 'Member'
+    };
+    
+    setMemberToRemove({ userId, departmentName });
+    openDeleteMemberDialog(memberItem);
+  };
+
+  // Confirm remove member from department
+  const handleConfirmRemoveMember = async () => {
+    if (!memberToRemove || !currentWorkspace?.id) return;
+
+    try {
+      await UserService.updateUser(memberToRemove.userId, {
+        department: undefined,
+        departmentId: undefined,
+      });
+      await DepartmentService.updateDepartmentMemberCounts(currentWorkspace.id); // Sync counts
+      toast({ 
+        title: 'Success', 
+        description: 'Member removed from department',
+        className: 'bg-gradient-to-r from-primary to-accent text-white',
+      });
+      await loadData();
+      setMemberToRemove(null);
+    } catch (error) {
+      console.error('Error removing member:', error);
+      toast({ title: 'Error', description: 'Failed to remove member. Please try again.', variant: 'destructive' });
+      throw error; // Re-throw to let useDeleteDialog handle the error state
     }
   };
 
@@ -617,6 +642,29 @@ export function DepartmentManagement() {
         confirmDelete={confirmDeleteDepartment}
         isSubmitting={submitting}
       />
+
+      {/* Delete Member Dialog */}
+       <DeleteDialog
+         isOpen={isDeleteMemberOpen}
+         onClose={closeDeleteMemberDialog}
+         onConfirm={() => confirmDeleteMember(handleConfirmRemoveMember)}
+         title="Remove Member"
+         description="This action will remove the member from the department and unassign them."
+         item={itemToDelete}
+         itemDetails={memberToRemove ? [
+           { label: 'Department', value: memberToRemove.departmentName },
+           { label: 'Action', value: 'Remove from department' }
+         ] : []}
+         consequences={[
+           'Member will be unassigned from the department',
+           'Member will lose department-specific permissions',
+           'Member can be reassigned to another department later',
+           'This action can be reversed by reassigning the member'
+         ]}
+         confirmText="REMOVE MEMBER"
+         isLoading={isDeletingMember}
+         warningLevel="medium"
+       />
 
       {/* Performance Monitor (development only) */}
       <PerformanceMonitor />

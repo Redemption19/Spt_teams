@@ -125,7 +125,21 @@ export function formatDate(date: any, fallback: string = 'N/A'): string {
   if (!date) return fallback;
   
   try {
-    const dateObj = new Date(date);
+    let dateObj: Date;
+    
+    // Handle Firestore Timestamp
+    if (date.toDate && typeof date.toDate === 'function') {
+      dateObj = date.toDate();
+    } 
+    // Handle regular Date object
+    else if (date instanceof Date) {
+      dateObj = date;
+    }
+    // Handle string or number
+    else {
+      dateObj = new Date(date);
+    }
+    
     if (isNaN(dateObj.getTime())) {
       return fallback;
     }

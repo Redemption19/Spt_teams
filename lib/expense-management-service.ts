@@ -26,6 +26,7 @@ import { cleanFirestoreData, createUpdateData } from './firestore-utils';
 import { convertTimestamps } from './utils';
 import { CurrencyService } from './currency-service';
 import { ExpenseAccessControl } from './expense-access-control';
+import { BudgetTrackingService } from './budget-tracking-service';
 
 import { safeNumber } from './utils';
 
@@ -125,6 +126,7 @@ export class ExpenseManagementService {
     submittedBy: string
   ): Promise<string> {
     try {
+      console.log('[DEBUG] Creating expense', { workspaceId, expenseData, submittedBy });
       const expenseRef = doc(collection(db, 'expenses'));
       const expenseId = expenseRef.id;
       
@@ -136,6 +138,7 @@ export class ExpenseManagementService {
         expenseData.currency,
         defaultCurrency.code
       );
+      console.log('[DEBUG] Amount in base currency', { amountInBaseCurrency, defaultCurrency });
       
       // Check if approval is required
       const category = await this.getExpenseCategory(expenseData.category);
@@ -146,9 +149,9 @@ export class ExpenseManagementService {
         id: expenseId,
         title: expenseData.title,
         description: expenseData.description,
-        amount: expenseData.amount,
+        amount: Number(expenseData.amount),
         currency: expenseData.currency,
-        amountInBaseCurrency,
+        amountInBaseCurrency: Number(amountInBaseCurrency),
         category: category || { 
           id: expenseData.category, 
           name: expenseData.category,
@@ -180,6 +183,44 @@ export class ExpenseManagementService {
       // Update cost center spending if applicable
       if (expenseData.costCenterId) {
         await this.updateCostCenterSpending(expenseData.costCenterId, amountInBaseCurrency);
+      }
+
+      // Update relevant budget's spent field (department, project, team, cost center, workspace)
+      // Department budget
+      if (expenseData.departmentId) {
+        const budgets = await BudgetTrackingService.getWorkspaceBudgets(workspaceId, { type: 'department', entityId: expenseData.departmentId, isActive: true });
+        console.log('[DEBUG] Department budgets found', budgets);
+        if (budgets && budgets.length > 0) {
+          await BudgetTrackingService.updateBudgetSpending(budgets[0].id, amountInBaseCurrency);
+          console.log('[DEBUG] Updated department budget spending', { budgetId: budgets[0].id, amountInBaseCurrency });
+        }
+      }
+      // Project budget
+      if (expenseData.projectId) {
+        const budgets = await BudgetTrackingService.getWorkspaceBudgets(workspaceId, { type: 'project', entityId: expenseData.projectId, isActive: true });
+        console.log('[DEBUG] Project budgets found', budgets);
+        if (budgets && budgets.length > 0) {
+          await BudgetTrackingService.updateBudgetSpending(budgets[0].id, amountInBaseCurrency);
+          console.log('[DEBUG] Updated project budget spending', { budgetId: budgets[0].id, amountInBaseCurrency });
+        }
+      }
+      // Cost center budget
+      if (expenseData.costCenterId) {
+        const budgets = await BudgetTrackingService.getWorkspaceBudgets(workspaceId, { type: 'costCenter', entityId: expenseData.costCenterId, isActive: true });
+        console.log('[DEBUG] Cost center budgets found', budgets);
+        if (budgets && budgets.length > 0) {
+          await BudgetTrackingService.updateBudgetSpending(budgets[0].id, amountInBaseCurrency);
+          console.log('[DEBUG] Updated cost center budget spending', { budgetId: budgets[0].id, amountInBaseCurrency });
+        }
+      }
+      // Workspace budget (if no department/project/cost center, fallback)
+      if (!expenseData.departmentId && !expenseData.projectId && !expenseData.costCenterId) {
+        const budgets = await BudgetTrackingService.getWorkspaceBudgets(workspaceId, { type: 'workspace', entityId: workspaceId, isActive: true });
+        console.log('[DEBUG] Workspace budgets found', budgets);
+        if (budgets && budgets.length > 0) {
+          await BudgetTrackingService.updateBudgetSpending(budgets[0].id, amountInBaseCurrency);
+          console.log('[DEBUG] Updated workspace budget spending', { budgetId: budgets[0].id, amountInBaseCurrency });
+        }
       }
 
       // Clear cache after creating expense
@@ -1181,6 +1222,28 @@ export class ExpenseManagementService {
       return result;
     } catch (error) {
       console.error('Error getting owner workspace summary:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get expenses for multiple workspaces (cross-workspace aggregation)
+   */
+  static async getExpensesForWorkspaces(workspaceIds: string[]): Promise<Expense[]> {
+    try {
+      const { getDocs, collection, query, where } = await import('firebase/firestore');
+      const allExpenses: Expense[] = [];
+      // Firestore does not support 'in' queries for more than 10 items, so batch if needed
+      const batchSize = 10;
+      for (let i = 0; i < workspaceIds.length; i += batchSize) {
+        const batchIds = workspaceIds.slice(i, i + batchSize);
+        const q = query(collection(db, 'expenses'), where('workspaceId', 'in', batchIds));
+        const snapshot = await getDocs(q);
+        allExpenses.push(...snapshot.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Expense[]);
+      }
+      return allExpenses;
+    } catch (error) {
+      console.error('Error fetching expenses for workspaces:', error);
       throw error;
     }
   }

@@ -6,6 +6,11 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --brand-primary: #6366f1;      /* Indigo-500 */
+  --brand-secondary: #22d3ee;    /* Cyan-400 */
+  --brand-tertiary: #f59e42;     /* Orange-400 */
+  --brand-quaternary: #f43f5e;   /* Rose-500 */
+  --brand-quinary: #10b981;      /* Emerald-500 */
 }
 
 @media (prefers-color-scheme: dark) {

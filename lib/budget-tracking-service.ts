@@ -19,9 +19,10 @@ import {
   BudgetAlert, 
   BudgetFormData,
   BudgetAnalytics,
-  CostCenter
+  CostCenter,
+  Expense
 } from './types/financial-types';
-import { cleanFirestoreData, createUpdateData } from './firestore-utils';
+import { cleanFirestoreData, createUpdateData, convertTimestamps } from './firestore-utils';
 
 export class BudgetTrackingService {
   
@@ -86,7 +87,10 @@ export class BudgetTrackingService {
   static async getBudget(budgetId: string): Promise<Budget | null> {
     try {
       const docSnap = await getDoc(doc(db, 'budgets', budgetId));
-      return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Budget : null;
+      if (!docSnap.exists()) return null;
+      const data = { id: docSnap.id, ...docSnap.data() };
+      const converted = convertTimestamps(data);
+      return converted as Budget;
     } catch (error) {
       console.error('Error fetching budget:', error);
       return null;
@@ -130,10 +134,7 @@ export class BudgetTrackingService {
       q = query(q, orderBy('createdAt', 'desc'));
       
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Budget[];
+      return snapshot.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Budget[];
     } catch (error) {
       console.error('Error fetching workspace budgets:', error);
       throw error;
@@ -162,7 +163,9 @@ export class BudgetTrackingService {
     committedAmount: number = 0
   ): Promise<void> {
     try {
+      console.log('[DEBUG] updateBudgetSpending called', { budgetId, spentAmount, committedAmount });
       const budget = await this.getBudget(budgetId);
+      console.log('[DEBUG] Budget before update', budget);
       if (!budget) {
         throw new Error('Budget not found');
       }
@@ -177,6 +180,7 @@ export class BudgetTrackingService {
         remaining: newRemaining,
         updatedAt: new Date()
       });
+      console.log('[DEBUG] Budget after update', { budgetId, newSpent, newCommitted, newRemaining });
       
       // Check for budget alerts
       await this.checkBudgetAlerts(budgetId, newSpent + newCommitted, budget.amount);
@@ -224,6 +228,7 @@ export class BudgetTrackingService {
         branchId: costCenterData.branchId,
         regionId: costCenterData.regionId,
         managerId: costCenterData.managerId,
+        projectId: costCenterData.projectId,
         budget: costCenterData.budget,
         budgetPeriod: costCenterData.budgetPeriod,
         isActive: costCenterData.isActive !== undefined ? costCenterData.isActive : true,
@@ -231,7 +236,7 @@ export class BudgetTrackingService {
         updatedAt: new Date()
       };
       
-      await setDoc(costCenterRef, costCenter);
+      await setDoc(costCenterRef, cleanFirestoreData(costCenter));
       return costCenterId;
     } catch (error) {
       console.error('Error creating cost center:', error);
@@ -262,6 +267,25 @@ export class BudgetTrackingService {
     }
   }
   
+  /**
+   * Get cost center by ID
+   */
+  static async getCostCenter(costCenterId: string): Promise<CostCenter | null> {
+    try {
+      const docSnap = await getDoc(doc(db, 'costCenters', costCenterId));
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data()
+        } as CostCenter;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching cost center:', error);
+      throw error;
+    }
+  }
+
   /**
    * Update cost center
    */
@@ -413,6 +437,162 @@ export class BudgetTrackingService {
       return reports;
     } catch (error) {
       console.error('Error getting budget performance report:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Batch recalculate all budgets' spent fields for a workspace
+   */
+  static async recalculateAllBudgetsSpent(mainWorkspaceId: string): Promise<void> {
+    try {
+      // Get all descendant workspace IDs (main + subs)
+      const { WorkspaceService } = await import('./workspace-service');
+      const subWorkspaces = await WorkspaceService.getSubWorkspaces(mainWorkspaceId);
+      const allWorkspaceIds = [mainWorkspaceId, ...subWorkspaces.map(w => w.id)];
+
+      // Fetch all budgets across all workspaces
+      const budgets = await this.getBudgetsForWorkspaces(allWorkspaceIds);
+      // Fetch all expenses across all workspaces
+      const { ExpenseManagementService } = await import('./expense-management-service');
+      const allExpenses = await ExpenseManagementService.getExpensesForWorkspaces(allWorkspaceIds);
+      console.log('[DEBUG] Recalculating budgets (cross-workspace)', { allWorkspaceIds, budgets, allExpenses });
+      // For each budget, sum relevant expenses and update spent
+      for (const budget of budgets) {
+        let relevantExpenses: Expense[] = [];
+        if (budget.type === 'department') {
+          relevantExpenses = allExpenses.filter((e: Expense) => e.departmentId === budget.entityId && e.workspaceId === budget.workspaceId);
+        } else if (budget.type === 'project') {
+          relevantExpenses = allExpenses.filter((e: Expense) => e.projectId === budget.entityId && e.workspaceId === budget.workspaceId);
+        } else if (budget.type === 'costCenter') {
+          relevantExpenses = allExpenses.filter((e: Expense) => e.costCenterId === budget.entityId && e.workspaceId === budget.workspaceId);
+        } else if (budget.type === 'workspace') {
+          relevantExpenses = allExpenses.filter((e: Expense) => e.workspaceId === budget.entityId);
+        }
+        // TODO: Add logic for team budgets if needed
+        const spent = relevantExpenses.reduce((sum: number, e: Expense) => sum + (typeof e.amountInBaseCurrency === 'number' ? e.amountInBaseCurrency : Number(e.amountInBaseCurrency) || 0), 0);
+        console.log('[DEBUG] Updating budget', { budgetId: budget.id, spent, relevantExpenses });
+        await this.updateBudget(budget.id, { spent, remaining: budget.amount - spent, updatedAt: new Date() });
+      }
+      console.log('✅ Recalculated all budgets spent for workspaces', allWorkspaceIds);
+    } catch (error) {
+      console.error('Error recalculating all budgets spent:', error);
+      throw error;
+    }
+  }
+
+  // Helper: Get budgets for multiple workspaces
+  static async getBudgetsForWorkspaces(workspaceIds: string[]): Promise<Budget[]> {
+    try {
+      const { getDocs, collection, query, where } = await import('firebase/firestore');
+      const allBudgets: Budget[] = [];
+      // Firestore does not support 'in' queries for more than 10 items, so batch if needed
+      const batchSize = 10;
+      for (let i = 0; i < workspaceIds.length; i += batchSize) {
+        const batchIds = workspaceIds.slice(i, i + batchSize);
+        const q = query(collection(db, 'budgets'), where('workspaceId', 'in', batchIds));
+        const snapshot = await getDocs(q);
+        allBudgets.push(...snapshot.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Budget[]);
+      }
+      return allBudgets;
+    } catch (error) {
+      console.error('Error fetching budgets for workspaces:', error);
+      throw error;
+    }
+  }
+
+  // Helper: Get expenses for multiple workspaces
+  static async getExpensesForWorkspaces(workspaceIds: string[]): Promise<Expense[]> {
+    try {
+      const { getDocs, collection, query, where } = await import('firebase/firestore');
+      const allExpenses: Expense[] = [];
+      // Firestore does not support 'in' queries for more than 10 items, so batch if needed
+      const batchSize = 10;
+      for (let i = 0; i < workspaceIds.length; i += batchSize) {
+        const batchIds = workspaceIds.slice(i, i + batchSize);
+        const q = query(collection(db, 'expenses'), where('workspaceId', 'in', batchIds));
+        const snapshot = await getDocs(q);
+        allExpenses.push(...snapshot.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Expense[]);
+      }
+      return allExpenses;
+    } catch (error) {
+      console.error('Error fetching expenses for workspaces:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get budget analytics for multiple workspaces (cross-workspace)
+   */
+  static async getBudgetAnalyticsForWorkspaces(
+    workspaceIds: string[],
+    dateRange?: { start: Date; end: Date }
+  ): Promise<BudgetAnalytics> {
+    try {
+      if (!workspaceIds || workspaceIds.length === 0) {
+        return {
+          totalBudget: 0,
+          totalSpent: 0,
+          totalRemaining: 0,
+          utilizationPercentage: 0,
+          departmentBreakdown: [],
+          alerts: [],
+          projectedOverruns: []
+        };
+      }
+      // Fetch all budgets for the given workspaces
+      let budgets = await this.getBudgetsForWorkspaces(workspaceIds);
+      budgets = budgets.filter(b => b.isActive);
+      if (dateRange) {
+        budgets = budgets.filter(b =>
+          b.startDate >= dateRange.start && b.endDate <= dateRange.end
+        );
+      }
+      const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
+      const totalSpent = budgets.reduce((sum, budget) => sum + budget.spent, 0);
+      const totalRemaining = budgets.reduce((sum, budget) => sum + budget.remaining, 0);
+      const utilizationPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+      // Department breakdown (aggregate across all workspaces)
+      const departmentBudgets = budgets.filter(budget => budget.type === 'department');
+      const departmentBreakdown = departmentBudgets.map(budget => ({
+        department: budget.entityId, // Department ID - would need to resolve to name
+        budget: budget.amount,
+        spent: budget.spent,
+        remaining: budget.remaining
+      }));
+      // Collect all alerts
+      const alerts: BudgetAlert[] = budgets.flatMap(budget =>
+        budget.alerts.filter(alert => alert.triggered)
+      );
+      // Projected overruns (simplified calculation)
+      const projectedOverruns = budgets
+        .filter(budget => {
+          const utilizationRate = budget.amount > 0 ? budget.spent / budget.amount : 0;
+          return utilizationRate > 0.8; // 80% threshold for overrun risk
+        })
+        .map(budget => {
+          const timeElapsed = (new Date().getTime() - budget.startDate.getTime()) /
+                             (budget.endDate.getTime() - budget.startDate.getTime());
+          const projectedSpend = timeElapsed > 0 ? budget.spent / timeElapsed : budget.spent;
+          const projectedOverrun = Math.max(0, projectedSpend - budget.amount);
+          return {
+            entity: budget.name,
+            projectedAmount: projectedOverrun,
+            timeline: this.calculateTimeToOverrun(budget)
+          };
+        })
+        .filter(item => item.projectedAmount > 0);
+      return {
+        totalBudget,
+        totalSpent,
+        totalRemaining,
+        utilizationPercentage,
+        departmentBreakdown,
+        alerts,
+        projectedOverruns
+      };
+    } catch (error) {
+      console.error('Error getting cross-workspace budget analytics:', error);
       throw error;
     }
   }

@@ -1,6 +1,6 @@
 // components/teams/dialogs/DeleteTeamAlertDialog.tsx
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { DeleteDialog, useDeleteDialog } from '@/components/ui/delete-dialog';
+import { useEffect } from 'react';
 
 interface DeleteTeamAlertDialogProps {
   isOpen: boolean;
@@ -17,51 +17,46 @@ export default function DeleteTeamAlertDialog({
   onConfirm,
   isSubmitting,
 }: DeleteTeamAlertDialogProps) {
+  const deleteDialog = useDeleteDialog();
+
+  // Sync external state with internal dialog state
+  useEffect(() => {
+    if (isOpen && !deleteDialog.isOpen) {
+      deleteDialog.openDialog({ id: 'team-delete', name: teamName });
+    } else if (!isOpen && deleteDialog.isOpen) {
+      deleteDialog.closeDialog();
+    }
+  }, [isOpen, deleteDialog, teamName]);
+
+  const handleClose = () => {
+    deleteDialog.closeDialog();
+    setIsOpen(false);
+  };
+
+  const handleConfirm = async () => {
+    await onConfirm();
+  };
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogContent className="max-w-md rounded-xl border-border/50">
-        <AlertDialogHeader className="space-y-4">
-          <div className="flex items-center justify-center w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/20 rounded-full">
-            <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
-          </div>
-          <AlertDialogTitle className="text-center text-lg sm:text-xl">
-            Delete Team
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-center space-y-2">
-            <p>
-              Are you sure you want to delete the team &quot;{teamName}&quot;? This action cannot be undone.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              This action cannot be undone. All team data and member associations will be permanently removed.
-            </p>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2 pt-4">
-          <AlertDialogCancel 
-            disabled={isSubmitting}
-            className="h-11 sm:h-10 rounded-lg border-border/50 touch-manipulation"
-          >
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            disabled={isSubmitting}
-            className="h-11 sm:h-10 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg touch-manipulation"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Deleting...
-              </>
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Team
-              </>
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <DeleteDialog
+      isOpen={deleteDialog.isOpen}
+      onClose={handleClose}
+      onConfirm={handleConfirm}
+      title="Delete Team"
+      description="You are about to permanently delete this team. This action cannot be undone."
+      item={deleteDialog.item}
+      itemDetails={[
+        { label: 'Team Name', value: teamName }
+      ]}
+      consequences={[
+        'Permanently remove this team from the workspace',
+        'Remove all team member associations',
+        'Clear all team-related data and history',
+        'This team will no longer be accessible to anyone'
+      ]}
+      confirmText="Delete Team"
+      isLoading={isSubmitting}
+      warningLevel="high"
+    />
   );
 }

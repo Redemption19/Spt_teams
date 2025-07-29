@@ -21,6 +21,9 @@ import {
   Save 
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { BudgetTrackingService } from '@/lib/budget-tracking-service';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 interface WorkspaceAppearanceSettingsProps {
   workspaceSettings: any;
@@ -94,6 +97,26 @@ export function WorkspaceAppearanceSettings({
         description: "Failed to update workspace settings",
         variant: "destructive"
       });
+    }
+  };
+
+  const { toast } = useToast();
+  const [recalcLoading, setRecalcLoading] = useState(false);
+
+  // Handler for batch recalculation
+  const handleRecalculateBudgets = async () => {
+    if (!currentWorkspace?.id) return;
+    setRecalcLoading(true);
+    try {
+      await BudgetTrackingService.recalculateAllBudgetsSpent(currentWorkspace.id);
+      toast({ title: 'Budgets Recalculated', description: 'All budgets have been recalculated from expenses.', variant: 'default' });
+      if (refreshCurrentWorkspace) await refreshCurrentWorkspace();
+      if (refreshWorkspaces) await refreshWorkspaces();
+    } catch (err) {
+      toast({ title: 'Recalculation Failed', description: 'Could not recalculate budgets. See console for details.', variant: 'destructive' });
+      console.error('Batch recalculation error:', err);
+    } finally {
+      setRecalcLoading(false);
     }
   };
 
@@ -438,6 +461,21 @@ export function WorkspaceAppearanceSettings({
           </CardContent>
         </Card>
       </TabsContent>
+
+      {/* Maintenance/Advanced Section */}
+      {(userRole === 'owner' || userRole === 'admin') && (
+        <div className="pt-6 mt-6 border-t">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-yellow-500" /> Maintenance
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Use these tools for troubleshooting or after bulk data changes. Normally, you do not need to use them.
+          </p>
+          <Button variant="outline" onClick={handleRecalculateBudgets} disabled={recalcLoading}>
+            {recalcLoading ? 'Recalculating Budgets...' : 'Recalculate Budgets'}
+          </Button>
+        </div>
+      )}
     </>
   );
 }

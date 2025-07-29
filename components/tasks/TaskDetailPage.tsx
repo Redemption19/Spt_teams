@@ -211,7 +211,7 @@ export function TaskDetailPage() {
         description: editForm.description.trim() || undefined,
         status: editForm.status,
         priority: editForm.priority,
-        assigneeId: editForm.assigneeId || undefined,
+        assigneeId: editForm.assigneeId === 'unassigned' ? undefined : editForm.assigneeId || undefined,
         estimatedHours: editForm.estimatedHours ? parseFloat(editForm.estimatedHours) : undefined,
         tags: editForm.tags,
       };
@@ -852,7 +852,7 @@ export function TaskDetailPage() {
                       <SelectValue placeholder="Select assignee" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
                       {users.map((user) => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.name || user.email}

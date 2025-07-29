@@ -326,9 +326,9 @@ export class ExpenseImportService {
           const expenseDoc: Omit<Expense, 'id'> = {
             title: expense.title,
             description: expense.description,
-            amount: expense.amount,
+            amount: Number(expense.amount),
             currency: expense.currency,
-            amountInBaseCurrency: expense.amount, // For now, assume same currency
+            amountInBaseCurrency: Number(expense.amount), // For now, assume same currency
             expenseDate: expense.expenseDate,
             category: {
               id: expense.category,

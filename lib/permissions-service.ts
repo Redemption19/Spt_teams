@@ -1,5 +1,7 @@
 import { db } from './firebase';
 import { collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { BudgetPermissionsService, BUDGET_PERMISSIONS } from './budget-permissions-service';
+import { CostCenterPermissionsService, COST_CENTER_PERMISSIONS } from './cost-center-permissions-service';
 
 export interface Permission {
   id: string;
@@ -155,6 +157,37 @@ export const SYSTEM_PERMISSIONS: Permission[] = [
   { id: 'expenses.export', name: 'Export Expenses', description: 'Can export expense data', category: 'Financial Management', feature: 'expenses' },
   { id: 'expenses.analytics', name: 'View Expense Analytics', description: 'Can view expense analytics and reports', category: 'Financial Management', feature: 'expenses' },
   { id: 'expenses.categories', name: 'Manage Expense Categories', description: 'Can create and manage expense categories', category: 'Financial Management', feature: 'expenses' },
+
+  // Financial Management - Invoices
+  { id: 'invoices.view', name: 'View Invoices', description: 'Can view invoice list and details', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.view.all', name: 'View All Invoices', description: 'Can view all invoices across all departments', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.view.own', name: 'View Own Invoices', description: 'Can view only their own invoices', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.create', name: 'Create Invoices', description: 'Can create new invoices', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.edit', name: 'Edit Invoices', description: 'Can edit invoice information', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.edit.own', name: 'Edit Own Invoices', description: 'Can edit only their own invoices', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.delete', name: 'Delete Invoices', description: 'Can delete invoices', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.delete.own', name: 'Delete Own Invoices', description: 'Can delete only their own invoices', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.send', name: 'Send Invoices', description: 'Can send invoices to clients', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.export', name: 'Export Invoices', description: 'Can export invoice data', category: 'Financial Management', feature: 'invoices' },
+  { id: 'invoices.analytics', name: 'View Invoice Analytics', description: 'Can view invoice analytics and reports', category: 'Financial Management', feature: 'invoices' },
+
+  // Financial Management - Overview & Reporting
+  { id: 'financial.overview', name: 'View Financial Overview', description: 'Can access the financial dashboard and overview', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.overview.all', name: 'View All Financial Data', description: 'Can view financial data across all departments and workspaces', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.overview.department', name: 'View Department Financial Data', description: 'Can view financial data within their department only', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.reports.view', name: 'View Financial Reports', description: 'Can view and access financial reports', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.reports.generate', name: 'Generate Financial Reports', description: 'Can create and generate new financial reports', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.reports.export', name: 'Export Financial Reports', description: 'Can export financial reports in various formats', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.reports.delete', name: 'Delete Financial Reports', description: 'Can delete financial reports', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.analytics', name: 'View Financial Analytics', description: 'Can access advanced financial analytics and insights', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.settings', name: 'Manage Financial Settings', description: 'Can configure financial settings and preferences', category: 'Financial Management', feature: 'financial' },
+  { id: 'financial.currency', name: 'Manage Currency Settings', description: 'Can configure currency settings and exchange rates', category: 'Financial Management', feature: 'financial' },
+
+  // Financial Management - Budgets
+  ...BUDGET_PERMISSIONS,
+  
+  // Financial Management - Cost Centers
+  ...COST_CENTER_PERMISSIONS,
 ];
 
 // Group permissions by category
@@ -328,6 +361,30 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
         name: 'Expenses',
         description: 'Expense management operations',
         permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'expenses')
+      },
+      {
+        id: 'budgets',
+        name: 'Budgets',
+        description: 'Budget management operations',
+        permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'budgets')
+      },
+      {
+        id: 'invoices',
+        name: 'Invoices',
+        description: 'Invoice management operations',
+        permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'invoices')
+      },
+      {
+        id: 'costcenters',
+        name: 'Cost Centers',
+        description: 'Cost center management operations',
+        permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'costcenters')
+      },
+      {
+        id: 'financial',
+        name: 'Financial Overview & Reports',
+        description: 'Financial dashboard, reporting, and analytics',
+        permissions: SYSTEM_PERMISSIONS.filter(p => p.feature === 'financial')
       }
     ]
   }
@@ -751,4 +808,4 @@ export class PermissionsService {
   static getPermissionsByFeature(featureId: string): Permission[] {
     return SYSTEM_PERMISSIONS.filter(p => p.feature === featureId);
   }
-} 
+}

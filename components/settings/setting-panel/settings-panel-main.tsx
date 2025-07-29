@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +29,8 @@ import {
   UserCheck,
   Info,
   Edit3,
-  AlertCircle
+  AlertCircle,
+  Upload
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -36,6 +38,7 @@ import { toast } from '@/hooks/use-toast';
 import { ProfileSettings } from './profile-settings';
 import { NotificationSecuritySettings } from './notification-security-settings';
 import { WorkspaceAppearanceSettings } from './workspace-appearance-settings';
+import { BrandingSettings } from './branding-settings';
 
 interface SettingsPanelProps {
   userRole?: 'owner' | 'admin' | 'member';
@@ -44,6 +47,8 @@ interface SettingsPanelProps {
 export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
   const { userProfile } = useAuth();
   const { currentWorkspace, refreshWorkspaces, refreshCurrentWorkspace } = useWorkspace();
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
   
   // State for profile information (passed to ProfileSettings)
   const [profile, setProfile] = useState({
@@ -143,8 +148,8 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
         <p className="text-muted-foreground mt-1">Manage your account and workspace preferences</p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue={tabFromUrl || "profile"} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="profile">
             <User className="h-4 w-4 mr-2" />
             Profile
@@ -161,6 +166,12 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
             <TabsTrigger value="workspace">
               <Building2 className="h-4 w-4 mr-2" />
               Workspace
+            </TabsTrigger>
+          )}
+          {(userRole === 'owner' || userRole === 'admin') && (
+            <TabsTrigger value="branding">
+              <Upload className="h-4 w-4 mr-2" />
+              Branding
             </TabsTrigger>
           )}
           <TabsTrigger value="appearance">
@@ -183,6 +194,11 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
           setNotifications={setNotifications} 
           userRole={userRole} 
           getRoleIcon={getRoleIcon} 
+        />
+
+        <BrandingSettings 
+          userRole={userRole} 
+          currentWorkspace={currentWorkspace}
         />
 
         <WorkspaceAppearanceSettings 

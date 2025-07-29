@@ -45,6 +45,7 @@ export interface CostCenter {
   branchId?: string;
   regionId?: string;
   managerId?: string;
+  projectId?: string;
   budget?: number;
   budgetPeriod?: 'monthly' | 'quarterly' | 'yearly';
   isActive: boolean;
@@ -119,6 +120,7 @@ export interface Budget {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
+  description?: string;
 }
 
 export interface BudgetAlert {
@@ -339,6 +341,7 @@ export interface BudgetFormData {
     threshold: number;
     notifyUsers: string[];
   }[];
+  description?: string;
 }
 
 export interface InvoiceFormData {

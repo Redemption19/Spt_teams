@@ -30,6 +30,7 @@ import { useUserNames } from '@/hooks/use-user-names';
 import { Expense } from '@/lib/types/financial-types';
 import { safeNumber, formatNumber } from '@/lib/utils';
 import { ExpenseDetailSkeleton } from '@/components/financial/ExpenseDetailSkeleton';
+import { DeleteDialog, useDeleteDialog } from '@/components/ui/delete-dialog';
 
 interface ExpenseDetailPageProps {
   params: {
@@ -44,6 +45,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const [activeTab, setActiveTab] = useState('details');
   const [canEdit, setCanEdit] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const deleteDialog = useDeleteDialog();
 
   const router = useRouter();
   const { currentWorkspace } = useWorkspace();
@@ -148,17 +150,24 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const handleDelete = async () => {
     if (!expense?.id || !user?.uid) return;
 
-    if (!confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
-      return;
-    }
+    deleteDialog.openDialog({
+      id: expense.id,
+      name: expense.title,
+      type: expense.category.name,
+      status: expense.status
+    });
+  };
 
+  const confirmDeleteExpense = async () => {
     try {
-      await ExpenseManagementService.deleteExpense(expense.id);
-      toast({
-        title: 'Success',
-        description: 'Expense deleted successfully!'
+      await deleteDialog.handleConfirm(async (item) => {
+        await ExpenseManagementService.deleteExpense(item.id);
+        toast({
+          title: 'Success',
+          description: 'Expense deleted successfully!'
+        });
+        router.push('/dashboard/financial/expenses');
       });
-      router.push('/dashboard/financial/expenses');
     } catch (err) {
       console.error('Error deleting expense:', err);
       toast({
@@ -555,6 +564,30 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DeleteDialog
+         isOpen={deleteDialog.isOpen}
+         onClose={deleteDialog.closeDialog}
+         onConfirm={confirmDeleteExpense}
+         title="Delete Expense"
+         description="You are about to permanently delete this expense. This action cannot be undone."
+         item={deleteDialog.item}
+         itemDetails={[
+           { label: 'Title', value: deleteDialog.item?.name || '' },
+           { label: 'Category', value: deleteDialog.item?.type || '' },
+           { label: 'Status', value: deleteDialog.item?.status || '' },
+           { label: 'Amount', value: expense ? `${expense.currency} ${formatNumber(safeNumber(expense.amount))}` : '' }
+         ]}
+         consequences={[
+           'Permanently remove this expense from the system',
+           'Remove all associated receipts and documents',
+           'This expense will no longer be accessible to anyone',
+           'Any reports including this expense will be affected'
+         ]}
+         confirmText="Delete Expense"
+         isLoading={deleteDialog.isLoading}
+         warningLevel="high"
+       />
     </div>
   );
 }

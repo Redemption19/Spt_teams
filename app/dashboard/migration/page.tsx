@@ -22,8 +22,10 @@ import {
   Shield,
   Clock,
   FileText,
-  Loader2
+  Loader2,
+  Building2
 } from 'lucide-react';
+import { CostCenterPermissionMigration } from '@/components/admin/CostCenterPermissionMigration';
 
 export default function MigrationPage() {
   const { userProfile } = useAuth();
@@ -446,9 +448,10 @@ export default function MigrationPage() {
 
       {/* Main Content */}
       <Tabs defaultValue="settings" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="settings">Settings Update</TabsTrigger>
           <TabsTrigger value="migration">Full Migration</TabsTrigger>
+          <TabsTrigger value="permissions">Permissions</TabsTrigger>
           <TabsTrigger value="testing">Testing</TabsTrigger>
           <TabsTrigger value="validation">Validation</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
@@ -606,6 +609,24 @@ export default function MigrationPage() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Permissions Migration Tab */}
+        <TabsContent value="permissions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Cost Center Permissions Migration
+              </CardTitle>
+              <CardDescription>
+                Grant cost center permissions to existing users based on their roles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CostCenterPermissionMigration />
             </CardContent>
           </Card>
         </TabsContent>

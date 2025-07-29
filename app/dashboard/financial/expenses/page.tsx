@@ -25,6 +25,7 @@ import { ExpenseAccessInfo } from '@/components/financial/ExpenseAccessInfo';
 import { useIsOwner } from '@/lib/rbac-hooks';
 import BulkImportModal from '@/components/financial/BulkImportModal';
 import { ExpensesLoadingSkeleton } from '@/components/financial/ExpensesLoadingSkeleton';
+import { DeleteDialog, useDeleteDialog } from '@/components/ui/delete-dialog';
 
 export default function ExpensesPage() {
   const [activeTab, setActiveTab] = useState('list');
@@ -63,6 +64,9 @@ export default function ExpensesPage() {
   }, [expenses]);
   
   const { userNames } = useUserNames(userIds);
+
+  // Delete dialog hook
+  const deleteDialog = useDeleteDialog();
 
   const fetchUserPermissions = useCallback(async () => {
     if (!currentWorkspace?.id || !user?.uid) return;
@@ -384,9 +388,20 @@ export default function ExpensesPage() {
     }
   }, [currentWorkspace?.id, user?.uid, loadAllData, toast]);
 
-  const handleDeleteExpenseFromTable = useCallback(async (expense: ExpenseTableData) => {
-    await handleDeleteExpense(expense.id);
-  }, [handleDeleteExpense]);
+  const handleDeleteExpenseFromTable = useCallback((expense: ExpenseTableData) => {
+    deleteDialog.openDialog({
+      id: expense.id,
+      name: expense.title || 'Untitled Expense',
+      type: 'expense'
+    });
+  }, [deleteDialog]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteDialog.item) return;
+    await deleteDialog.handleConfirm(async (item) => {
+      await handleDeleteExpense(item.id);
+    });
+  }, [deleteDialog, handleDeleteExpense]);
 
   // Create columns for the table
   const columns = useMemo(() => createExpenseColumns({
@@ -872,6 +887,17 @@ export default function ExpensesPage() {
           onClose={() => setShowBulkImport(false)}
         />
       )}
+      
+      {/* Delete Dialog */}
+      <DeleteDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={deleteDialog.closeDialog}
+        onConfirm={handleConfirmDelete}
+        title="Delete Expense"
+        description="This action cannot be undone. The expense will be permanently removed from your records."
+        item={deleteDialog.item}
+        warningLevel="high"
+      />
     </div>
   );
 }

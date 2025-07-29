@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DeleteDialog, useDeleteDialog, DeleteItem } from '@/components/ui/delete-dialog';
 import { toast } from '@/hooks/use-toast';
 
 import {
@@ -111,6 +112,9 @@ export default function ProjectTaskManagement() {
   const [isDeleteTaskOpen, setIsDeleteTaskOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<TaskWithDisplayInfo | null>(null);
+  
+  // Bulk delete dialog
+  const bulkDeleteDialog = useDeleteDialog();
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -609,14 +613,18 @@ export default function ProjectTaskManagement() {
 
   const handleBulkDelete = async () => {
     if (selectedTasks.length === 0) return;
-    if (!window.confirm(`Are you sure you want to delete ${selectedTasks.length} selected task(s)? This action cannot be undone.`)) return;
+    bulkDeleteDialog.openDialog({ id: 'bulk-delete', name: `${selectedTasks.length} selected tasks` });
+  };
+
+  const confirmBulkDelete = async (item: DeleteItem) => {
     setSubmitting(true);
     try {
       await Promise.all(selectedTasks.map(taskId => TaskService.deleteTask(taskId, user!.uid)));
+      const deletedCount = selectedTasks.length;
       setSelectedTasks([]);
       toast({ 
         title: 'Success', 
-        description: `Deleted ${selectedTasks.length} task(s) successfully`,
+        description: `Deleted ${deletedCount} task(s) successfully`,
         className: 'bg-gradient-to-r from-primary to-accent text-white',
       });
       await loadData();
@@ -1102,6 +1110,28 @@ export default function ProjectTaskManagement() {
         confirmDelete={confirmDeleteTask}
         isSubmitting={submitting}
       />
+      
+      <DeleteDialog
+         isOpen={bulkDeleteDialog.isOpen}
+         onClose={bulkDeleteDialog.closeDialog}
+         onConfirm={() => bulkDeleteDialog.handleConfirm(confirmBulkDelete)}
+         title="Delete Selected Tasks"
+         description="This action will permanently remove the selected tasks and all associated data from the system."
+         item={bulkDeleteDialog.item}
+         itemDetails={selectedTasks.length > 0 ? [
+           { label: 'Tasks Selected', value: `${selectedTasks.length} task(s)` },
+           { label: 'Action', value: 'Bulk deletion' }
+         ] : []}
+         consequences={[
+           'All selected tasks will be permanently removed',
+           'Task history and comments will be lost',
+           'Associated time tracking data will be deleted',
+           'This action cannot be undone'
+         ]}
+         confirmText="DELETE TASKS"
+         isLoading={submitting}
+         warningLevel="high"
+       />
     </div>
   );
-} 
+}

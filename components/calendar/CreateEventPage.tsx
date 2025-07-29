@@ -169,11 +169,18 @@ export function CreateEventPage({
 
     setLoading(true);
     try {
-      const eventData: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'> = {
+      // Convert special "no selection" values back to empty strings
+      const processedFormData = {
         ...formData,
+        departmentId: formData.departmentId === 'no-department' ? '' : formData.departmentId,
+        teamId: formData.teamId === 'no-team' ? '' : formData.teamId
+      };
+      
+      const eventData: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'> = {
+        ...processedFormData,
         workspaceId: currentWorkspace!.id, // Ensure workspace isolation
         createdBy: user!.uid,
-        attendees: formData.invitees,
+        attendees: processedFormData.invitees,
         tags: [],
         attachments: []
       };
@@ -476,7 +483,7 @@ export function CreateEventPage({
                           <SelectValue placeholder="Select department" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No department</SelectItem>
+                          <SelectItem value="no-department">No department</SelectItem>
                           {workspaceDepartments.map((dept) => (
                             <SelectItem key={dept.id} value={dept.id}>
                               {dept.name}
@@ -493,7 +500,7 @@ export function CreateEventPage({
                           <SelectValue placeholder="Select team" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No team</SelectItem>
+                          <SelectItem value="no-team">No team</SelectItem>
                           {workspaceTeams.map((team) => (
                             <SelectItem key={team.id} value={team.id}>
                               {team.name}
@@ -583,4 +590,4 @@ export function CreateEventPage({
       </div>
     </div>
   );
-} 
+}

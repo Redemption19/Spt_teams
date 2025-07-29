@@ -22,6 +22,7 @@ import { CurrencySelector } from '@/components/financial/CurrencySelector';
 import { ExpenseEditService } from '@/lib/expense-edit-service';
 import { DepartmentService, Department } from '@/lib/department-service';
 import { Expense, ExpenseCategory } from '@/lib/types/financial-types';
+import { DeleteDialog, useDeleteDialog } from '@/components/ui/delete-dialog';
 
 interface ExpenseEditForm {
   title: string;
@@ -53,9 +54,15 @@ export default function EditExpensePage() {
   const [expenseLoading, setExpenseLoading] = useState(true);
   const [formDataLoading, setFormDataLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [activeTab, setActiveTab] = useState('basic');
+  
+  const {
+    isOpen: isDeleteDialogOpen,
+    openDialog: openDeleteDialog,
+    closeDialog: closeDeleteDialog,
+    isLoading: isDeleting
+  } = useDeleteDialog();
   
   const { currentWorkspace, subWorkspaces } = useWorkspace();
   const { user } = useAuth();
@@ -247,16 +254,10 @@ export default function EditExpensePage() {
   };
 
   // Handle expense deletion
-  const handleDelete = async () => {
+  const handleDeleteConfirm = async () => {
     if (!expense || !currentWorkspace?.id || !user?.uid) return;
 
-    if (!confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
-      return;
-    }
-
     try {
-      setDeleting(true);
-      
       await ExpenseEditService.deleteExpenseSecure(expense.id, currentWorkspace.id, user.uid);
 
       toast({
@@ -272,8 +273,6 @@ export default function EditExpensePage() {
         description: 'Failed to delete expense',
         variant: 'destructive'
       });
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -342,12 +341,12 @@ export default function EditExpensePage() {
         <div className="flex items-center space-x-2">
           <Button
             variant="destructive"
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={() => expense && openDeleteDialog({ id: expense.id, name: expense.title })}
+            disabled={isDeleting}
             className="h-9"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            {deleting ? 'Deleting...' : 'Delete'}
+            Delete
           </Button>
         </div>
       </div>
@@ -664,6 +663,32 @@ export default function EditExpensePage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Delete Dialog */}
+       <DeleteDialog
+         isOpen={isDeleteDialogOpen}
+         onClose={closeDeleteDialog}
+         onConfirm={handleDeleteConfirm}
+         title="Delete Expense"
+         description="This action will permanently remove the expense and all associated data from the system."
+         item={expense ? { id: expense.id, name: expense.title } : null}
+         itemDetails={expense ? [
+           { label: 'Title', value: expense.title },
+           { label: 'Amount', value: `${expense.currency} ${expense.amount.toLocaleString()}` },
+           { label: 'Category', value: String(expense.category) },
+           { label: 'Date', value: new Date(expense.createdAt).toLocaleDateString() },
+           { label: 'Status', value: expense.status }
+         ] : undefined}
+         consequences={[
+           'All expense data will be permanently removed',
+           'Associated receipts and attachments will be deleted',
+           'This expense will no longer appear in reports',
+           'This action cannot be undone'
+         ]}
+         confirmText="DELETE EXPENSE"
+         isLoading={isDeleting}
+         warningLevel="high"
+       />
     </div>
   );
 }
