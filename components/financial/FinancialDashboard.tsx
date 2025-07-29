@@ -63,6 +63,8 @@ interface FinancialOverview {
   utilizationRate: number;
   previousMonthSpent: number;
   spendingTrend: number;
+  burnRate: number;
+  utilizationPercentage: number;
 }
 
 interface ExpenseAnalytics {
@@ -73,6 +75,7 @@ interface ExpenseAnalytics {
   totalAmount: number;
   previousMonthAmount: number;
   changePercentage: number;
+  trend: number;
   topCategories: Array<{
     name: string;
     amount: number;
@@ -90,6 +93,7 @@ interface InvoiceAnalytics {
   avgPaymentTime: number;
   previousMonthAmount: number;
   changePercentage: number;
+  trend: number;
 }
 
 interface BudgetSummary {
@@ -108,9 +112,11 @@ interface BudgetSummary {
 interface FinancialAlert {
   id: string;
   type: 'budget_warning' | 'budget_critical' | 'invoice_overdue' | 'expense_pending' | 'cash_flow';
+  title: string;
   message: string;
   severity: 'info' | 'warning' | 'critical';
-  timestamp: Date;
+  timestamp?: Date;
+  createdAt: Date;
   entityId?: string;
   entityName?: string;
   amount?: number;
@@ -162,7 +168,7 @@ export default function FinancialDashboard() {
     const currencySymbol = defaultCurrency?.symbol || '₵';
 
     // Calculate overview metrics
-    const totalBudget = allBudgets.reduce((sum: number, budget: any) => sum + (budget.totalAmount || 0), 0);
+    const totalBudget = allBudgets.reduce((sum: number, budget: any) => sum + (budget.amount || 0), 0);
     const totalSpent = allExpenses.reduce((sum: number, expense: any) => sum + (expense.amount || 0), 0);
     const totalRemaining = totalBudget - totalSpent;
     const burnRate = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -203,19 +209,40 @@ export default function FinancialDashboard() {
     }, {});
 
     const topExpenseCategories = Object.entries(expensesByCategory)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
       .slice(0, 5)
-      .map(([name, amount]) => ({ name, amount }));
+      .map(([name, amount]) => ({ 
+        name, 
+        amount: amount as number,
+        percentage: totalExpenseAmount > 0 ? Math.round(((amount as number) / totalExpenseAmount) * 100) : 0,
+        count: allExpenses.filter((exp: any) => {
+          let categoryName: string;
+          if (typeof exp.category === 'string') {
+            categoryName = exp.category;
+          } else if (exp.category && typeof exp.category === 'object') {
+            if (exp.category.name) {
+              categoryName = exp.category.name;
+            } else if (exp.category.id) {
+              categoryName = exp.category.id;
+            } else {
+              categoryName = String(exp.category);
+            }
+          } else {
+            categoryName = 'Other';
+          }
+          return categoryName === name;
+        }).length
+      }));
 
     // Invoice analytics
     const draftInvoices = allInvoices.filter((inv: any) => inv.status === 'draft').length;
     const sentInvoices = allInvoices.filter((inv: any) => inv.status === 'sent').length;
     const paidInvoices = allInvoices.filter((inv: any) => inv.status === 'paid').length;
     const overdueInvoices = allInvoices.filter((inv: any) => inv.status === 'overdue').length;
-    const totalInvoiceAmount = allInvoices.reduce((sum: number, inv: any) => sum + (inv.totalAmount || 0), 0);
+    const totalInvoiceAmount = allInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
 
     // Calculate invoice trend
-    const previousMonthInvoiceTotal = previousMonthInvoices.reduce((sum: number, inv: any) => sum + (inv.totalAmount || 0), 0);
+    const previousMonthInvoiceTotal = previousMonthInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
     const invoiceTrend = previousMonthInvoiceTotal > 0 
       ? Math.round(((totalInvoiceAmount - previousMonthInvoiceTotal) / previousMonthInvoiceTotal) * 100)
       : 0;
@@ -231,13 +258,19 @@ export default function FinancialDashboard() {
       : 0;
 
     // Budget summaries
-    const budgetSummaries = allBudgets.map((budget: any) => {
+    const budgetSummaries = allBudgets.map((budget: {
+      id: string;
+      name?: string;
+      department?: string;
+      amount: number;
+      period?: string;
+    }) => {
       const spent = allExpenses
         .filter((exp: any) => exp.budgetId === budget.id || exp.department === budget.department)
         .reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
       
-      const remaining = budget.totalAmount - spent;
-      const utilizationPercentage = budget.totalAmount > 0 ? Math.round((spent / budget.totalAmount) * 100) : 0;
+      const remaining = budget.amount - spent;
+      const utilizationPercentage = budget.amount > 0 ? Math.round((spent / budget.amount) * 100) : 0;
       
       let status: 'on-track' | 'warning' | 'over-budget' = 'on-track';
       if (utilizationPercentage > 100) {
@@ -249,7 +282,7 @@ export default function FinancialDashboard() {
       return {
         id: budget.id,
         name: budget.name || budget.department || 'Unnamed Budget',
-        allocated: budget.totalAmount,
+        allocated: budget.amount,
         spent,
         remaining,
         utilizationPercentage,
@@ -262,14 +295,14 @@ export default function FinancialDashboard() {
     const alerts: FinancialAlert[] = [];
 
     // Budget alerts
-    budgetSummaries.forEach(budget => {
+    budgetSummaries.forEach((budget: BudgetSummary) => {
       if (budget.status === 'over-budget') {
         alerts.push({
           id: `budget-over-${budget.id}`,
           type: 'budget_critical',
           title: 'Budget Exceeded',
           message: `${budget.name} has exceeded its budget by ${Math.abs(budget.remaining)}`,
-          severity: 'high',
+          severity: 'critical',
           createdAt: new Date()
         });
       } else if (budget.status === 'warning') {
@@ -277,8 +310,8 @@ export default function FinancialDashboard() {
           id: `budget-warn-${budget.id}`,
           type: 'budget_warning',
           title: 'Budget Warning',
-          message: `${budget.name} has used ${budget.utilizationPercentage}% of its budget`,
-          severity: 'medium',
+          message: `${budget.name} has used ${budget.utilizationRate}% of its budget`,
+          severity: 'warning',
           createdAt: new Date()
         });
       }
@@ -291,7 +324,7 @@ export default function FinancialDashboard() {
         type: 'expense_pending',
         title: 'Pending Expenses',
         message: `${pendingExpenses} expenses are awaiting approval`,
-        severity: 'medium',
+        severity: 'warning',
         createdAt: new Date()
       });
     }
@@ -303,7 +336,7 @@ export default function FinancialDashboard() {
         type: 'invoice_overdue',
         title: 'Overdue Invoices',
         message: `${overdueInvoices} invoices are overdue`,
-        severity: 'high',
+        severity: 'critical',
         createdAt: new Date()
       });
     }
@@ -313,6 +346,11 @@ export default function FinancialDashboard() {
         totalBudget,
         totalSpent,
         totalRemaining,
+        monthlyBurn: burnRate,
+        projectedOverrun: totalRemaining < 0 ? Math.abs(totalRemaining) : 0,
+        utilizationRate: utilizationPercentage,
+        previousMonthSpent: previousMonthTotal,
+        spendingTrend: expenseTrend,
         burnRate,
         utilizationPercentage
       },
@@ -320,7 +358,10 @@ export default function FinancialDashboard() {
         pending: pendingExpenses,
         approved: approvedExpenses,
         rejected: rejectedExpenses,
+        draft: 0,
         totalAmount: totalExpenseAmount,
+        previousMonthAmount: previousMonthTotal,
+        changePercentage: expenseTrend,
         trend: expenseTrend,
         topCategories: topExpenseCategories
       },
@@ -330,12 +371,14 @@ export default function FinancialDashboard() {
         paid: paidInvoices,
         overdue: overdueInvoices,
         totalAmount: totalInvoiceAmount,
-        trend: invoiceTrend,
-        avgPaymentTime
+        avgPaymentTime,
+        previousMonthAmount: previousMonthInvoiceTotal,
+        changePercentage: invoiceTrend,
+        trend: invoiceTrend
       },
       budgets: budgetSummaries,
       alerts,
-      currencySymbol
+      lastUpdated: new Date()
     };
   }, [defaultCurrency]);
 
@@ -853,7 +896,7 @@ export default function FinancialDashboard() {
                         <p className="text-sm font-medium">{alert.message}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <p className="text-xs text-muted-foreground">
-                            {alert.timestamp.toLocaleDateString()}
+                            {alert.createdAt.toLocaleDateString()}
                           </p>
                           {alert.amount && (
                             <Badge variant="outline" className="text-xs">

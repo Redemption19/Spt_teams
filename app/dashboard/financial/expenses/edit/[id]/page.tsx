@@ -674,7 +674,7 @@ export default function EditExpensePage() {
          item={expense ? { id: expense.id, name: expense.title } : null}
          itemDetails={expense ? [
            { label: 'Title', value: expense.title },
-           { label: 'Amount', value: `${expense.currency} ${expense.amount.toLocaleString()}` },
+           { label: 'Amount', value: `${expense.currency} ${(expense.amount || 0).toLocaleString()}` },
            { label: 'Category', value: String(expense.category) },
            { label: 'Date', value: new Date(expense.createdAt).toLocaleDateString() },
            { label: 'Status', value: expense.status }

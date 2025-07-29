@@ -241,7 +241,7 @@ export function CurrencyDisplay({
   showCode = true,
   className = ''
 }: {
-  amount: number;
+  amount: number | null | undefined;
   currency: string;
   showCode?: boolean;
   className?: string;
@@ -249,13 +249,17 @@ export function CurrencyDisplay({
   const [currencies] = useState<Currency[]>(mockCurrencies);
   const currencyData = currencies.find(c => c.code === currency);
 
+  // Handle null/undefined amount
+  const safeAmount = amount ?? 0;
+  const displayAmount = typeof safeAmount === 'number' ? safeAmount.toLocaleString() : '0';
+
   if (!currencyData) {
-    return <span className={className}>{amount} {currency}</span>;
+    return <span className={className}>{displayAmount} {currency}</span>;
   }
 
   return (
     <span className={`${className} ${currencyData.isDefault ? 'font-medium' : ''}`}>
-      {currencyData.symbol}{amount.toLocaleString()}
+      {currencyData.symbol}{displayAmount}
       {showCode && (
         <span className="text-muted-foreground ml-1 text-sm">
           {currencyData.code}

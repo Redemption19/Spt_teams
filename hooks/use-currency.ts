@@ -54,10 +54,13 @@ export function useCurrency() {
    * Format amount with currency symbol/code
    */
   const formatAmount = useCallback((
-    amount: number, 
+    amount: number | null | undefined, 
     options: CurrencyFormatOptions = {}
   ): string => {
-    if (!defaultCurrency) return amount.toFixed(2);
+    // Handle null/undefined amount
+    const safeAmount = amount ?? 0;
+    
+    if (!defaultCurrency) return safeAmount.toFixed(2);
 
     const {
       showSymbol = true,
@@ -65,7 +68,7 @@ export function useCurrency() {
       precision = 2
     } = options;
 
-    const formattedAmount = amount.toLocaleString('en-US', {
+    const formattedAmount = safeAmount.toLocaleString('en-US', {
       minimumFractionDigits: precision,
       maximumFractionDigits: precision
     });

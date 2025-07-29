@@ -190,7 +190,7 @@ function BudgetAnalyticsTab({ workspaceIds }: { workspaceIds: string[] }) {
                   <li key={idx} className="flex items-center gap-2 p-2 rounded border border-red-300 bg-red-50 dark:bg-red-900/20">
                     <TrendingDown className="w-4 h-4 text-red-600" />
                     <span className="font-medium">{over.entity}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">Projected Overrun: ₵{over.projectedAmount.toLocaleString()} ({over.timeline})</span>
+                    <span className="text-xs text-muted-foreground ml-auto">Projected Overrun: ₵{(over.projectedAmount || 0).toLocaleString()} ({over.timeline})</span>
                   </li>
                 ))}
               </ul>
@@ -202,4 +202,4 @@ function BudgetAnalyticsTab({ workspaceIds }: { workspaceIds: string[] }) {
       </div>
     </div>
   );
-} 
+}

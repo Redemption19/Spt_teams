@@ -320,8 +320,8 @@ export default function BudgetPage() {
     return matchesPeriod && matchesStatus && matchesDepartment && matchesAmountMin && matchesAmountMax && matchesCreator && matchesType && matchesStatus && matchesStartDate && matchesEndDate && matchesCurrency && matchesCategory && matchesWorkspace && matchesAlert;
   });
 
-  const totalBudgetAmount = filteredBudgets.reduce((sum, budget) => sum + budget.amount, 0);
-  const totalSpentAmount = filteredBudgets.reduce((sum, budget) => sum + budget.spent, 0);
+  const totalBudgetAmount = filteredBudgets.reduce((sum, budget) => sum + (budget.amount || 0), 0);
+  const totalSpentAmount = filteredBudgets.reduce((sum, budget) => sum + (budget.spent || 0), 0);
   const totalRemaining = totalBudgetAmount - totalSpentAmount;
 
   // Handler for batch recalculation
@@ -475,7 +475,7 @@ export default function BudgetPage() {
             <span className="h-4 w-4 text-muted-foreground text-lg">{currency?.symbol || '$'}</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currency?.symbol || '$'}{totalBudgetAmount.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{currency?.symbol || '$'}{(totalBudgetAmount || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               Across {filteredBudgets.length} budgets
             </p>
@@ -487,7 +487,7 @@ export default function BudgetPage() {
             <TrendingDown className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{currency?.symbol || '$'}{totalSpentAmount.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-red-600">{currency?.symbol || '$'}{(totalSpentAmount || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               {totalBudgetAmount > 0 ? ((totalSpentAmount / totalBudgetAmount) * 100).toFixed(1) : 0}% of total
             </p>

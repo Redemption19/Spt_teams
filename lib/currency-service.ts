@@ -473,8 +473,9 @@ export class CurrencyService {
   /**
    * Format amount with currency symbol
    */
-  static formatAmount(amount: number, currency: Currency): string {
-    return `${currency.symbol}${amount.toLocaleString(undefined, {
+  static formatAmount(amount: number | null | undefined, currency: Currency): string {
+    const safeAmount = amount ?? 0;
+    return `${currency.symbol}${safeAmount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;

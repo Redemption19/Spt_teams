@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,56 +75,16 @@ export function ReportPreview({
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    if (isOpen) {
-      loadPreviewData();
-    }
-  }, [isOpen, template.id, workspaceIds, filters]);
-
-  const loadPreviewData = async () => {
-    setLoading(true);
-    try {
-      // Simulate loading preview data
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const mockData = generateMockPreviewData();
-      setPreviewData(mockData);
-    } catch (error) {
-      console.error('Error loading preview data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateMockPreviewData = (): PreviewData => {
-    const dateRange = `${filters.dateRange.start.toLocaleDateString()} - ${filters.dateRange.end.toLocaleDateString()}`;
-    
-    return {
-      summary: {
-        totalRecords: Math.floor(Math.random() * 500) + 100,
-        dateRange,
-        workspaces: workspaceIds.length,
-        estimatedSize: `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9)}MB`
-      },
-      sampleData: {
-        chartData: generateChartData(),
-        tableData: generateTableData(),
-        metrics: generateMetrics()
-      },
-      structure: getReportStructure(template.type)
-    };
-  };
-
-  const generateChartData = () => {
+  const generateChartData = useCallback(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     return months.map(month => ({
       month,
       amount: Math.floor(Math.random() * 50000) + 10000,
       budget: Math.floor(Math.random() * 60000) + 15000
     }));
-  };
+  }, []);
 
-  const generateTableData = () => {
+  const generateTableData = useCallback(() => {
     const categories = ['Office Supplies', 'Travel', 'Software', 'Marketing', 'Equipment'];
     return categories.map(category => ({
       category,
@@ -132,9 +92,9 @@ export function ReportPreview({
       count: Math.floor(Math.random() * 50) + 10,
       percentage: Math.floor(Math.random() * 30) + 5
     }));
-  };
+  }, []);
 
-  const generateMetrics = () => {
+  const generateMetrics = useCallback(() => {
     return [
       {
         title: 'Total Amount',
@@ -161,9 +121,9 @@ export function ReportPreview({
         trend: 'up'
       }
     ];
-  };
+  }, [formatAmount]);
 
-  const getReportStructure = (templateType: string) => {
+  const getReportStructure = useCallback((templateType: string) => {
     const structures = {
       'expense_analysis': {
         sections: ['Executive Summary', 'Expense Overview', 'Category Analysis', 'Trend Analysis', 'Recommendations'],
@@ -178,33 +138,56 @@ export function ReportPreview({
         tables: 5
       },
       'cost_center_analysis': {
-        sections: ['Cost Center Overview', 'Performance Metrics', 'Budget vs Actual', 'Efficiency Analysis', 'Action Items'],
+        sections: ['Cost Center Overview', 'Performance Metrics', 'Allocation Analysis', 'Efficiency Trends', 'Optimization'],
         pages: 12,
-        charts: 7,
+        charts: 10,
         tables: 6
-      },
-      'profit_loss': {
-        sections: ['P&L Statement', 'Revenue Analysis', 'Expense Breakdown', 'Margin Analysis', 'YoY Comparison'],
-        pages: 15,
-        charts: 9,
-        tables: 8
-      },
-      'cash_flow': {
-        sections: ['Cash Flow Statement', 'Operating Activities', 'Investing Activities', 'Financing Activities', 'Projections'],
-        pages: 11,
-        charts: 6,
-        tables: 7
-      },
-      'invoice_aging': {
-        sections: ['Aging Summary', 'Outstanding Invoices', 'Payment Patterns', 'Risk Analysis', 'Collection Strategy'],
-        pages: 7,
-        charts: 4,
-        tables: 5
       }
     };
+    return structures[templateType as keyof typeof structures] || structures['expense_analysis'];
+  }, []);
 
-    return structures[templateType] || structures['expense_analysis'];
-  };
+  const generateMockPreviewData = useCallback((): PreviewData => {
+    const dateRange = `${filters.dateRange.start.toLocaleDateString()} - ${filters.dateRange.end.toLocaleDateString()}`;
+    
+    return {
+      summary: {
+        totalRecords: Math.floor(Math.random() * 500) + 100,
+        dateRange,
+        workspaces: workspaceIds.length,
+        estimatedSize: `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9)}MB`
+      },
+      sampleData: {
+        chartData: generateChartData(),
+        tableData: generateTableData(),
+        metrics: generateMetrics()
+      },
+      structure: getReportStructure(template.type)
+    };
+  }, [filters.dateRange.start, filters.dateRange.end, workspaceIds.length, template.type, generateChartData, generateTableData, generateMetrics, getReportStructure]);
+
+  const loadPreviewData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Simulate loading preview data
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockData = generateMockPreviewData();
+      setPreviewData(mockData);
+    } catch (error) {
+      console.error('Error loading preview data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [generateMockPreviewData]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadPreviewData();
+    }
+  }, [isOpen, template.id, loadPreviewData]);
+
+
 
   const getTemplateIcon = () => {
     const icons = {
@@ -288,7 +271,7 @@ export function ReportPreview({
                             <span className="text-sm font-medium">Records</span>
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {previewData?.summary.totalRecords.toLocaleString()}
+                            {(previewData?.summary.totalRecords ?? 0).toLocaleString()}
                           </div>
                         </CardContent>
                       </Card>
@@ -369,7 +352,7 @@ export function ReportPreview({
                     {/* Report Description */}
                     <Card className="card-enhanced">
                       <CardHeader>
-                        <CardTitle>What's Included</CardTitle>
+                        <CardTitle>What&apos;s Included</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
@@ -591,4 +574,4 @@ export function ReportPreview({
       </Card>
     </div>
   );
-} 
+}
