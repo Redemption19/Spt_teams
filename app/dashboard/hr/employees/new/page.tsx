@@ -1,14 +1,7 @@
-import React, { Component } from 'react'
+'use client';
 
-export default class AddEmployee extends Component {
-  render() {
-    return (                                                                                                                                                                        
-      <div className='space-y-6'>
-        <div>
-            <h1>Attendance management Sytem</h1>
-            
-        </div>
-      </div>
-    )
-  }
+import { EmployeeFormPage } from '@/components/hr/EmployeeFormPage';
+
+export default function NewEmployeePage() {
+  return <EmployeeFormPage mode="create" />;
 }

@@ -147,15 +147,203 @@ export default function FinancialDashboard() {
     return currentWorkspace?.id ? [currentWorkspace.id] : [];
   }, [userProfile?.role, accessibleWorkspaces, currentWorkspace?.id]);
 
-  const loadFinancialData = useCallback(async (showRefreshing = false) => {
+  const processFinancialData = useCallback(async (data: any): Promise<FinancialData> => {
+    const {
+      allExpenses = [],
+      previousMonthExpenses = [],
+      allBudgets = [],
+      allInvoices = [],
+      previousMonthInvoices = [],
+      budgetAnalytics = {},
+      workspaceIds = []
+    } = data;
+
+    // Get default currency symbol
+    const currencySymbol = defaultCurrency?.symbol || '₵';
+
+    // Calculate overview metrics
+    const totalBudget = allBudgets.reduce((sum: number, budget: any) => sum + (budget.totalAmount || 0), 0);
+    const totalSpent = allExpenses.reduce((sum: number, expense: any) => sum + (expense.amount || 0), 0);
+    const totalRemaining = totalBudget - totalSpent;
+    const burnRate = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+    const utilizationPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+    // Expense analytics
+    const pendingExpenses = allExpenses.filter((exp: any) => exp.status === 'pending').length;
+    const approvedExpenses = allExpenses.filter((exp: any) => exp.status === 'approved').length;
+    const rejectedExpenses = allExpenses.filter((exp: any) => exp.status === 'rejected').length;
+    const totalExpenseAmount = allExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
+
+    // Calculate expense trend
+    const previousMonthTotal = previousMonthExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
+    const expenseTrend = previousMonthTotal > 0 
+      ? Math.round(((totalExpenseAmount - previousMonthTotal) / previousMonthTotal) * 100)
+      : 0;
+
+    // Top expense categories - Fixed category name extraction
+    const expensesByCategory = allExpenses.reduce((acc: Record<string, number>, exp: any) => {
+      let categoryName: string;
+      
+      if (typeof exp.category === 'string') {
+        categoryName = exp.category;
+      } else if (exp.category && typeof exp.category === 'object') {
+        if (exp.category.name) {
+          categoryName = exp.category.name;
+        } else if (exp.category.id) {
+          categoryName = exp.category.id;
+        } else {
+          categoryName = String(exp.category);
+        }
+      } else {
+        categoryName = 'Other';
+      }
+      
+      acc[categoryName] = (acc[categoryName] || 0) + (exp.amount || 0);
+      return acc;
+    }, {});
+
+    const topExpenseCategories = Object.entries(expensesByCategory)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([name, amount]) => ({ name, amount }));
+
+    // Invoice analytics
+    const draftInvoices = allInvoices.filter((inv: any) => inv.status === 'draft').length;
+    const sentInvoices = allInvoices.filter((inv: any) => inv.status === 'sent').length;
+    const paidInvoices = allInvoices.filter((inv: any) => inv.status === 'paid').length;
+    const overdueInvoices = allInvoices.filter((inv: any) => inv.status === 'overdue').length;
+    const totalInvoiceAmount = allInvoices.reduce((sum: number, inv: any) => sum + (inv.totalAmount || 0), 0);
+
+    // Calculate invoice trend
+    const previousMonthInvoiceTotal = previousMonthInvoices.reduce((sum: number, inv: any) => sum + (inv.totalAmount || 0), 0);
+    const invoiceTrend = previousMonthInvoiceTotal > 0 
+      ? Math.round(((totalInvoiceAmount - previousMonthInvoiceTotal) / previousMonthInvoiceTotal) * 100)
+      : 0;
+
+    // Calculate average payment time (simplified)
+    const paidInvoicesWithDates = allInvoices.filter((inv: any) => inv.status === 'paid' && inv.paidAt && inv.sentAt);
+    const avgPaymentTime = paidInvoicesWithDates.length > 0
+      ? Math.round(paidInvoicesWithDates.reduce((sum: number, inv: any) => {
+          const sentDate = inv.sentAt instanceof Date ? inv.sentAt : new Date(inv.sentAt);
+          const paidDate = inv.paidAt instanceof Date ? inv.paidAt : new Date(inv.paidAt);
+          return sum + Math.round((paidDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24));
+        }, 0) / paidInvoicesWithDates.length)
+      : 0;
+
+    // Budget summaries
+    const budgetSummaries = allBudgets.map((budget: any) => {
+      const spent = allExpenses
+        .filter((exp: any) => exp.budgetId === budget.id || exp.department === budget.department)
+        .reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
+      
+      const remaining = budget.totalAmount - spent;
+      const utilizationPercentage = budget.totalAmount > 0 ? Math.round((spent / budget.totalAmount) * 100) : 0;
+      
+      let status: 'on-track' | 'warning' | 'over-budget' = 'on-track';
+      if (utilizationPercentage > 100) {
+        status = 'over-budget';
+      } else if (utilizationPercentage > 80) {
+        status = 'warning';
+      }
+
+      return {
+        id: budget.id,
+        name: budget.name || budget.department || 'Unnamed Budget',
+        allocated: budget.totalAmount,
+        spent,
+        remaining,
+        utilizationPercentage,
+        status,
+        period: budget.period || 'monthly'
+      };
+    });
+
+    // Generate alerts
+    const alerts: FinancialAlert[] = [];
+
+    // Budget alerts
+    budgetSummaries.forEach(budget => {
+      if (budget.status === 'over-budget') {
+        alerts.push({
+          id: `budget-over-${budget.id}`,
+          type: 'budget_critical',
+          title: 'Budget Exceeded',
+          message: `${budget.name} has exceeded its budget by ${Math.abs(budget.remaining)}`,
+          severity: 'high',
+          createdAt: new Date()
+        });
+      } else if (budget.status === 'warning') {
+        alerts.push({
+          id: `budget-warn-${budget.id}`,
+          type: 'budget_warning',
+          title: 'Budget Warning',
+          message: `${budget.name} has used ${budget.utilizationPercentage}% of its budget`,
+          severity: 'medium',
+          createdAt: new Date()
+        });
+      }
+    });
+
+    // Expense alerts
+    if (pendingExpenses > 10) {
+      alerts.push({
+        id: 'pending-expenses',
+        type: 'expense_pending',
+        title: 'Pending Expenses',
+        message: `${pendingExpenses} expenses are awaiting approval`,
+        severity: 'medium',
+        createdAt: new Date()
+      });
+    }
+
+    // Invoice alerts
+    if (overdueInvoices > 0) {
+      alerts.push({
+        id: 'overdue-invoices',
+        type: 'invoice_overdue',
+        title: 'Overdue Invoices',
+        message: `${overdueInvoices} invoices are overdue`,
+        severity: 'high',
+        createdAt: new Date()
+      });
+    }
+
+    return {
+      overview: {
+        totalBudget,
+        totalSpent,
+        totalRemaining,
+        burnRate,
+        utilizationPercentage
+      },
+      expenses: {
+        pending: pendingExpenses,
+        approved: approvedExpenses,
+        rejected: rejectedExpenses,
+        totalAmount: totalExpenseAmount,
+        trend: expenseTrend,
+        topCategories: topExpenseCategories
+      },
+      invoices: {
+        draft: draftInvoices,
+        sent: sentInvoices,
+        paid: paidInvoices,
+        overdue: overdueInvoices,
+        totalAmount: totalInvoiceAmount,
+        trend: invoiceTrend,
+        avgPaymentTime
+      },
+      budgets: budgetSummaries,
+      alerts,
+      currencySymbol
+    };
+  }, [defaultCurrency]);
+
+  const loadFinancialData = useCallback(async () => {
     if (!workspaceIds.length) return;
 
     try {
-      if (showRefreshing) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
+      setLoading(true);
       setError(null);
 
       const dateRange = {
@@ -236,251 +424,7 @@ export default function FinancialDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [workspaceIds, toast]);
-
-  const processFinancialData = async (data: any): Promise<FinancialData> => {
-    const { 
-      allExpenses, 
-      previousMonthExpenses, 
-      allBudgets, 
-      allInvoices, 
-      previousMonthInvoices, 
-      budgetAnalytics,
-      workspaceIds 
-    } = data;
-
-    // Calculate overview metrics
-    const totalBudget = budgetAnalytics.totalBudget || 0;
-    const totalSpent = budgetAnalytics.totalSpent || 0;
-    const totalRemaining = totalBudget - totalSpent;
-    const utilizationRate = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
-    
-    // Calculate trends
-    const currentMonthExpenseTotal = allExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
-    const previousMonthExpenseTotal = previousMonthExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
-    const monthlyBurn = currentMonthExpenseTotal;
-    const spendingTrend = previousMonthExpenseTotal > 0 
-      ? ((currentMonthExpenseTotal - previousMonthExpenseTotal) / previousMonthExpenseTotal) * 100 
-      : 0;
-
-    // Calculate expense analytics
-    const expensesByStatus = allExpenses.reduce((acc: any, exp: any) => {
-      acc[exp.status] = (acc[exp.status] || 0) + 1;
-      return acc;
-    }, {});
-
-    const expensesByCategory = allExpenses.reduce((acc: any, exp: any) => {
-      // Handle category field which might be a string or an object
-      let category = 'Other';
-      if (exp.category) {
-        if (typeof exp.category === 'string') {
-          category = exp.category;
-        } else if (typeof exp.category === 'object' && exp.category.name) {
-          category = exp.category.name;
-        } else if (typeof exp.category === 'object' && exp.category.id) {
-          category = exp.category.id;
-        } else {
-          category = String(exp.category);
-        }
-      }
-      
-      if (!acc[category]) {
-        acc[category] = { amount: 0, count: 0 };
-      }
-      acc[category].amount += exp.amount || 0;
-      acc[category].count += 1;
-      return acc;
-    }, {});
-
-    const topCategories = Object.entries(expensesByCategory)
-      .map(([name, data]: [string, any]) => ({
-        name,
-        amount: data.amount,
-        count: data.count,
-        percentage: currentMonthExpenseTotal > 0 ? (data.amount / currentMonthExpenseTotal) * 100 : 0
-      }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-
-    // Calculate invoice analytics
-    const invoicesByStatus = allInvoices.reduce((acc: any, inv: any) => {
-      acc[inv.status] = (acc[inv.status] || 0) + 1;
-      return acc;
-    }, {});
-
-    const currentMonthInvoiceTotal = allInvoices.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
-    const previousMonthInvoiceTotal = previousMonthInvoices.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
-    const invoiceChangePercentage = previousMonthInvoiceTotal > 0 
-      ? ((currentMonthInvoiceTotal - previousMonthInvoiceTotal) / previousMonthInvoiceTotal) * 100 
-      : 0;
-
-    // Process budgets with enhanced information
-    const budgetSummaries: BudgetSummary[] = await Promise.all(
-      allBudgets.map(async (budget: any) => {
-        let entityName = '';
-        let departmentName = '';
-
-        try {
-          if (budget.entityId) {
-            switch (budget.type) {
-              case 'department':
-                const dept = await DepartmentService.getDepartment(budget.workspaceId, budget.entityId);
-                entityName = dept?.name || 'Unknown Department';
-                departmentName = dept?.name || '';
-                break;
-              case 'workspace':
-                const workspace = await WorkspaceService.getWorkspace(budget.entityId);
-                entityName = workspace?.name || 'Unknown Workspace';
-                break;
-              default:
-                entityName = budget.entityId;
-            }
-          }
-        } catch (error) {
-          console.warn('Error fetching entity name for budget:', error);
-          entityName = budget.entityId || 'Unknown';
-        }
-
-        const spent = budget.spent || 0;
-        const amount = budget.amount || 0;
-        const utilizationRate = amount > 0 ? Math.round((spent / amount) * 100) : 0;
-        
-        let status: BudgetSummary['status'] = 'on-track';
-        if (utilizationRate >= 100) status = 'over-budget';
-        else if (utilizationRate >= 90) status = 'critical';
-        else if (utilizationRate >= 75) status = 'warning';
-
-        return {
-          id: budget.id,
-          name: budget.name || `${budget.type} Budget`,
-          type: budget.type || 'general',
-          amount,
-          spent,
-          remaining: amount - spent,
-          utilizationRate,
-          status,
-          entityName,
-          departmentName
-        };
-      })
-    );
-
-    // Generate alerts
-    const alerts: FinancialAlert[] = [];
-
-    // Budget alerts
-    budgetSummaries.forEach(budget => {
-      if (budget.status === 'over-budget') {
-        alerts.push({
-          id: `budget-over-${budget.id}`,
-          type: 'budget_critical',
-          message: `${budget.name} is over budget by ${formatAmount(Math.abs(budget.remaining))}`,
-          severity: 'critical',
-          timestamp: new Date(),
-          entityId: budget.id,
-          entityName: budget.name,
-          amount: Math.abs(budget.remaining)
-        });
-      } else if (budget.status === 'critical') {
-        alerts.push({
-          id: `budget-critical-${budget.id}`,
-          type: 'budget_critical',
-          message: `${budget.name} is at ${budget.utilizationRate}% utilization`,
-          severity: 'critical',
-          timestamp: new Date(),
-          entityId: budget.id,
-          entityName: budget.name
-        });
-      } else if (budget.status === 'warning') {
-        alerts.push({
-          id: `budget-warning-${budget.id}`,
-          type: 'budget_warning',
-          message: `${budget.name} is at ${budget.utilizationRate}% utilization`,
-          severity: 'warning',
-          timestamp: new Date(),
-          entityId: budget.id,
-          entityName: budget.name
-        });
-      }
-    });
-
-    // Invoice alerts
-    const overdueInvoices = allInvoices.filter((inv: any) => inv.status === 'overdue');
-    if (overdueInvoices.length > 0) {
-      alerts.push({
-        id: 'invoices-overdue',
-        type: 'invoice_overdue',
-        message: `${overdueInvoices.length} invoice(s) are overdue for payment`,
-        severity: 'critical',
-        timestamp: new Date(),
-        amount: overdueInvoices.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0)
-      });
-    }
-
-    // Expense alerts
-    const pendingExpenses = allExpenses.filter((exp: any) => exp.status === 'pending');
-    if (pendingExpenses.length > 10) {
-      alerts.push({
-        id: 'expenses-pending',
-        type: 'expense_pending',
-        message: `${pendingExpenses.length} expenses are pending approval`,
-        severity: 'warning',
-        timestamp: new Date(),
-        amount: pendingExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0)
-      });
-    }
-
-    // Cash flow alert
-    if (totalRemaining < monthlyBurn * 2) {
-      alerts.push({
-        id: 'cash-flow-warning',
-        type: 'cash_flow',
-        message: `Current budget will last approximately ${Math.round(totalRemaining / monthlyBurn)} month(s) at current spending rate`,
-        severity: 'warning',
-        timestamp: new Date(),
-        amount: totalRemaining
-      });
-    }
-
-    return {
-      overview: {
-        totalBudget,
-        totalSpent,
-        totalRemaining,
-        monthlyBurn,
-        projectedOverrun: Math.max(0, totalSpent - totalBudget),
-        utilizationRate,
-        previousMonthSpent: previousMonthExpenseTotal,
-        spendingTrend
-      },
-      expenses: {
-        pending: expensesByStatus.pending || 0,
-        approved: expensesByStatus.approved || 0,
-        rejected: expensesByStatus.rejected || 0,
-        draft: expensesByStatus.draft || 0,
-        totalAmount: currentMonthExpenseTotal,
-        previousMonthAmount: previousMonthExpenseTotal,
-        changePercentage: spendingTrend,
-        topCategories
-      },
-      invoices: {
-        draft: invoicesByStatus.draft || 0,
-        sent: invoicesByStatus.sent || 0,
-        paid: invoicesByStatus.paid || 0,
-        overdue: invoicesByStatus.overdue || 0,
-        totalAmount: currentMonthInvoiceTotal,
-        avgPaymentTime: 15, // TODO: Calculate from actual data
-        previousMonthAmount: previousMonthInvoiceTotal,
-        changePercentage: invoiceChangePercentage
-      },
-      budgets: budgetSummaries,
-      alerts: alerts.sort((a, b) => {
-        const severityOrder = { critical: 3, warning: 2, info: 1 };
-        return severityOrder[b.severity] - severityOrder[a.severity];
-      }),
-      lastUpdated: new Date()
-    };
-  };
+  }, [workspaceIds, toast, processFinancialData]);
 
   useEffect(() => {
     if (workspaceIds.length > 0) {
@@ -489,7 +433,8 @@ export default function FinancialDashboard() {
   }, [loadFinancialData, workspaceIds]);
 
   const handleRefresh = useCallback(() => {
-    loadFinancialData(true);
+    setRefreshing(true);
+    loadFinancialData();
   }, [loadFinancialData]);
 
   const getStatusColor = (status: string) => {
@@ -543,7 +488,7 @@ export default function FinancialDashboard() {
             <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
             <p className="text-muted-foreground mb-4">
-              You don't have permission to view the financial overview. Please contact your administrator.
+              You don&apos;t have permission to view the financial overview. Please contact your administrator.
             </p>
             <Badge variant="destructive">
               Requires: View Financial Overview

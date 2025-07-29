@@ -172,7 +172,7 @@ export default function CostCentersPage() {
           <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
           <p className="text-muted-foreground">
-            You don't have permission to view cost centers.
+            You don&apos;t have permission to view cost centers.
           </p>
         </div>
       </div>
