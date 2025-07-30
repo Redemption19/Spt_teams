@@ -147,25 +147,15 @@ export function CostCenterList({
 
     setIsSubmitting(true);
     try {
-      // Check if deleteCostCenter method exists, if not provide fallback
-      if (typeof BudgetTrackingService.deleteCostCenter === 'function') {
-        await BudgetTrackingService.deleteCostCenter(deletingCostCenter.id);
-        
-        toast({
-          title: 'Success',
-          description: 'Cost center deleted successfully.'
-        });
-      } else {
-        // Fallback: Set cost center as inactive instead of deleting
-        await BudgetTrackingService.updateCostCenter(deletingCostCenter.id, {
-          isActive: false
-        });
+      // Set cost center as inactive instead of deleting
+      await BudgetTrackingService.updateCostCenter(deletingCostCenter.id, {
+        isActive: false
+      });
 
-        toast({
-          title: 'Success',
-          description: 'Cost center deactivated successfully.'
-        });
-      }
+      toast({
+        title: 'Success',
+        description: 'Cost center deactivated successfully.'
+      });
 
       setShowDeleteDialog(false);
       setDeletingCostCenter(null);
@@ -253,4 +243,4 @@ export function CostCenterList({
       />
     </div>
   );
-} 
+}

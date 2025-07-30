@@ -128,3 +128,7 @@ Sub-Workspaces (with parentWorkspaceId)
 Owner role (full system control)
 Admin role (workspace management)
 Member role (standard access)
+
+
+For Checking for errors
+npx tsc --noEmit --skipLibCheck 

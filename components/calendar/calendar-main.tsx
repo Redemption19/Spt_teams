@@ -419,7 +419,7 @@ export default function CalendarMain() {
       console.log('🏁 Setting loading to false');
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, userRole, isOwner, showAllWorkspaces, accessibleWorkspaceIds, calendarAccess, currentDateValue]);
+  }, [currentWorkspace?.id, user?.uid, userRole, isOwner, showAllWorkspaces, calendarAccess, currentDateValue, accessibleWorkspaces, toast]);
 
   // Load recent reports with workspace isolation and cross-workspace support
   const loadRecentReports = useCallback(async () => {
@@ -639,7 +639,7 @@ export default function CalendarMain() {
     setShowCreateEventPage(false);
     await loadData();
     await loadMyEvents();
-  }, [currentWorkspace?.id, user?.uid, calendarAccess, loadData, loadMyEvents, toast, accessibleWorkspaces]);
+  }, [currentWorkspace?.id, user?.uid, calendarAccess, loadData, loadMyEvents, toast]);
 
   const handleUpdateEvent = useCallback(async (eventId: string, updates: Partial<CalendarEvent>) => {
     if (!currentWorkspace?.id || !user?.uid) return;
@@ -1184,4 +1184,4 @@ export default function CalendarMain() {
       />
     </div>
   );
-} 
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,46 +63,7 @@ export default function ReportViewPage() {
   const [reportSections, setReportSections] = useState<ReportSection[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (reportId) {
-      loadReport();
-    }
-  }, [reportId]);
-
-  const loadReport = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Fetch the actual report from FinancialReportsService
-      const reportData = await FinancialReportsService.getReport(reportId);
-      
-      if (!reportData) {
-        setError('Report not found.');
-        return;
-      }
-      
-      setReport(reportData);
-      
-      // Get comprehensive report content with real data
-      const reportContent = await FinancialReportsService.getReportContent(reportData);
-      
-      // Generate sections with real data
-      const sections = generateReportSections(reportData, reportContent);
-      setReportSections(sections);
-      
-      // Expand all sections by default on full page
-      setExpandedSections(new Set(sections.map(s => s.id)));
-      
-    } catch (err) {
-      console.error('Error loading report:', err);
-      setError('Failed to load report. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateReportSections = (report: GeneratedReport, reportContent: any): ReportSection[] => {
+  const generateReportSections = useCallback((report: GeneratedReport, reportContent: any): ReportSection[] => {
     const sections: ReportSection[] = [];
 
     // Executive Summary with real data
@@ -260,7 +221,46 @@ export default function ReportViewPage() {
     });
 
     return sections.sort((a, b) => a.order - b.order);
-  };
+  }, [formatAmount]);
+
+  const loadReport = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch the actual report from FinancialReportsService
+      const reportData = await FinancialReportsService.getReport(reportId);
+      
+      if (!reportData) {
+        setError('Report not found.');
+        return;
+      }
+      
+      setReport(reportData);
+      
+      // Get comprehensive report content with real data
+      const reportContent = await FinancialReportsService.getReportContent(reportData);
+      
+      // Generate sections with real data
+      const sections = generateReportSections(reportData, reportContent);
+      setReportSections(sections);
+      
+      // Expand all sections by default on full page
+      setExpandedSections(new Set(sections.map(s => s.id)));
+      
+    } catch (err) {
+      console.error('Error loading report:', err);
+      setError('Failed to load report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [reportId, generateReportSections]);
+
+  useEffect(() => {
+    if (reportId) {
+      loadReport();
+    }
+  }, [reportId, loadReport]);
 
   const generateBudgetComparisonData = () => {
     const departments = ['IT', 'Marketing', 'Sales', 'HR', 'Operations'];
@@ -766,4 +766,4 @@ export default function ReportViewPage() {
       </div>
     </div>
   );
-} 
+}

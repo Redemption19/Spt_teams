@@ -151,7 +151,20 @@ export function useFinancialPermissions(): FinancialPermissions {
 
       // Helper function to check if user has a specific permission
       const hasPermission = (permissionId: string): boolean => {
-        return PermissionsService.hasPermission(userPermissions, permissionId);
+        if (!userPermissions) return false;
+        
+        const permission = userPermissions.permissions[permissionId];
+        if (!permission) return false;
+        
+        // Check if permission is granted
+        if (!permission.granted) return false;
+        
+        // Check if permission has expired
+        if (permission.expiresAt && new Date() > permission.expiresAt) {
+          return false;
+        }
+        
+        return true;
       };
 
       // Update permissions based on actual user permissions
@@ -261,7 +274,31 @@ export function useFinancialPermission(permissionId: string): boolean {
           currentWorkspace.id
         );
         
-        setHasPermission(PermissionsService.hasPermission(userPermissions, permissionId));
+        // Check permission synchronously
+        if (!userPermissions) {
+          setHasPermission(false);
+          return;
+        }
+        
+        const permission = userPermissions.permissions[permissionId];
+        if (!permission) {
+          setHasPermission(false);
+          return;
+        }
+        
+        // Check if permission is granted
+        if (!permission.granted) {
+          setHasPermission(false);
+          return;
+        }
+        
+        // Check if permission has expired
+        if (permission.expiresAt && new Date() > permission.expiresAt) {
+          setHasPermission(false);
+          return;
+        }
+        
+        setHasPermission(true);
       } catch (error) {
         console.error('Error checking permission:', error);
         setHasPermission(false);
@@ -272,4 +309,4 @@ export function useFinancialPermission(permissionId: string): boolean {
   }, [user?.uid, currentWorkspace?.id, permissionId]);
 
   return hasPermission;
-} 
+}

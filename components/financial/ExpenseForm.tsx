@@ -323,7 +323,7 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                       <SelectItem value="none">No Department</SelectItem>
                       {departments.map((department) => (
                         <SelectItem key={department.id} value={department.id}>
-                          {department._workspaceName ? `${department.name} (${department._workspaceName})` : department.name}
+                          {department.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

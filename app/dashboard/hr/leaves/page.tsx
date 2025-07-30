@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -91,11 +91,7 @@ export default function LeavesPage() {
     emergency: false
   });
 
-  useEffect(() => {
-    loadLeaveData();
-  }, []);
-
-  const loadLeaveData = async () => {
+  const loadLeaveData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -189,7 +185,11 @@ export default function LeavesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadLeaveData();
+  }, [loadLeaveData]);
 
   const handleApproveLeave = async (requestId: string) => {
     try {
@@ -700,4 +700,4 @@ export default function LeavesPage() {
       </Tabs>
     </div>
   );
-} 
+}

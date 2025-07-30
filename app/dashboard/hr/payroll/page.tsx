@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,11 +98,7 @@ export default function PayrollPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedPeriod, setSelectedPeriod] = useState(format(new Date(), 'yyyy-MM'));
 
-  useEffect(() => {
-    loadPayrollData();
-  }, [selectedPeriod]);
-
-  const loadPayrollData = async () => {
+  const loadPayrollData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -210,7 +206,11 @@ export default function PayrollPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod, toast]);
+
+  useEffect(() => {
+    loadPayrollData();
+  }, [loadPayrollData]);
 
   const handleProcessPayroll = async () => {
     try {
@@ -654,4 +654,4 @@ export default function PayrollPage() {
       </Tabs>
     </div>
   );
-} 
+}

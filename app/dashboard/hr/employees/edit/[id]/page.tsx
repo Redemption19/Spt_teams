@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Employee, EmployeeService } from '@/lib/employee-service';
-import { EmployeeFormPage } from '@/components/hr/EmployeeFormPage';
-import { EmployeeDetailSkeleton } from '@/components/hr/EmployeeLoadingSkeleton';
+import { EmployeeFormPage } from '@/components/hr/employees/EmployeeFormPage';
+import { EmployeeDetailSkeleton } from '@/components/hr/employees/EmployeeLoadingSkeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -81,4 +81,4 @@ export default function EditEmployeePage() {
   }
 
   return <EmployeeFormPage employee={employee} mode="edit" />;
-} 
+}

@@ -263,10 +263,24 @@ const navigationGroups = [
         adminOnly: true
       },
       {
+        name: 'Employee Analytics',
+        href: '/dashboard/hr/employees/analytics',
+        icon: BarChart3,
+        description: 'Workforce analytics and insights',
+        adminOnly: true
+      },
+      {
         name: 'Attendance Management',
         href: '/dashboard/hr/attendance',
         icon: Clock,
         description: 'Track attendance and work hours',
+        adminOnly: true
+      },
+      {
+        name: 'Attendance Analytics',
+        href: '/dashboard/hr/attendance/analytics',
+        icon: BarChart3,
+        description: 'Attendance analytics and insights',
         adminOnly: true
       },
       {

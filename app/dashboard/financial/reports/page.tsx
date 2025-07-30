@@ -497,7 +497,7 @@ export default function FinancialReportsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="format">Export Format</Label>
-                  <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                  <Select value={selectedFormat} onValueChange={(value) => setSelectedFormat(value as 'pdf' | 'excel' | 'csv')}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

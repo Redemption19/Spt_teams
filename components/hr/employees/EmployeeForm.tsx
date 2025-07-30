@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -126,21 +126,7 @@ export function EmployeeForm({
     benefits: ''
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      loadFormData();
-    }
-  }, [isOpen, workspaceId]);
-
-  useEffect(() => {
-    if (employee && mode === 'edit') {
-      populateFormData();
-    } else if (mode === 'create') {
-      resetFormData();
-    }
-  }, [employee, mode]);
-
-  const loadFormData = async () => {
+  const loadFormData = useCallback(async () => {
     try {
       const [departmentsData, managersData] = await Promise.all([
         DepartmentService.getWorkspaceDepartments(workspaceId),
@@ -159,9 +145,9 @@ export function EmployeeForm({
         variant: 'destructive'
       });
     }
-  };
+  }, [workspaceId, toast]);
 
-  const populateFormData = () => {
+  const populateFormData = useCallback(() => {
     if (!employee) return;
     
     setFormData({
@@ -198,9 +184,9 @@ export function EmployeeForm({
       otherAllowance: employee.compensation.allowances.other.toString(),
       benefits: employee.compensation.benefits.join(', ')
     });
-  };
+  }, [employee]);
 
-  const resetFormData = () => {
+  const resetFormData = useCallback(() => {
     setFormData({
       firstName: '',
       lastName: '',
@@ -235,7 +221,21 @@ export function EmployeeForm({
       otherAllowance: '0',
       benefits: ''
     });
-  };
+  }, [defaultCurrency?.code]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadFormData();
+    }
+  }, [isOpen, workspaceId, loadFormData]);
+
+  useEffect(() => {
+    if (employee && mode === 'edit') {
+      populateFormData();
+    } else if (mode === 'create') {
+      resetFormData();
+    }
+  }, [employee, mode, populateFormData, resetFormData]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -487,7 +487,6 @@ export function EmployeeForm({
                       <SelectContent>
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -510,7 +509,7 @@ export function EmployeeForm({
                       id="city"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      placeholder="New York"
+                      placeholder="Accra"
                     />
                   </div>
                   <div>
@@ -519,7 +518,7 @@ export function EmployeeForm({
                       id="state"
                       value={formData.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
-                      placeholder="NY"
+                      placeholder="Accra"
                     />
                   </div>
                 </div>
@@ -540,7 +539,7 @@ export function EmployeeForm({
                       id="country"
                       value={formData.country}
                       onChange={(e) => handleInputChange('country', e.target.value)}
-                      placeholder="United States"
+                      placeholder="Ghana"
                     />
                   </div>
                 </div>
@@ -579,7 +578,7 @@ export function EmployeeForm({
                     id="emergencyContactPhone"
                     value={formData.emergencyContactPhone}
                     onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
-                    placeholder="+1234567890"
+                    placeholder="+233547890123"
                   />
                 </div>
               </CardContent>
@@ -818,4 +817,4 @@ export function EmployeeForm({
       </DialogContent>
     </Dialog>
   );
-} 
+}

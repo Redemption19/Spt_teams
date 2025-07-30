@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,31 +66,7 @@ export function ReportViewer({
   const [reportSections, setReportSections] = useState<ReportSection[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (isOpen && report) {
-      loadReportContent();
-    }
-  }, [isOpen, report]);
-
-  const loadReportContent = async () => {
-    setLoading(true);
-    try {
-      // Simulate loading report content
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const sections = generateReportSections(report);
-      setReportSections(sections);
-      
-      // Expand first few sections by default
-      setExpandedSections(new Set(sections.slice(0, 3).map(s => s.id)));
-    } catch (error) {
-      console.error('Error loading report content:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateReportSections = (report: GeneratedReport): ReportSection[] => {
+  const generateReportSections = useCallback((report: GeneratedReport): ReportSection[] => {
     const sections: ReportSection[] = [];
 
     // Executive Summary
@@ -248,7 +224,31 @@ export function ReportViewer({
     });
 
     return sections.sort((a, b) => a.order - b.order);
-  };
+  }, [formatAmount]);
+
+  const loadReportContent = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Simulate loading report content
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const sections = generateReportSections(report);
+      setReportSections(sections);
+      
+      // Expand first few sections by default
+      setExpandedSections(new Set(sections.slice(0, 3).map(s => s.id)));
+    } catch (error) {
+      console.error('Error loading report content:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [report, generateReportSections]);
+
+  useEffect(() => {
+    if (isOpen && report) {
+      loadReportContent();
+    }
+  }, [isOpen, report, loadReportContent]);
 
   const generateTrendData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -738,4 +738,4 @@ export function ReportViewer({
       </Card>
     </div>
   );
-} 
+}

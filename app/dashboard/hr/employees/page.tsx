@@ -19,8 +19,8 @@ import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { Employee, EmployeeService, EmployeeStats } from '@/lib/employee-service';
 import { WorkspaceService } from '@/lib/workspace-service';
-import { EmployeeList } from '@/components/hr/EmployeeList';
-import { EmployeeLoadingSkeleton } from '@/components/hr/EmployeeLoadingSkeleton';
+import { EmployeeList } from '@/components/hr/employees/EmployeeList';
+import { EmployeeLoadingSkeleton } from '@/components/hr/employees/EmployeeLoadingSkeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 
@@ -312,4 +312,4 @@ export default function EmployeesPage() {
       />
     </div>
   );
-} 
+}

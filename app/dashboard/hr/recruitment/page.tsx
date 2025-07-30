@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +61,6 @@ interface Candidate {
   name: string;
   email: string;
   phone: string;
-  jobTitle: string;
   experience: number;
   education: string;
   location: string;
@@ -113,11 +112,7 @@ export default function RecruitmentPage() {
     requirements: ''
   });
 
-  useEffect(() => {
-    loadRecruitmentData();
-  }, []);
-
-  const loadRecruitmentData = async () => {
+  const loadRecruitmentData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -173,7 +168,6 @@ export default function RecruitmentPage() {
           name: 'Alice Johnson',
           email: 'alice.johnson@email.com',
           phone: '+1234567890',
-          jobTitle: 'Software Engineer',
           experience: 6,
           education: 'BS Computer Science',
           location: 'San Francisco, CA',
@@ -190,7 +184,6 @@ export default function RecruitmentPage() {
           name: 'Bob Smith',
           email: 'bob.smith@email.com',
           phone: '+1234567891',
-          jobTitle: 'Marketing Specialist',
           experience: 4,
           education: 'MBA Marketing',
           location: 'New York, NY',
@@ -207,7 +200,6 @@ export default function RecruitmentPage() {
           name: 'Carol Davis',
           email: 'carol.davis@email.com',
           phone: '+1234567892',
-          jobTitle: 'UX Designer',
           experience: 5,
           education: 'BFA Design',
           location: 'Los Angeles, CA',
@@ -261,7 +253,11 @@ export default function RecruitmentPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadRecruitmentData();
+  }, [loadRecruitmentData]);
 
   const handleCreateJob = async () => {
     try {
@@ -924,4 +920,4 @@ export default function RecruitmentPage() {
       </Tabs>
     </div>
   );
-} 
+}

@@ -400,11 +400,11 @@ export function useDashboardData(
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, filters, processReportsData, isOwner, showAllWorkspaces, accessibleWorkspaces]);
+  }, [currentWorkspace?.id, user?.uid, filters, processReportsData, showAllWorkspaces, accessibleWorkspaces, workspaceIds]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
-} 
+}

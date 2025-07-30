@@ -130,7 +130,7 @@ export function TemplateFormBuilder({
         isDirty: true
       });
     }
-  }, [templateForm.name, builderState.fields, builderState.isValid, builderState.isDirty, setBuilderState]);
+  }, [templateForm.name, builderState.fields, builderState.isValid, builderState.isDirty, setBuilderState, builderState]);
 
   // Handle basic form changes
   const handleFormChange = (field: string, value: any) => {
@@ -1086,4 +1086,4 @@ const handleDepartmentAccessChange = (field: string, value: any) => {
       )}
     </div>
   );
-} 
+}

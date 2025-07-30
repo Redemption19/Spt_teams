@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,11 +74,7 @@ export default function HRManagementPage() {
   const [hrData, setHrData] = useState<HROverviewData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    loadHRData();
-  }, [currentWorkspace?.id]);
-
-  const loadHRData = async () => {
+  const loadHRData = useCallback(async () => {
     try {
       setLoading(true);
       // TODO: Replace with actual API calls
@@ -130,7 +126,11 @@ export default function HRManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadHRData();
+  }, [loadHRData]);
 
   const formatTrend = (percentage: number): string => {
     const sign = percentage >= 0 ? '+' : '';
@@ -460,4 +460,4 @@ export default function HRManagementPage() {
       </Tabs>
     </div>
   );
-} 
+}

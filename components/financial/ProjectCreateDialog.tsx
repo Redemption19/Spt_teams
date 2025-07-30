@@ -57,7 +57,7 @@ export function ProjectCreateDialog({
 
     setIsSubmitting(true);
     try {
-      const newProject = await ProjectService.createProject({
+      const newProjectId = await ProjectService.createProject({
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
         workspaceId: workspaceId,
@@ -65,20 +65,7 @@ export function ProjectCreateDialog({
         ownerId: userId,
         status: formData.status,
         priority: formData.priority,
-        progress: 0,
-        epics: [],
         tags: [],
-        visibility: formData.visibility,
-        projectAdmins: [userId],
-        projectMembers: [],
-        permissions: {
-          canView: [userId],
-          canEdit: [userId],
-          canDelete: [userId],
-          canManageTasks: [userId],
-          canAssignTasks: [userId],
-          canManageMembers: [userId]
-        },
         comments: []
       });
 
@@ -87,7 +74,7 @@ export function ProjectCreateDialog({
         description: 'Project created successfully.'
       });
 
-      onProjectCreated(newProject.id);
+      onProjectCreated(newProjectId);
       handleClose();
     } catch (error) {
       console.error('Error creating project:', error);
@@ -257,4 +244,4 @@ export function ProjectCreateDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

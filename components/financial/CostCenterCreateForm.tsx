@@ -112,7 +112,7 @@ export function CostCenterCreateForm({
     };
 
     loadWorkspaces();
-  }, [userId, userRole, workspaceId]);
+  }, [userId, userRole, workspaceId, toast]);
 
   // Load projects when workspace changes
   useEffect(() => {
@@ -136,7 +136,7 @@ export function CostCenterCreateForm({
     };
 
     loadProjects();
-  }, [formData.workspaceId]);
+  }, [formData.workspaceId, toast]);
 
   const handleProjectCreated = (projectId: string) => {
     setFormData({ ...formData, projectId });
@@ -523,4 +523,4 @@ export function CostCenterCreateForm({
       />
     </Card>
   );
-} 
+}

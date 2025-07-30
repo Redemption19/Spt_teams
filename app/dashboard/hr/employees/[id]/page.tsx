@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,8 @@ import {
   Upload
 } from 'lucide-react';
 import { Employee, EmployeeService } from '@/lib/employee-service';
-import { EmployeeDetailSkeleton } from '@/components/hr/EmployeeLoadingSkeleton';
-import { EmployeeDocumentUploadDialog } from '@/components/hr/EmployeeDocumentUploadDialog';
+import { EmployeeDetailSkeleton } from '@/components/hr/employees/EmployeeLoadingSkeleton';
+import { EmployeeDocumentUploadDialog } from '@/components/hr/employees/EmployeeDocumentUploadDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { format } from 'date-fns';
@@ -48,13 +48,7 @@ export default function EmployeeDetailPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (params.id) {
-      loadEmployee();
-    }
-  }, [params.id]);
-
-  const loadEmployee = async () => {
+  const loadEmployee = useCallback(async () => {
     try {
       setLoading(true);
       const employeeData = await EmployeeService.getEmployee(params.id as string);
@@ -69,7 +63,13 @@ export default function EmployeeDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, toast]);
+
+  useEffect(() => {
+    if (params.id) {
+      loadEmployee();
+    }
+  }, [params.id, loadEmployee]);
 
   const getStatusBadge = (status: Employee['status']) => {
     switch (status) {
@@ -122,7 +122,7 @@ export default function EmployeeDetailPage() {
       <div className="space-y-6">
         <div className="text-center py-12">
           <h2 className="text-xl font-semibold mb-2">Employee Not Found</h2>
-          <p className="text-muted-foreground mb-4">The employee you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground mb-4">The employee you&apos;re looking for doesn&apos;t exist.</p>
           <Button asChild>
             <Link href="/dashboard/hr/employees">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -582,4 +582,4 @@ export default function EmployeeDetailPage() {
       )}
     </div>
   );
-} 
+}
