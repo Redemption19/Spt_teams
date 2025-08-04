@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Users, Building, AlertCircle, LayoutGrid, List, ArrowUpDown, MoreVertical, Eye, Calendar, FileText, Download, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
@@ -26,6 +27,100 @@ import { ReportList } from '@/components/reports/AllReport/ReportList';
 import { ReportReview } from '@/components/reports/AllReport/ReportReview';
 import { FilterPanel } from '@/components/reports/AllReport/FilterPanel';
 import { ConfirmationDialog } from '@/components/reports/AllReport/ConfirmationDialog';
+
+// Skeleton loading components
+const FilterSkeleton = () => (
+  <div className="flex flex-col sm:flex-row gap-4">
+    <div className="flex-1">
+      <Skeleton className="h-10 w-full" />
+    </div>
+    <Skeleton className="h-10 w-[180px]" />
+    <Skeleton className="h-10 w-[180px]" />
+    <Skeleton className="h-10 w-[180px]" />
+  </div>
+);
+
+const ReportCardSkeleton = () => (
+  <Card className="card-interactive">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <Skeleton className="h-5 w-3/4 mb-2" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-16" />
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent className="space-y-3">
+      <Skeleton className="h-4 w-40" />
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-20" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const TableRowSkeleton = () => (
+  <TableRow>
+    <TableCell>
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+      </div>
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-24" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-20" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-5 w-16" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-20" />
+    </TableCell>
+    <TableCell>
+      <Skeleton className="h-4 w-16" />
+    </TableCell>
+    <TableCell>
+      <div className="flex gap-2">
+        <Skeleton className="h-8 w-16" />
+        <Skeleton className="h-8 w-16" />
+      </div>
+    </TableCell>
+  </TableRow>
+);
+
+const AllReportsSkeleton = () => (
+  <div className="space-y-6">
+    {/* Filters Skeleton */}
+    <FilterSkeleton />
+
+    {/* View Toggle Skeleton */}
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-8 w-[180px]" />
+    </div>
+
+    {/* Content Skeleton */}
+    <div className="space-y-4">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <ReportCardSkeleton key={index} />
+      ))}
+    </div>
+  </div>
+);
 
 export type StatusFilter = 'all' | ReportStatus;
 export type ViewMode = 'list' | 'review';
@@ -604,9 +699,7 @@ export default function AllReports({ showAllWorkspaces, accessibleWorkspaces }: 
       ) : (
         <>
           {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
+            <AllReportsSkeleton />
           ) : (
             <>
               {/* Filters */}

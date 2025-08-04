@@ -394,7 +394,7 @@ export class ReportTemplateService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => {
+      const templates = querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -404,6 +404,8 @@ export class ReportTemplateService {
           lastUsedAt: data.lastUsedAt?.toDate(),
         } as ReportTemplate;
       });
+      
+      return templates;
     } catch (error) {
       console.error('Error fetching workspace templates:', error);
       throw new Error(`Failed to fetch workspace templates: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -428,9 +430,11 @@ export class ReportTemplateService {
       const allTemplates = await this.getWorkspaceTemplates(workspaceId, options);
       
       // Filter templates based on department access
-      return allTemplates.filter(template => 
+      const filteredTemplates = allTemplates.filter(template => 
         this.canUserAccessTemplate(template, userDepartment, userRole)
       );
+      
+      return filteredTemplates;
     } catch (error) {
       console.error('Error fetching templates for user:', error);
       throw new Error(`Failed to fetch templates for user: ${error instanceof Error ? error.message : 'Unknown error'}`);

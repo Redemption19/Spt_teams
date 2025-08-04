@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, ArrowLeft, Loader2, Building, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
@@ -25,6 +26,65 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+// Skeleton loading components
+const StatsCardSkeleton = () => (
+  <Card className="card-interactive">
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-4 w-4" />
+    </CardHeader>
+    <CardContent>
+      <Skeleton className="h-8 w-16 mb-1" />
+      <Skeleton className="h-3 w-20" />
+    </CardContent>
+  </Card>
+);
+
+const ReportCardSkeleton = () => (
+  <Card className="card-interactive">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <Skeleton className="h-5 w-3/4 mb-2" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-16" />
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent className="space-y-3">
+      <Skeleton className="h-4 w-40" />
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-20" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const MyReportsSkeleton = () => (
+  <div className="space-y-6">
+    {/* Stats Cards Skeleton */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <StatsCardSkeleton key={index} />
+      ))}
+    </div>
+
+    {/* Reports List Skeleton */}
+    <div className="space-y-4">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <ReportCardSkeleton key={index} />
+      ))}
+    </div>
+  </div>
+);
 
 // Cross-workspace props interface
 interface CrossWorkspaceProps {
@@ -521,9 +581,7 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <MyReportsSkeleton />
       ) : (
         <ReportList
           reports={filteredReports}
@@ -540,6 +598,7 @@ export default function MyReports({ showAllWorkspaces, accessibleWorkspaces }: C
           canDeleteReport={canDeleteReport}
           canResubmitReport={canResubmitReport}
           isDeleting={isDeleting}
+          loading={loading}
         />
       )}
 

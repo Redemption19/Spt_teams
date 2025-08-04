@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +60,84 @@ interface CrossWorkspaceProps {
 
 type ViewMode = 'templates' | 'form' | 'view';
 
+// Skeleton loading components
+const TemplateCardSkeleton = () => (
+  <Card className="card-interactive">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between gap-2">
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+      <Skeleton className="h-4 w-full mt-2" />
+      <Skeleton className="h-4 w-2/3 mt-1" />
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-8" />
+      </div>
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-10 w-full" />
+    </CardContent>
+  </Card>
+);
+
+const ReportCardSkeleton = () => (
+  <Card className="card-interactive">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between gap-2">
+        <Skeleton className="h-5 w-3/4" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-8 w-8 rounded" />
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent className="space-y-3">
+      <Skeleton className="h-4 w-40" />
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-20" />
+      </div>
+      <Skeleton className="h-10 w-full" />
+    </CardContent>
+  </Card>
+);
+
+const TemplatesSkeleton = () => (
+  <div className="space-y-4">
+    <div className="relative">
+      <Skeleton className="h-10 w-full" />
+    </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <TemplateCardSkeleton key={index} />
+      ))}
+    </div>
+  </div>
+);
+
+const ReportsSkeleton = () => (
+  <div className="space-y-4">
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-48" />
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <ReportCardSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-48" />
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <ReportCardSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossWorkspaceProps) {
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
@@ -92,28 +171,86 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
     try {
       setLoading(true);
       
-      // Get templates available to this user based on department access
-      const availableTemplates = await ReportTemplateService.getTemplatesForUser(
-        currentWorkspace.id,
-        userProfile.departmentId,
-        userProfile.role,
-        {
-          status: 'active',
-          orderBy: 'updatedAt',
-          orderDirection: 'desc'
-        }
-      );
+      let availableTemplates: ReportTemplate[] = [];
       
-      // Get user's existing reports (drafts and submitted)
-      const reports = await ReportService.getUserReports(
-        currentWorkspace.id,
-        user.uid,
-        {
-          orderBy: 'updatedAt',
-          orderDirection: 'desc',
-          limit: 20
-        }
-      );
+      // If cross-workspace is enabled and we have accessible workspaces
+      if (showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 0) {
+        // Load templates from all accessible workspaces
+        const allTemplatesPromises = accessibleWorkspaces.map(async (workspace) => {
+          try {
+            const workspaceTemplates = await ReportTemplateService.getTemplatesForUser(
+              workspace.id,
+              userProfile.departmentId || undefined,
+              userProfile.role,
+              {
+                status: 'active',
+                orderBy: 'updatedAt',
+                orderDirection: 'desc'
+              }
+            );
+            
+            // Add workspace info to templates
+            return workspaceTemplates.map(template => ({
+              ...template,
+              workspaceId: workspace.id,
+              workspaceName: workspace.name
+            }));
+          } catch (error) {
+            console.error(`Error loading templates from workspace ${workspace.id}:`, error);
+            return [];
+          }
+        });
+        
+        const allTemplatesArrays = await Promise.all(allTemplatesPromises);
+        availableTemplates = allTemplatesArrays.flat();
+      } else {
+        // Load templates from current workspace only
+        availableTemplates = await ReportTemplateService.getTemplatesForUser(
+          currentWorkspace.id,
+          userProfile.departmentId || undefined,
+          userProfile.role,
+          {
+            status: 'active',
+            orderBy: 'updatedAt',
+            orderDirection: 'desc'
+          }
+        );
+      }
+      
+      // Get user's existing reports (drafts and submitted) - also cross-workspace if enabled
+      let reports: EnhancedReport[] = [];
+      
+      if (showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 0) {
+        const allReportsPromises = accessibleWorkspaces.map(async (workspace) => {
+          try {
+            return await ReportService.getUserReports(
+              workspace.id,
+              user.uid,
+              {
+                orderBy: 'updatedAt',
+                orderDirection: 'desc',
+                limit: 20
+              }
+            );
+          } catch (error) {
+            console.error(`Error loading reports from workspace ${workspace.id}:`, error);
+            return [];
+          }
+        });
+        
+        const allReportsArrays = await Promise.all(allReportsPromises);
+        reports = allReportsArrays.flat();
+      } else {
+        reports = await ReportService.getUserReports(
+          currentWorkspace.id,
+          user.uid,
+          {
+            orderBy: 'updatedAt',
+            orderDirection: 'desc',
+            limit: 20
+          }
+        );
+      }
       
       setTemplates(availableTemplates);
       setUserReports(reports);
@@ -127,7 +264,7 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id, user?.uid, userProfile, toast]);
+  }, [currentWorkspace?.id, user?.uid, userProfile, showAllWorkspaces, accessibleWorkspaces, toast]);
 
   useEffect(() => {
     loadData();
@@ -432,6 +569,9 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
 
   // Show form view
   if (viewMode === 'form' && selectedTemplate) {
+    // Determine which workspace to use for the report
+    const reportWorkspaceId = (selectedTemplate as any).workspaceId || currentWorkspace?.id || '';
+    
     return (
       <div className="space-y-6">
         {/* Header with back button */}
@@ -446,6 +586,11 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
             </h1>
             <p className="text-muted-foreground">
               {selectedReport ? 'Continue editing your report' : `Using template: ${selectedTemplate.name}`}
+              {(selectedTemplate as any).workspaceName && (selectedTemplate as any).workspaceId !== currentWorkspace?.id && (
+                <span className="ml-2 text-blue-600">
+                  (from {(selectedTemplate as any).workspaceName})
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -457,7 +602,7 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
           onSaveDraft={handleDraftSave}
           onSubmit={handleReportSubmit}
           onCancel={handleBack}
-          workspaceId={currentWorkspace?.id || ''}
+          workspaceId={reportWorkspaceId}
           userId={user?.uid || ''}
           autoSave={true}
           autoSaveInterval={2}
@@ -470,7 +615,7 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
   return (
     <div className="space-y-6">
       {/* Department Access Info */}
-      {userProfile?.departmentId && (
+      {userProfile?.departmentId && userProfile?.role !== 'owner' && userProfile?.role !== 'admin' && (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
             <Building className="h-4 w-4 text-muted-foreground" />
@@ -482,9 +627,30 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="templates" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Available Templates</span>
+              <span className="sm:hidden">Templates</span>
+              <Skeleton className="h-5 w-6 ml-1" />
+            </TabsTrigger>
+            <TabsTrigger value="drafts" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:inline">My Reports</span>
+              <span className="sm:hidden">Reports</span>
+              <Skeleton className="h-5 w-6 ml-1" />
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="templates" className="space-y-4">
+            <TemplatesSkeleton />
+          </TabsContent>
+
+          <TabsContent value="drafts" className="space-y-4">
+            <ReportsSkeleton />
+          </TabsContent>
+        </Tabs>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
@@ -529,12 +695,14 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
                   <p className="text-muted-foreground mb-4">
                     {searchTerm 
                       ? 'Try adjusting your search terms.'
-                      : userProfile?.departmentId 
-                        ? 'No report templates are available for your department yet.'
-                        : 'You need to be assigned to a department to access report templates.'
+                      : (userProfile?.role === 'owner' || userProfile?.role === 'admin')
+                        ? 'No report templates are available in this workspace yet.'
+                        : userProfile?.departmentId 
+                          ? 'No report templates are available for your department yet.'
+                          : 'You need to be assigned to a department to access report templates.'
                     }
                   </p>
-                  {!userProfile?.departmentId && (
+                  {!userProfile?.departmentId && userProfile?.role !== 'owner' && userProfile?.role !== 'admin' && (
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
@@ -570,6 +738,16 @@ export function SubmitReport({ showAllWorkspaces, accessibleWorkspaces }: CrossW
                         <span>{template.fields.length} fields</span>
                         <span>v{template.version}</span>
                       </div>
+
+                      {/* Workspace Info (for cross-workspace templates) */}
+                      {(template as any).workspaceName && (template as any).workspaceId !== currentWorkspace?.id && (
+                        <div className="text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Building className="h-3 w-3" />
+                            <span>From: {(template as any).workspaceName}</span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Department Access */}
                       {template.departmentAccess && (

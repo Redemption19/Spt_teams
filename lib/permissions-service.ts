@@ -808,4 +808,114 @@ export class PermissionsService {
   static getPermissionsByFeature(featureId: string): Permission[] {
     return SYSTEM_PERMISSIONS.filter(p => p.feature === featureId);
   }
+
+  /**
+   * Get default permissions for a user based on their role
+   * This is used for existing users who don't have explicit permissions set
+   */
+  static getDefaultPermissionsForRole(role: 'owner' | 'admin' | 'member'): { [permissionId: string]: { granted: boolean } } {
+    const defaultPermissions: { [permissionId: string]: { granted: boolean } } = {};
+
+    // Get all system permissions
+    const allPermissions = this.getAllPermissions();
+
+    // Set default permissions based on role
+    allPermissions.forEach(permission => {
+      let granted = false;
+
+      switch (role) {
+        case 'owner':
+          // Owners get all permissions
+          granted = true;
+          break;
+        case 'admin':
+          // Admins get most permissions except workspace deletion and some sensitive operations
+          granted = !permission.id.includes('workspaces.delete') && 
+                   !permission.id.includes('users.permissions') && // Admins can't manage permissions
+                   !permission.id.includes('workspaces.create'); // Admins can't create workspaces
+          break;
+        case 'member':
+          // Members get basic view and create permissions for their work
+          granted = permission.id.includes('.view') || 
+                   permission.id.includes('tasks.create') ||
+                   permission.id.includes('tasks.edit') ||
+                   permission.id.includes('tasks.complete') ||
+                   permission.id.includes('projects.view') ||
+                   permission.id.includes('teams.view') ||
+                   permission.id.includes('departments.view');
+          break;
+      }
+
+      defaultPermissions[permission.id] = { granted };
+    });
+
+    return defaultPermissions;
+  }
+
+  /**
+   * Migrate existing user to have explicit permissions based on their role
+   * This is useful for users who were added before the permissions system was implemented
+   */
+  static async migrateUserToExplicitPermissions(
+    userId: string, 
+    workspaceId: string, 
+    userRole: 'owner' | 'admin' | 'member',
+    migratedBy: string
+  ): Promise<void> {
+    try {
+      // Check if user already has explicit permissions
+      const existingPermissions = await this.getUserPermissions(userId, workspaceId);
+      
+      if (existingPermissions) {
+        console.log(`User ${userId} already has explicit permissions, skipping migration`);
+        return;
+      }
+
+      // Get default permissions for the user's role
+      const defaultPermissions = this.getDefaultPermissionsForRole(userRole);
+      
+      // Convert to the format expected by setUserPermissions
+      const permissionsToSet: { [permissionId: string]: { granted: boolean; grantedBy?: string; expiresAt?: Date } } = {};
+      
+      Object.keys(defaultPermissions).forEach(permissionId => {
+        permissionsToSet[permissionId] = {
+          granted: defaultPermissions[permissionId].granted,
+          grantedBy: migratedBy
+        };
+      });
+
+      // Set the permissions
+      await this.setUserPermissions(userId, workspaceId, permissionsToSet, migratedBy);
+      
+      console.log(`Successfully migrated user ${userId} to explicit permissions for role ${userRole}`);
+    } catch (error) {
+      console.error('Error migrating user permissions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if user has permission, with fallback to default role-based permissions
+   */
+  static async hasPermissionWithFallback(userId: string, workspaceId: string, permissionId: string, userRole?: 'owner' | 'admin' | 'member'): Promise<boolean> {
+    try {
+      // First, try to get explicit permissions
+      const hasExplicitPermission = await this.hasPermission(userId, workspaceId, permissionId);
+      
+      if (hasExplicitPermission) {
+        return true;
+      }
+
+      // If no explicit permission and user role is provided, check default permissions
+      if (userRole) {
+        const defaultPermissions = this.getDefaultPermissionsForRole(userRole);
+        return defaultPermissions[permissionId]?.granted || false;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error checking permission with fallback:', error);
+      return false;
+    }
+  }
 }

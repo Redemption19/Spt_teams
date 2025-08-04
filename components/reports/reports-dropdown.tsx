@@ -3,24 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { 
   FileText, 
-  ChevronDown, 
   Edit3, 
   BarChart3, 
   ClipboardList, 
   CheckSquare, 
   Download,
   Settings,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 import { useRolePermissions, useIsAdminOrOwner, useIsOwner } from '@/lib/rbac-hooks';
 import { useAuth } from '@/lib/auth-context';
@@ -32,6 +24,8 @@ import { ReportTemplates } from './ReportTemplate/report-templates';
 import { ReportsDashboard } from './ReportDashboard/reports-dashboard';
 import { PendingApprovals } from './PendingReport/pending-approvals';
 import { ExportReports } from './Export/export-reports';
+import { MemberReportsDashboard } from './MemberReport/MemberReportsDashboard';
+import Link from 'next/link';
 
 type ReportView = 
   | 'my-reports' 
@@ -40,13 +34,14 @@ type ReportView =
   | 'report-templates' 
   | 'reports-dashboard' 
   | 'pending-approvals' 
-  | 'export-reports';
+  | 'export-reports' 
+  | 'member-reports-dashboard';
 
 export function ReportsDropdown() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const viewParam = searchParams.get('view') as ReportView;
-  const [currentView, setCurrentView] = useState<ReportView>(viewParam || 'my-reports');
+  const [currentView, setCurrentView] = useState<ReportView>(viewParam || 'member-reports-dashboard');
   const permissions = useRolePermissions();
   const isAdminOrOwner = useIsAdminOrOwner();
   const isOwner = useIsOwner();
@@ -78,6 +73,7 @@ export function ReportsDropdown() {
       case 'reports-dashboard': return 'Reports Dashboard';
       case 'pending-approvals': return 'Pending Approvals';
       case 'export-reports': return 'Export Reports';
+      case 'member-reports-dashboard': return 'Member Reports Dashboard';
       default: return 'Reports';
     }
   };
@@ -91,6 +87,7 @@ export function ReportsDropdown() {
       'reports-dashboard': 'Analytics, trends, and insights from report submissions',
       'pending-approvals': 'Review and approve reports submitted by team members',
       'export-reports': 'Export reports to PDF, Excel, or print formats',
+      'member-reports-dashboard': 'Your personalized reports analytics and insights',
     };
     
     const baseDescription = baseDescriptions[view] || 'Comprehensive reporting system for your organization';
@@ -110,6 +107,8 @@ export function ReportsDropdown() {
           return `Review and approve reports submitted by team members across all ${accessibleWorkspaces.length} accessible workspaces`;
         case 'export-reports':
           return `Export reports from all ${accessibleWorkspaces.length} accessible workspaces to PDF, Excel, or print formats`;
+        case 'member-reports-dashboard':
+          return `View and manage reports submitted by your team members across all ${accessibleWorkspaces.length} accessible workspaces`;
         default:
           return baseDescription;
       }
@@ -157,6 +156,29 @@ export function ReportsDropdown() {
             New Report
           </Button>
         );
+      case 'member-reports-dashboard':
+        return (
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => {
+                // Dispatch refresh event to be handled by the child component
+                const event = new CustomEvent('refreshDashboard');
+                window.dispatchEvent(event);
+              }}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Link href="/dashboard/reports?view=submit-report">
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Submit Report
+              </Button>
+            </Link>
+          </div>
+        );
       default:
         return null;
     }
@@ -185,8 +207,10 @@ export function ReportsDropdown() {
         return <PendingApprovals {...crossWorkspaceProps} />;
       case 'export-reports':
         return <ExportReports {...crossWorkspaceProps} />;
+      case 'member-reports-dashboard':
+        return <MemberReportsDashboard {...crossWorkspaceProps} />;
       default:
-        return <MyReports {...crossWorkspaceProps} />;
+        return <MemberReportsDashboard {...crossWorkspaceProps} />;
     }
   };
 
@@ -196,7 +220,8 @@ export function ReportsDropdown() {
         <div className="space-y-4 sm:space-y-6">
           
           {/* Header with Dropdown Navigation */}
-          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            {/* Header Title and Description - Show for all users */}
             <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
               <div className="space-y-1">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
@@ -235,148 +260,6 @@ export function ReportsDropdown() {
                   </button>
                 </div>
               )}
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-background to-accent/10 hover:from-accent/10 hover:to-accent/20 border-border/50 touch-manipulation"
-                  >
-                    <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Switch View</span>
-                    <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 p-2">
-                  
-                  {/* For All Users */}
-                  <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
-                    For All Users
-                  </DropdownMenuLabel>
-                  
-                  <DropdownMenuItem 
-                    onClick={() => updateView('my-reports')}
-                    className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                      <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground">
-                        📄 My Reports
-                        {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">View and manage your submitted, pending, or draft reports</div>
-                    </div>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem 
-                    onClick={() => updateView('submit-report')}
-                    className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/20">
-                      <Edit3 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground">
-                        📝 Submit Report
-                        {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Fill and submit a new report based on available templates</div>
-                    </div>
-                  </DropdownMenuItem>
-
-                  {/* For Admins and Owners */}
-                  {isAdminOrOwner && (
-                    <>
-                      <DropdownMenuSeparator className="my-2" />
-                      <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
-                        For Admins & Owners
-                      </DropdownMenuLabel>
-
-                      <DropdownMenuItem 
-                        onClick={() => updateView('all-reports')}
-                        className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                      >
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/20">
-                          <ClipboardList className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground">
-                            📋 All Reports
-                            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">View, filter, and manage all submitted reports from members</div>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem 
-                        onClick={() => updateView('report-templates')}
-                        className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                      >
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                          <Settings className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground">
-                            ⚙️ Report Templates
-                            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Create and manage dynamic templates for reports</div>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem 
-                        onClick={() => updateView('reports-dashboard')}
-                        className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                      >
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/20">
-                          <BarChart3 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground">
-                            📊 Reports Dashboard
-                            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">View charts, trends, analytics of report submissions and statuses</div>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem 
-                        onClick={() => updateView('pending-approvals')}
-                        className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                      >
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
-                          <CheckSquare className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground">
-                            📥 Pending Approvals
-                            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Quickly access reports needing review/approval</div>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem 
-                        onClick={() => updateView('export-reports')}
-                        className="flex items-center space-x-3 py-3 px-3 rounded-md cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
-                      >
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/20">
-                          <Download className="h-4 w-4 text-red-600 dark:text-red-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground">
-                            📤 Export Reports
-                            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Export to PDF/Excel or print reports</div>
-                        </div>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
 

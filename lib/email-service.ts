@@ -31,6 +31,32 @@ export interface PasswordResetEmail {
   requested_by?: string;
 }
 
+export interface LeaveStatusEmail {
+  to_email: string;
+  to_name: string;
+  subject: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  days: string;
+  reason: string;
+  status: string;
+  rejection_reason?: string;
+  approved_by: string;
+  company_name?: string;
+  support_email?: string;
+}
+
+export interface PayslipEmail {
+  to_email: string;
+  to_name: string;
+  period: string;
+  net_pay: number;
+  currency: string;
+  company_name?: string;
+  support_email?: string;
+}
+
 export class EmailService {
   /**
    * Initialize EmailJS (call this once in your app)
@@ -159,6 +185,93 @@ export class EmailService {
       return true;
     } catch (error) {
       console.error('Error sending welcome email:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send leave status email using EmailJS
+   */
+  static async sendLeaveStatusEmail(params: LeaveStatusEmail): Promise<boolean> {
+    try {
+      if (!EMAIL_CONFIG.serviceId || !EMAIL_CONFIG.publicKey) {
+        console.warn('EmailJS not configured. Leave status email will not be sent.');
+        return false;
+      }
+
+      // Initialize EmailJS with public key before sending
+      emailjs.init(EMAIL_CONFIG.publicKey);
+
+      const emailParams = {
+        to_email: params.to_email,
+        to_name: params.to_name,
+        subject: params.subject,
+        leave_type: params.leave_type,
+        start_date: params.start_date,
+        end_date: params.end_date,
+        days: params.days,
+        reason: params.reason,
+        status: params.status,
+        rejection_reason: params.rejection_reason || '',
+        approved_by: params.approved_by,
+        company_name: params.company_name || 'Standard Pensions Trust',
+        support_email: params.support_email || 'support@standardpensionstrust.com',
+      };
+
+      console.log('Sending leave status email with parameters:', emailParams);
+
+      // Use the same template ID for now, you can create a separate template for leave status
+      const response = await emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
+        emailParams,
+        EMAIL_CONFIG.publicKey
+      );
+
+      console.log('Leave status email sent successfully:', response);
+      return true;
+    } catch (error) {
+      console.error('Error sending leave status email:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send payslip email using EmailJS
+   */
+  static async sendPayslipEmail(params: PayslipEmail): Promise<boolean> {
+    try {
+      if (!EMAIL_CONFIG.serviceId || !EMAIL_CONFIG.templateId || !EMAIL_CONFIG.publicKey) {
+        console.warn('EmailJS not configured for payslip. Email will not be sent.');
+        return false;
+      }
+
+      // Initialize EmailJS with public key before sending
+      emailjs.init(EMAIL_CONFIG.publicKey);
+
+      const emailParams = {
+        to_email: params.to_email,
+        to_name: params.to_name,
+        period: params.period,
+        net_pay: params.net_pay.toLocaleString(),
+        currency: params.currency,
+        company_name: params.company_name || 'Standard Pensions Trust',
+        support_email: params.support_email || 'support@standardpensionstrust.com',
+      };
+
+      console.log('Sending payslip email with parameters:', emailParams);
+
+      const response = await emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
+        emailParams,
+        EMAIL_CONFIG.publicKey
+      );
+
+      console.log('Payslip email sent successfully:', response);
+      return true;
+    } catch (error) {
+      console.error('Error sending payslip email:', error);
       return false;
     }
   }

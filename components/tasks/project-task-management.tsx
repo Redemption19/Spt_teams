@@ -1,55 +1,68 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useDeleteDialog, DeleteItem, DeleteDialog } from '@/components/ui/delete-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { DeleteDialog, useDeleteDialog, DeleteItem } from '@/components/ui/delete-dialog';
-import { toast } from '@/hooks/use-toast';
-
-import {
-  Plus,
-  Search,
-  Folder,
+import { 
+  Plus, 
+  Folder, 
+  ListTodo, 
+  BarChart3, 
+  Search, 
+  Filter, 
+  Download, 
+  Trash2, 
+  Edit, 
+  Eye,
+  Calendar,
+  Users,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
   Target,
-  List,
-  BarChart3,
+  FileText,
+  Settings,
+  MoreHorizontal,
+  ChevronDown,
+  RefreshCw,
+  Globe,
+  Building2,
   Loader2,
+  List,
   FileDown
 } from 'lucide-react';
-
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
-import { TeamService } from '@/lib/team-service';
-import { UserService } from '@/lib/user-service';
+import { useIsOwner } from '@/lib/rbac-hooks';
+import { useProjectPermissions } from '@/hooks/use-project-permissions';
+import { Project, Task, Team, User as UserType } from '@/lib/types';
 import { ProjectService } from '@/lib/project-service';
 import { TaskService } from '@/lib/task-service';
-import { Team, User as UserType, Project, Task } from '@/lib/types';
+import { TeamService } from '@/lib/team-service';
+import { UserService } from '@/lib/user-service';
 import { ExportService, ExportFormat } from '@/lib/export-service';
-import { 
-  useRolePermissions, 
-  useCanCreateTasksInProject, 
-  useCanCreateTasksInSpecificProject,
-  useProjectRole,
-  useProjectPermissions,
-  useHasProjectPermission,
-  useIsOwner
-} from '@/lib/rbac-hooks';
-
-// Import sub-components from their new paths
-import ProjectCardGrid from './ProjectCardGrid';
-import KanbanBoard from './KanbanBoard';
+// Import components
 import TaskListView from './TaskListView';
-import AnalyticsDashboard from './AnalyticsDashboard';
+import KanbanBoard from './KanbanBoard';
 import CreateEditProjectDialog from './dialogs/CreateEditProjectDialog';
 import CreateEditTaskDialog from './dialogs/CreateEditTaskDialog';
 import DeleteProjectAlertDialog from './dialogs/DeleteProjectAlertDialog';
 import DeleteTaskAlertDialog from './dialogs/DeleteTaskAlertDialog';
+import TaskDetailDialog from './dialogs/TaskDetailDialog';
+import ProjectCardGrid from './ProjectCardGrid';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
-// Extended interfaces for UI display (kept here as they are used across multiple components)
+// Types
 export interface ProjectWithStats extends Project {
   taskCount: number;
   completedTasks: number;
@@ -78,6 +91,7 @@ export const STATUS_COLORS = {
 };
 
 export default function ProjectTaskManagement() {
+  const { toast } = useToast();
   const { user, userProfile } = useAuth();
   const { currentWorkspace, userRole, accessibleWorkspaces } = useWorkspace();
   
@@ -96,8 +110,8 @@ export default function ProjectTaskManagement() {
   const [submitting, setSubmitting] = useState(false);
 
   // ✅ ENHANCED RBAC - Permission hooks (after state is declared)
-  const basePermissions = useRolePermissions();
-  const canCreateTasksInAnyProject = useCanCreateTasksInProject(projects, user?.uid);
+  const basePermissions = useProjectPermissions();
+  const canCreateTasksInAnyProject = basePermissions.canCreateTasks;
 
   // Form states
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
@@ -578,8 +592,8 @@ export default function ProjectTaskManagement() {
   };
 
   const canShowCreateTaskButton = () => {
-    // Show if user has general permission OR can create tasks in at least one project
-    return basePermissions.canCreateTasks || canCreateTasksInAnyProject;
+    // Show if user has task creation permission
+    return basePermissions.canCreateTasks;
   };
 
   const getCreateTaskButtonText = () => {
@@ -712,6 +726,12 @@ export default function ProjectTaskManagement() {
     : showAll
       ? projects
       : projects.filter(project => {
+          // If user has view projects permission, show all projects
+          if (basePermissions.canViewProjects) {
+            return true;
+          }
+          
+          // Otherwise, check project membership
           return user && (
             project.ownerId === user.uid ||
             project.projectAdmins?.includes(user.uid) ||
@@ -734,13 +754,43 @@ export default function ProjectTaskManagement() {
           );
         });
 
-  if (loading) {
+  if (loading || basePermissions.loading) {
+    console.log('🔄 Page loading states:', {
+      dataLoading: loading,
+      permissionsLoading: basePermissions.loading,
+      projectsCount: projects.length,
+      tasksCount: tasks.length,
+      permissionsLoaded: !basePermissions.loading
+    });
+    
     return (
       <div className="flex items-center justify-center min-h-96">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+
+  console.log('✅ Page ready to render:', {
+    projectsCount: projects.length,
+    tasksCount: tasks.length,
+    visibleProjectsCount: visibleProjects.length,
+    permissions: {
+      canViewProjects: basePermissions.canViewProjects,
+      canCreateProjects: basePermissions.canCreateProjects,
+      canViewTasks: basePermissions.canViewTasks,
+      canCreateTasks: basePermissions.canCreateTasks
+    },
+    projectFiltering: {
+      isGuestWithPublicAccess: isGuestWithPublicAccess(),
+      showAll,
+      userRole: userProfile?.role,
+      userId: user?.uid
+    },
+    taskCreationProjects: {
+      availableForTaskCreation: visibleProjects.length,
+      projectNames: visibleProjects.map(p => p.name)
+    }
+  });
 
   return (
     <div className="space-y-6">
@@ -833,7 +883,7 @@ export default function ProjectTaskManagement() {
                 setIsOpen={setIsCreateTaskOpen}
                 taskForm={taskForm}
                 setTaskForm={setTaskForm}
-                projects={getProjectsWhereUserCanCreateTasks()}
+                projects={visibleProjects}
                 users={users}
                 onSubmit={handleCreateTask}
                 submitting={submitting}
@@ -1086,7 +1136,7 @@ export default function ProjectTaskManagement() {
         setIsOpen={setIsEditTaskOpen}
         taskForm={taskForm}
         setTaskForm={setTaskForm}
-        projects={projects}
+        projects={visibleProjects}
         users={users}
         onSubmit={handleUpdateTask}
         submitting={submitting}

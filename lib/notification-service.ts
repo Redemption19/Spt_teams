@@ -19,7 +19,7 @@ export interface Notification {
   id: string;
   userId: string;
   workspaceId: string;
-  type: 'user_created' | 'user_invited' | 'role_changed' | 'workspace_created' | 'team_created' | 'user_deactivated' | 'user_reactivated' | 'password_reset' | 'user_deleted' | 'team_updated' | 'workspace_updated' | 'system_alert';
+  type: 'user_created' | 'user_invited' | 'role_changed' | 'workspace_created' | 'team_created' | 'user_deactivated' | 'user_reactivated' | 'password_reset' | 'user_deleted' | 'team_updated' | 'workspace_updated' | 'system_alert' | 'leave_approved' | 'leave_rejected' | 'leave_requested' | 'payslip_sent' | 'payslip_acknowledged';
   title: string;
   message: string;
   icon: string;
@@ -665,7 +665,12 @@ export class NotificationService {
       user_deleted: '🗑️',
       team_updated: '📝',
       workspace_updated: '✏️',
-      system_alert: '⚠️'
+      system_alert: '⚠️',
+      leave_approved: '✅',
+      leave_rejected: '❌',
+      leave_requested: '📋',
+      payslip_sent: '💰',
+      payslip_acknowledged: '✅'
     };
     return iconMap[type] || '🔔';
   }

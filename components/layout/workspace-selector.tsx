@@ -282,11 +282,16 @@ export function WorkspaceSelector() {
           </>
         )}
 
-        {/* Always show main workspace creation for owners */}
-        <DropdownMenuItem className="flex items-center space-x-3 p-3 text-primary">
-          <Plus className="h-4 w-4" />
-          <span className="text-sm">Create Main Workspace</span>
-        </DropdownMenuItem>
+        {/* Only show main workspace creation for owners */}
+        {userRole === 'owner' && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="flex items-center space-x-3 p-3 text-primary">
+              <Plus className="h-4 w-4" />
+              <span className="text-sm">Create Main Workspace</span>
+            </DropdownMenuItem>
+          </>
+        )}
 
         {/* Workspace count info */}
         <DropdownMenuSeparator />

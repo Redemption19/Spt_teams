@@ -1,6 +1,28 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  FileText, 
+  Search, 
+  Calendar, 
+  User as UserIcon, 
+  Building, 
+  CheckCircle, 
+  XCircle,
+  Clock,
+  Filter,
+  Eye,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  Shield
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
@@ -10,15 +32,80 @@ import { ReportService } from '@/lib/report-service';
 import { ReportTemplateService } from '@/lib/report-template-service';
 import { UserService } from '@/lib/user-service';
 import { DepartmentService } from '@/lib/department-service';
-import { FilterPanel } from './FilterPanel';
-import { ReportList } from './ReportList';
 import { ReportReview } from './ReportReview';
+import { FilterPanel } from './FilterPanel';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Shield, Loader2, Building } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ReportList } from './ReportList';
 
 export type ViewMode = 'list' | 'review';
+
+// Skeleton loading components
+const PendingReportCardSkeleton = () => (
+  <Card className="card-interactive hover:shadow-lg transition-all duration-200">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <Skeleton className="h-6 w-3/4 mb-2" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-9 w-20" />
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div>
+              <Skeleton className="h-3 w-16 mb-1" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const PendingReportsSkeleton = () => (
+  <div className="space-y-4">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="h-10 w-24" />
+        <Skeleton className="h-10 w-24" />
+      </div>
+    </div>
+    
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <PendingReportCardSkeleton key={index} />
+      ))}
+    </div>
+  </div>
+);
 
 export interface FilterState {
   search: string;
@@ -397,19 +484,23 @@ export function PendingApprovals({ showAllWorkspaces, accessibleWorkspaces }: Cr
       />
 
       {/* Report List */}
-      <ReportList
-        reports={reports}
-        templates={templates}
-        users={users}
-        departments={departments}
-        loading={loading}
-        onReviewReport={handleReviewReport}
-        onApprove={handleApproveReport}
-        onReject={handleRejectReport}
-        isProcessing={isProcessing}
-        showAllWorkspaces={showAllWorkspaces}
-        workspaceCount={accessibleWorkspaces?.length}
-      />
+      {loading ? (
+        <PendingReportsSkeleton />
+      ) : (
+        <ReportList
+          reports={reports}
+          templates={templates}
+          users={users}
+          departments={departments}
+          loading={loading}
+          onReviewReport={handleReviewReport}
+          onApprove={handleApproveReport}
+          onReject={handleRejectReport}
+          isProcessing={isProcessing}
+          showAllWorkspaces={showAllWorkspaces}
+          workspaceCount={accessibleWorkspaces?.length}
+        />
+      )}
 
       {/* Confirmation Dialog */}
       <ConfirmationDialog

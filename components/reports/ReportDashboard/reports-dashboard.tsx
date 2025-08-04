@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Shield, BarChart3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -22,6 +23,62 @@ import { UserSubmissionChart } from './UserSubmissionChart';
 // Import data hook and types
 import { useDashboardData } from './useDashboardData';
 import { DashboardFilters as DashboardFiltersType } from '@/lib/types';
+
+// Skeleton loading components
+const SummaryCardSkeleton = () => (
+  <div className="bg-card border rounded-lg p-4 sm:p-6">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-8 w-16" />
+      </div>
+      <Skeleton className="h-12 w-12 rounded-full" />
+    </div>
+  </div>
+);
+
+const ChartSkeleton = () => (
+  <div className="bg-card border rounded-lg p-4 sm:p-6">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <Skeleton className="h-64 w-full" />
+    </div>
+  </div>
+);
+
+const DashboardSkeleton = () => (
+  <div className="space-y-4 sm:space-y-6">
+    {/* Summary Cards Skeleton */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <SummaryCardSkeleton key={index} />
+      ))}
+    </div>
+
+    {/* Charts Grid Skeleton */}
+    <div className="grid gap-4 sm:gap-6">
+      {/* Full width charts */}
+      <ChartSkeleton />
+      <ChartSkeleton />
+      <ChartSkeleton />
+      
+      {/* 2-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </div>
+
+      {/* 2-column layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </div>
+    </div>
+  </div>
+);
 
 // Cross-workspace props interface
 interface CrossWorkspaceProps {
@@ -104,18 +161,7 @@ export function ReportsDashboard({ showAllWorkspaces, accessibleWorkspaces }: Cr
       />
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <span className="text-muted-foreground">
-              Loading dashboard data
-              {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 
-                ? ` from ${accessibleWorkspaces.length} workspaces` 
-                : ''
-              }...
-            </span>
-          </div>
-        </div>
+        <DashboardSkeleton />
       ) : (
         <>
           {/* Summary Cards - Mobile optimized with cross-workspace context */}

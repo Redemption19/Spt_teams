@@ -93,6 +93,13 @@ const navigationGroups = [
             viewParam: 'submit-report',
           },
           {
+            name: 'My Reports Dashboard',
+            href: '/dashboard/reports?view=member-reports-dashboard',
+            icon: BarChart3,
+            description: 'Your personalized reports analytics and insights',
+            viewParam: 'member-reports-dashboard',
+          },
+          {
             name: 'All Reports',
             href: '/dashboard/reports?view=all-reports',
             icon: ClipboardList,
@@ -294,7 +301,6 @@ const navigationGroups = [
         href: '/dashboard/hr/payroll',
         icon: DollarSign,
         description: 'Process payroll and manage salaries',
-        adminOnly: true,
       },
       {
         name: 'Recruitment',
@@ -417,6 +423,13 @@ export function Sidebar({ className }: SidebarProps) {
 
   // Only show User Management for owners and admins
   const canManageUsers = userProfile?.role === 'owner' || userProfile?.role === 'admin';
+
+  // Auto-open Reports nested dropdown when on reports page
+  useEffect(() => {
+    if (pathname === '/dashboard/reports' && !openNestedSections.includes('Reports')) {
+      setOpenNestedSections(prev => [...prev, 'Reports']);
+    }
+  }, [pathname, openNestedSections]);
 
   const toggleSection = (sectionName: string) => {
     setOpenSections(prev => 
@@ -600,8 +613,10 @@ export function Sidebar({ className }: SidebarProps) {
       <ScrollArea className="flex-1 px-2">
         <div className="space-y-1 py-4">
           {dynamicNavigationGroups.map((group) => {
-            // Skip groups that require permission if user doesn't have it
-            if (group.requiresPermission && !canManageUsers) {
+            // Special case: Allow members to see HR Management section
+            if (group.name === 'HR Management' && userProfile?.role === 'member') {
+              // Continue to render this group for members
+            } else if (group.requiresPermission && !canManageUsers) {
               return null;
             }
 
@@ -650,7 +665,15 @@ export function Sidebar({ className }: SidebarProps) {
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-1 mt-1">
-                  {group.items?.map((item: any) => renderNavigationItem(item, true))}
+                  {group.items?.map((item: any) => {
+                    // For members in HR Management, show Leave Management and Payroll Management
+                    if (group.name === 'HR Management' && userProfile?.role === 'member') {
+                      if (item.name !== 'Leave Management' && item.name !== 'Payroll Management') {
+                        return null;
+                      }
+                    }
+                    return renderNavigationItem(item, true);
+                  })}
                 </CollapsibleContent>
               </Collapsible>
             );
