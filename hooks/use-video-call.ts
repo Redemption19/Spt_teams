@@ -307,12 +307,12 @@ export function useVideoCall({
     if (!videoServiceRef.current) return;
 
     try {
-      const cameraOff = await videoServiceRef.current.toggleCamera();
-      setState(prev => ({ ...prev, isCameraOff: cameraOff }));
+      const cameraEnabled = await videoServiceRef.current.toggleCamera();
+      setState(prev => ({ ...prev, isCameraOff: !cameraEnabled }));
       
       toast({
-        title: cameraOff ? 'Camera Off' : 'Camera On',
-        description: cameraOff ? 'Your camera is now off' : 'Your camera is now on',
+        title: cameraEnabled ? 'Camera On' : 'Camera Off',
+        description: cameraEnabled ? 'Your camera is now on' : 'Your camera is now off',
       });
     } catch (err) {
       console.error('Error toggling camera:', err);
