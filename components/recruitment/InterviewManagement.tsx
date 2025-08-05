@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
+import { VideoCallService } from '@/lib/video-call-service';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Calendar as CalendarIcon,
@@ -26,6 +29,8 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Link2,
+  Copy,
   Users,
   FileText,
   ExternalLink,
@@ -37,7 +42,6 @@ import {
 } from 'lucide-react';
 import { Interview, Candidate, JobPosting } from '@/lib/recruitment-service';
 import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface InterviewManagementProps {
@@ -60,6 +64,7 @@ export default function InterviewManagement({
   onDeleteInterview
 }: InterviewManagementProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -93,6 +98,44 @@ export default function InterviewManagement({
     { value: 'technical', label: 'Technical', icon: Award },
     { value: 'panel', label: 'Panel Interview', icon: Users }
   ];
+
+    // Start video interview function
+  const startVideoInterview = (interview: Interview) => {
+    try {
+      // Generate unique channel name for this interview
+      const channelName = `interview-${interview.id}-${Date.now()}`;
+      
+      // Get candidate details for URL
+      const candidate = candidates.find(c => c.id === interview.candidateId);
+      const candidateName = candidate?.name || 'Candidate';
+      
+      // Create interview call URL with parameters including names
+      const params = new URLSearchParams({
+        interview: interview.id,
+        channel: channelName,
+        candidate: interview.candidateId,
+        candidateName: candidateName,
+        interviewer: interview.interviewer
+      });
+      
+      const callUrl = `/dashboard/hr/recruitment/interview-call?${params.toString()}`;
+      
+      // Open in new window for better experience
+      window.open(callUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+      
+      toast({
+        title: 'Starting Video Interview',
+        description: `Opening video call with ${candidateName}`,
+      });
+    } catch (error) {
+      console.error('Error starting video interview:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start video interview. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const getStatusBadge = (status: Interview['status']) => {
     const statusConfig = {
@@ -137,6 +180,15 @@ export default function InterviewManagement({
         )}
       />
     ));
+  };
+
+  const copyInterviewLink = (interviewId: string) => {
+    const link = `${window.location.origin}/interview/${interviewId}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: 'Link Copied',
+      description: 'Interview link copied to clipboard. Share this with the candidate.',
+    });
   };
 
   const filteredInterviews = interviews.filter(interview => {
@@ -406,7 +458,20 @@ export default function InterviewManagement({
                         </div>
                       )}
                       
-                      {interview.meetingLink && (
+                      {interview.type === 'video' && interview.status === 'scheduled' && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <Button
+                            onClick={() => startVideoInterview(interview)}
+                            size="sm"
+                            className="h-8 px-3 bg-primary hover:bg-primary/90 text-white"
+                          >
+                            <Video className="w-4 h-4 mr-1" />
+                            Start Video Interview
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {interview.meetingLink && interview.type !== 'video' && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                           <Video className="w-4 h-4" />
                           <a 
@@ -438,17 +503,28 @@ export default function InterviewManagement({
                     
                     <div className="flex items-center gap-2 ml-6">
                       {interview.status === 'scheduled' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedInterview(interview);
-                            setShowFeedbackDialog(true);
-                          }}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Complete
-                        </Button>
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyInterviewLink(interview.id)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Copy className="w-4 h-4 mr-1" />
+                            Copy Link
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedInterview(interview);
+                              setShowFeedbackDialog(true);
+                            }}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Complete
+                          </Button>
+                        </>
                       )}
                       <Button variant="outline" size="sm">
                         <Edit className="w-4 h-4 mr-1" />
@@ -605,13 +681,33 @@ export default function InterviewManagement({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="meetingLink">Meeting Link</Label>
-              <Input
-                id="meetingLink"
-                value={scheduleForm.meetingLink}
-                onChange={(e) => setScheduleForm(prev => ({ ...prev, meetingLink: e.target.value }))}
-                placeholder="https://meet.google.com/..."
-              />
+              <Label htmlFor="meetingLink">
+                Meeting Link
+                {scheduleForm.type === 'video' && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Video interviews will use built-in video calling)
+                  </span>
+                )}
+              </Label>
+              {scheduleForm.type === 'video' ? (
+                <div className="p-3 bg-primary/5 border border-primary/10 rounded-md">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Video className="w-4 h-4" />
+                    <span className="text-sm font-medium">Built-in Video Interview</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This interview will use our integrated video calling system. 
+                    No external meeting link required.
+                  </p>
+                </div>
+              ) : (
+                <Input
+                  id="meetingLink"
+                  value={scheduleForm.meetingLink}
+                  onChange={(e) => setScheduleForm(prev => ({ ...prev, meetingLink: e.target.value }))}
+                  placeholder="https://meet.google.com/..."
+                />
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3">

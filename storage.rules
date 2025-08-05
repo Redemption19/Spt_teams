@@ -135,10 +135,40 @@ service firebase.storage {
                            'image/jpeg',
                            'image/png', 
                            'image/gif',
+                           'image/webp',
                            'application/pdf',
                            'application/msword',
                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                           'text/plain'
+                           'application/vnd.ms-excel',
+                           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                           'application/vnd.ms-powerpoint',
+                           'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                           'text/plain',
+                           'text/csv'
+                         ]);
+    }
+    
+    // Alternative pattern for employee documents with workspace context
+    match /employees/{workspaceId}/{employeeId}/documents/{fileName} {
+      // Employee documents with workspace context
+      allow read, write: if isAuthenticated() &&
+                         hasWorkspaceAccess() &&
+                         // Basic file validation
+                         isValidFileSize(10 * 1024 * 1024) && // 10MB max
+                         isValidFileType([
+                           'image/jpeg',
+                           'image/png', 
+                           'image/gif',
+                           'image/webp',
+                           'application/pdf',
+                           'application/msword',
+                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                           'application/vnd.ms-excel',
+                           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                           'application/vnd.ms-powerpoint',
+                           'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                           'text/plain',
+                           'text/csv'
                          ]);
     }
     

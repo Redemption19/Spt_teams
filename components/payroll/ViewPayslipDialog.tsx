@@ -120,12 +120,12 @@ export default function ViewPayslipDialog({
                     <p className="text-lg font-semibold">{payslip.employeeId}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Department</p>
-                    <p className="text-lg font-semibold">{payslip.department}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Currency</p>
+                    <p className="text-lg font-semibold">{payslip.currency}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Role</p>
-                    <p className="text-lg font-semibold">{payslip.role}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Status</p>
+                    <p className="text-lg font-semibold capitalize">{payslip.status}</p>
                   </div>
                 </div>
               </CardContent>
@@ -147,56 +147,56 @@ export default function ViewPayslipDialog({
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Base Salary</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.baseSalary, payslip.currency)}
+                      {formatAmount(payslip.baseSalary)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Housing Allowance</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.allowances.housing, payslip.currency)}
+                      {formatAmount(payslip.allowances.housing)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Transport Allowance</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.allowances.transport, payslip.currency)}
+                      {formatAmount(payslip.allowances.transport)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Medical Allowance</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.allowances.medical, payslip.currency)}
+                      {formatAmount(payslip.allowances.medical)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Meal Allowance</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.allowances.meal, payslip.currency)}
+                      {formatAmount(payslip.allowances.meal)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Other Allowance</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.allowances.other, payslip.currency)}
+                      {formatAmount(payslip.allowances.other)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Overtime</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.overtime, payslip.currency)}
+                      {formatAmount(payslip.overtime)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
                     <span className="text-sm">+ Bonus</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.bonus, payslip.currency)}
+                      {formatAmount(payslip.bonus)}
                     </span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center font-bold text-lg">
                       <span>Gross Pay</span>
                       <span className="text-green-600">
-                        {formatAmount(payslip.grossPay, payslip.currency)}
+                        {formatAmount(payslip.grossPay)}
                       </span>
                     </div>
                   </div>
@@ -217,31 +217,31 @@ export default function ViewPayslipDialog({
                   <div className="flex justify-between items-center text-red-600">
                     <span className="text-sm">- Tax</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.deductions.tax, payslip.currency)}
+                      {formatAmount(payslip.deductions.tax)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-red-600">
                     <span className="text-sm">- Social Security</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.deductions.socialSecurity, payslip.currency)}
+                      {formatAmount(payslip.deductions.socialSecurity)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-red-600">
                     <span className="text-sm">- Pension</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.deductions.pension, payslip.currency)}
+                      {formatAmount(payslip.deductions.pension)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-red-600">
                     <span className="text-sm">- Insurance</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.deductions.insurance, payslip.currency)}
+                      {formatAmount(payslip.deductions.insurance)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-red-600">
                     <span className="text-sm">- Other Deductions</span>
                     <span className="font-semibold">
-                      {formatAmount(payslip.deductions.other, payslip.currency)}
+                      {formatAmount(payslip.deductions.other)}
                     </span>
                   </div>
                   <div className="border-t pt-3">
@@ -249,8 +249,7 @@ export default function ViewPayslipDialog({
                       <span>Total Deductions</span>
                       <span className="text-red-600">
                         {formatAmount(
-                          Object.values(payslip.deductions).reduce((sum, value) => sum + value, 0),
-                          payslip.currency
+                          Object.values(payslip.deductions).reduce((sum, value) => sum + value, 0)
                         )}
                       </span>
                     </div>
@@ -272,7 +271,7 @@ export default function ViewPayslipDialog({
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Net Pay</p>
                     <p className="text-2xl font-bold text-blue-600">
-                      {formatAmount(payslip.netPay, payslip.currency)}
+                      {formatAmount(payslip.netPay)}
                     </p>
                   </div>
                   <div className="text-right">
@@ -299,4 +298,4 @@ export default function ViewPayslipDialog({
       </div>
     </div>
   );
-} 
+}

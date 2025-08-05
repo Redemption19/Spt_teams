@@ -342,6 +342,7 @@ export class RecruitmentService {
     try {
       const docRef = await addDoc(collection(db, 'interviews'), {
         ...data,
+        date: Timestamp.fromDate(data.date),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -355,10 +356,17 @@ export class RecruitmentService {
   static async updateInterview(interviewId: string, data: Partial<Interview>): Promise<void> {
     try {
       const docRef = doc(db, 'interviews', interviewId);
-      await updateDoc(docRef, {
+      const updateData: any = {
         ...data,
         updatedAt: serverTimestamp()
-      });
+      };
+      
+      // Convert date to Timestamp if it exists
+      if (data.date) {
+        updateData.date = Timestamp.fromDate(data.date);
+      }
+      
+      await updateDoc(docRef, updateData);
     } catch (error) {
       console.error('Error updating interview:', error);
       throw error;
@@ -612,6 +620,84 @@ export class RecruitmentService {
       });
     } catch (error) {
       console.error('Error incrementing job applications:', error);
+      throw error;
+    }
+  }
+
+  // Interview invitation functions
+  static generateInterviewLink(interviewId: string): string {
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    return `${baseUrl}/interview/${interviewId}`;
+  }
+
+  static async updateInterviewWithMeetingLink(interviewId: string): Promise<string> {
+    try {
+      const meetingLink = this.generateInterviewLink(interviewId);
+      
+      await updateDoc(doc(db, 'interviews', interviewId), {
+        meetingLink,
+        updatedAt: serverTimestamp()
+      });
+
+      return meetingLink;
+    } catch (error) {
+      console.error('Error updating interview with meeting link:', error);
+      throw error;
+    }
+  }
+
+  static async sendInterviewInvitation(
+    interviewId: string, 
+    candidateEmail: string, 
+    candidateName: string,
+    jobTitle: string,
+    interviewDate: Date,
+    interviewTime: string,
+    interviewer: string
+  ): Promise<void> {
+    try {
+      // Generate meeting link
+      const meetingLink = await this.updateInterviewWithMeetingLink(interviewId);
+      
+      // Format the interview date
+      const dateStr = interviewDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      // Here you would integrate with your email service
+      // For now, we'll just log the invitation details
+      console.log('Interview invitation details:', {
+        to: candidateEmail,
+        candidate: candidateName,
+        jobTitle,
+        date: dateStr,
+        time: interviewTime,
+        interviewer,
+        meetingLink
+      });
+
+      // In a real implementation, you would send an email using EmailJS or another service:
+      /*
+      await EmailService.sendInterviewInvitation({
+        to_email: candidateEmail,
+        to_name: candidateName,
+        job_title: jobTitle,
+        interview_date: dateStr,
+        interview_time: interviewTime,
+        interviewer_name: interviewer,
+        meeting_link: meetingLink,
+        company_name: 'Standard Pensions Trust',
+        support_email: 'support@standardpensionstrust.com'
+      });
+      */
+
+    } catch (error) {
+      console.error('Error sending interview invitation:', error);
       throw error;
     }
   }

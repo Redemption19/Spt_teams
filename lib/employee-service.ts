@@ -447,15 +447,29 @@ export class EmployeeService {
       const updatedDocuments = [...employee.documents, newDocument];
 
       const docRef = doc(db, 'employees', employeeId);
-      await updateDoc(docRef, {
-        documents: updatedDocuments.map(doc => ({
-          ...doc,
+      
+      // Prepare update data and clean undefined values
+      const updateData = cleanFirestoreData({
+        documents: updatedDocuments.map(doc => cleanFirestoreData({
+          id: doc.id,
+          name: doc.name,
+          type: doc.type,
+          fileName: doc.fileName,
+          fileUrl: doc.fileUrl,
+          fileSize: doc.fileSize,
           uploadDate: Timestamp.fromDate(doc.uploadDate),
+          uploadedBy: doc.uploadedBy,
+          status: doc.status,
           expiryDate: doc.expiryDate ? Timestamp.fromDate(doc.expiryDate) : null,
+          notes: doc.notes,
         })),
         updatedAt: Timestamp.fromDate(new Date()),
         updatedBy: uploadedBy,
       });
+      
+      await updateDoc(docRef, updateData);
+      
+      console.log('Employee document added successfully');
     } catch (error) {
       console.error('Error adding employee document:', error);
       throw new Error('Failed to add document');
@@ -467,9 +481,16 @@ export class EmployeeService {
    */
   private static async uploadEmployeeDocument(file: File, employeeId: string): Promise<string> {
     try {
+      // Get employee to access workspace ID
+      const employee = await this.getEmployee(employeeId);
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+
       const timestamp = Date.now();
       const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filePath = `employees/${employeeId}/documents/${timestamp}_${sanitizedFileName}`;
+      // Use workspace-aware path structure
+      const filePath = `employees/${employee.workspaceId}/${employeeId}/documents/${timestamp}_${sanitizedFileName}`;
       const storageRef = ref(storage, filePath);
       
       // Upload file
@@ -513,8 +534,10 @@ export class EmployeeService {
       const updatedDocuments = employee.documents.filter(doc => doc.id !== documentId);
 
       const docRef = doc(db, 'employees', employeeId);
-      await updateDoc(docRef, {
-        documents: updatedDocuments.map(doc => ({
+      
+      // Prepare update data and clean undefined values
+      const updateData = cleanFirestoreData({
+        documents: updatedDocuments.map(doc => cleanFirestoreData({
           ...doc,
           uploadDate: Timestamp.fromDate(doc.uploadDate),
           expiryDate: doc.expiryDate ? Timestamp.fromDate(doc.expiryDate) : null,
@@ -522,6 +545,8 @@ export class EmployeeService {
         updatedAt: Timestamp.fromDate(new Date()),
         updatedBy: removedBy,
       });
+      
+      await updateDoc(docRef, updateData);
     } catch (error) {
       console.error('Error removing employee document:', error);
       throw new Error('Failed to remove document');
@@ -623,4 +648,4 @@ export class EmployeeService {
       throw new Error('Failed to update employee status');
     }
   }
-} 
+}

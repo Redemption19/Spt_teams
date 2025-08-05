@@ -79,11 +79,11 @@ export default function DeletePayrollEmployeeDialog({
     },
     {
       label: 'Base Salary',
-      value: formatAmount(employee.baseSalary, employee.currency)
+      value: formatAmount(employee.baseSalary)
     },
     {
       label: 'Net Salary',
-      value: formatAmount(employee.netSalary, employee.currency)
+      value: formatAmount(employee.netSalary)
     },
     {
       label: 'Status',
@@ -116,4 +116,4 @@ export default function DeletePayrollEmployeeDialog({
       warningLevel="high"
     />
   );
-} 
+}

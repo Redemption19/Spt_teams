@@ -1,4 +1,4 @@
-# 🚀 Team Management System - Development Roadmap
+# 🚀 Workspace Management System - Development Roadmap
 
 > **Status**: UI/UX & Authentication Complete ✅  
 > **Next Phase**: Core Functionalities Implementation
@@ -64,7 +64,7 @@
 
 ---
 
-### 1.3 **Team Management System**
+### 1.3 **Workspace Management System**
 **Priority**: High | **Complexity**: High | **Timeline**: 5-6 days
 
 **Features to Implement:**

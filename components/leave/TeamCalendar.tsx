@@ -126,8 +126,8 @@ export default function TeamCalendar({
   const leaveTypes = useMemo(() => {
     const types = new Set<string>();
     leaveRequests.forEach(request => {
-      if (request.leaveTypeName) {
-        types.add(request.leaveTypeName);
+      if (request.leaveType) {
+        types.add(request.leaveType);
       }
     });
     return Array.from(types);
@@ -138,7 +138,7 @@ export default function TeamCalendar({
     return leaveRequests.filter(request => {
       const matchesEmployee = selectedEmployee === 'all' || request.employeeId === selectedEmployee;
       const matchesStatus = selectedStatus === 'all' || request.status === selectedStatus;
-      const matchesLeaveType = selectedLeaveType === 'all' || request.leaveTypeName === selectedLeaveType;
+      const matchesLeaveType = selectedLeaveType === 'all' || request.leaveType === selectedLeaveType;
       
       return matchesEmployee && matchesStatus && matchesLeaveType;
     });
@@ -396,7 +396,7 @@ export default function TeamCalendar({
                       <div
                         key={reqIndex}
                         className={`text-xs p-1 rounded truncate ${getStatusColor(request.status)}`}
-                        title={`${employee?.firstName} ${employee?.lastName} - ${request.leaveTypeName} (${request.status})`}
+                        title={`${employee?.firstName} ${employee?.lastName} - ${request.leaveType} (${request.status})`}
                       >
                         <div className="flex items-center gap-1">
                           {getStatusIcon(request.status)}
@@ -458,7 +458,7 @@ export default function TeamCalendar({
                         className={`text-xs p-2 rounded ${getStatusColor(request.status)}`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">{request.leaveTypeName}</span>
+                          <span className="font-medium">{request.leaveType}</span>
                           {getStatusIcon(request.status)}
                         </div>
                         <div className="text-xs opacity-75">
@@ -496,4 +496,4 @@ export default function TeamCalendar({
       </Card>
     </div>
   );
-} 
+}

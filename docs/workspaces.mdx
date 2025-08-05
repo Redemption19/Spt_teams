@@ -1,0 +1,321 @@
+# Workspace Management
+
+SPT Teams provides powerful hierarchical workspace management that allows organizations to structure their operations across multiple levels, from main company workspaces down to regional offices and departments.
+
+## 🏢 **Understanding Workspace Hierarchy**
+
+### **Workspace Types**
+
+SPT Teams supports a flexible hierarchical structure:
+
+#### **Main Workspaces**
+- **Purpose**: Top-level organizational units (companies, divisions)
+- **Scope**: Full organizational control
+- **Access**: Owners have complete administrative rights
+- **Examples**: "SPT Corporation", "Marketing Division", "Operations Division"
+
+#### **Sub-Workspaces**
+- **Purpose**: Regional offices, branches, or specialized departments
+- **Scope**: Limited to specific regions or functions
+- **Access**: Assigned administrators with delegated authority
+- **Examples**: "Accra Branch", "Kumasi Office", "Northern Region"
+
+### **Hierarchical Structure**
+
+```
+Main Workspace: SPT Corporation
+├── Sub-Workspace: Greater Accra Region
+│   ├── Branch: Accra Central
+│   ├── Branch: Tema Office
+│   └── Teams: Marketing, Sales, Operations
+├── Sub-Workspace: Ashanti Region
+│   ├── Branch: Kumasi Main
+│   ├── Branch: Obuasi Office
+│   └── Teams: Mining Operations, Support
+└── Sub-Workspace: Northern Region
+    ├── Branch: Tamale Office
+    ├── Branch: Bolgatanga Office
+    └── Teams: Agriculture, Logistics
+```
+
+## 🚀 **Creating and Managing Workspaces**
+
+### **Creating a Main Workspace**
+
+:::info
+**Owner Only**: Only users with owner privileges can create main workspaces.
+:::
+
+1. **Navigate to Workspace Management**:
+   - Go to **Dashboard** → **Workspaces**
+   - Click **"Create New Workspace"**
+
+2. **Configure Workspace Details**:
+   - **Workspace Name**: Enter a clear, professional name
+   - **Description**: Provide a brief description of the workspace purpose
+   - **Type**: Select organization type (Company, Nonprofit, Government, Education, Other)
+   - **Logo**: Upload workspace logo (optional)
+
+3. **Set Workspace Settings**:
+   - **Default Currency**: Choose primary currency (GHS, USD, EUR, etc.)
+   - **Time Zone**: Set workspace time zone
+   - **Date Format**: Choose date display format
+   - **Language**: Select primary language
+
+4. **Configure Advanced Settings**:
+   - **Allow Admin Workspace Creation**: Enable/disable admin sub-workspace creation
+   - **Cross-Workspace Access**: Configure data sharing between workspaces
+   - **Security Settings**: Set authentication and access requirements
+
+### **Creating Sub-Workspaces**
+
+1. **Access Sub-Workspace Creation**:
+   - Go to **Workspaces** → **Manage Workspaces**
+   - Select the parent workspace
+   - Click **"Create Sub-Workspace"**
+
+2. **Configure Sub-Workspace**:
+   - **Name**: Enter sub-workspace name (e.g., "Accra Branch")
+   - **Parent Workspace**: Confirm parent workspace selection
+   - **Region**: Assign to specific region
+   - **Branch**: Assign to specific branch
+   - **Description**: Explain sub-workspace purpose
+
+3. **Assign Administrator**:
+   - **Admin User**: Select user to manage the sub-workspace
+   - **Permissions**: Set admin permissions and scope
+   - **Access Level**: Define what the admin can manage
+
+4. **Configure Inheritance**:
+   - **Settings Inheritance**: Choose which settings to inherit from parent
+   - **Permission Inheritance**: Configure permission inheritance rules
+   - **Data Access**: Set data sharing between parent and sub-workspace
+
+## 🔄 **Workspace Switching and Navigation**
+
+### **Switching Between Workspaces**
+
+#### **For Owners**
+1. **Workspace Selector**:
+   - Click the workspace name in the top navigation
+   - Select from dropdown list of accessible workspaces
+   - View workspace type and hierarchy level
+
+2. **Quick Navigation**:
+   - Use keyboard shortcuts for workspace switching
+   - Access recent workspaces from quick menu
+   - Pin frequently used workspaces
+
+#### **For Admins and Members**
+1. **Assigned Workspaces**:
+   - View only workspaces you have access to
+   - Switch between assigned workspaces
+   - See workspace hierarchy and relationships
+
+### **Cross-Workspace Management**
+
+#### **Owner Cross-Workspace Features**
+- **Unified Dashboard**: View aggregated data across all workspaces
+- **Cross-Workspace Analytics**: Generate reports spanning multiple workspaces
+- **Bulk Operations**: Manage multiple workspaces simultaneously
+- **Data Migration**: Move data between workspaces
+
+#### **Admin Sub-Workspace Management**
+- **Local Administration**: Manage assigned sub-workspace independently
+- **Data Isolation**: Keep sub-workspace data separate from parent
+- **Reporting Up**: Submit reports and data to parent workspace
+- **Permission Delegation**: Assign permissions within sub-workspace scope
+
+## 📊 **Workspace Data Management**
+
+### **Data Scoping and Isolation**
+
+#### **Main Workspace Data**
+- **Global Settings**: Organization-wide configurations
+- **User Management**: Complete user directory
+- **System Administration**: Full administrative controls
+- **Cross-Workspace Analytics**: Aggregated data and insights
+
+#### **Sub-Workspace Data**
+- **Local Settings**: Sub-workspace specific configurations
+- **Local Users**: Users assigned to the sub-workspace
+- **Local Projects**: Projects created within the sub-workspace
+- **Local Reports**: Reports generated within the sub-workspace
+
+### **Data Inheritance and Sharing**
+
+#### **Inheritance Rules**
+- **Settings Inheritance**: Sub-workspaces inherit parent settings by default
+- **Permission Inheritance**: Users inherit permissions from parent workspace
+- **Template Inheritance**: Report templates and forms can be inherited
+- **Configuration Inheritance**: System configurations flow down the hierarchy
+
+#### **Data Sharing Options**
+- **Full Access**: Complete data visibility across hierarchy
+- **Selective Sharing**: Choose specific data to share
+- **Read-Only Access**: View-only access to shared data
+- **No Sharing**: Complete data isolation
+
+## 🏗️ **Organizational Structure Setup**
+
+### **Regions and Branches**
+
+#### **Creating Regions**
+1. Go to **Organization** → **Regions**
+2. Click **"Add Region"**
+3. Configure region details:
+   - **Name**: Region name (e.g., "Greater Accra")
+   - **Code**: Region code for identification
+   - **Description**: Region description and scope
+   - **Manager**: Assign regional manager
+
+#### **Creating Branches**
+1. Go to **Organization** → **Branches**
+2. Click **"Add Branch"**
+3. Configure branch details:
+   - **Name**: Branch name (e.g., "Accra Central")
+   - **Region**: Assign to specific region
+   - **Address**: Physical location details
+   - **Manager**: Assign branch manager
+   - **Contact Information**: Phone, email, etc.
+
+### **Departments and Teams**
+
+#### **Department Structure**
+- **Main Departments**: Company-wide departments (HR, Finance, IT)
+- **Regional Departments**: Region-specific departments
+- **Branch Departments**: Branch-specific departments
+
+#### **Team Organization**
+- **Cross-Workspace Teams**: Teams spanning multiple workspaces
+- **Local Teams**: Teams within specific workspaces
+- **Project Teams**: Temporary teams for specific projects
+
+## 🔐 **Workspace Security and Access Control**
+
+### **Workspace-Level Permissions**
+
+#### **Owner Permissions**
+- **Full Access**: Complete control over all workspaces
+- **Workspace Creation**: Can create main and sub-workspaces
+- **User Management**: Can assign users to any workspace
+- **System Administration**: Full administrative capabilities
+
+#### **Admin Permissions**
+- **Sub-Workspace Management**: Manage assigned sub-workspaces
+- **Local User Management**: Manage users within scope
+- **Local Settings**: Configure sub-workspace settings
+- **Reporting**: Generate reports for assigned workspaces
+
+#### **Member Permissions**
+- **Workspace Access**: Access to assigned workspaces only
+- **Data Access**: Access to data within assigned scope
+- **Feature Access**: Access to features based on role and permissions
+
+### **Cross-Workspace Security**
+
+#### **Data Isolation**
+- **Workspace Boundaries**: Clear separation between workspace data
+- **Access Controls**: Strict permission-based access
+- **Audit Trails**: Complete logging of cross-workspace activities
+- **Data Encryption**: All data encrypted at rest and in transit
+
+#### **Permission Inheritance**
+- **Hierarchical Permissions**: Permissions flow down the hierarchy
+- **Override Capabilities**: Local permissions can override inherited ones
+- **Granular Control**: Fine-grained permission management
+- **Temporary Access**: Time-limited cross-workspace access
+
+## 📈 **Workspace Analytics and Reporting**
+
+### **Workspace-Level Analytics**
+
+#### **Main Workspace Analytics**
+- **Cross-Workspace Overview**: Aggregated metrics from all sub-workspaces
+- **Performance Comparison**: Compare performance across workspaces
+- **Resource Utilization**: Track resource usage across organization
+- **Trend Analysis**: Identify trends across multiple workspaces
+
+#### **Sub-Workspace Analytics**
+- **Local Performance**: Performance metrics for specific workspace
+- **Resource Usage**: Track local resource utilization
+- **User Activity**: Monitor user activity within workspace
+- **Project Progress**: Track project progress within workspace
+
+### **Reporting Capabilities**
+
+#### **Cross-Workspace Reports**
+- **Aggregated Reports**: Combine data from multiple workspaces
+- **Comparative Reports**: Compare performance across workspaces
+- **Hierarchical Reports**: Reports following workspace hierarchy
+- **Custom Reports**: Create custom reports spanning workspaces
+
+#### **Workspace-Specific Reports**
+- **Local Reports**: Reports specific to individual workspaces
+- **Department Reports**: Reports for specific departments
+- **Team Reports**: Reports for specific teams
+- **User Reports**: Individual user performance reports
+
+## 🔧 **Workspace Configuration and Settings**
+
+### **General Settings**
+
+#### **Workspace Information**
+- **Basic Details**: Name, description, type, logo
+- **Contact Information**: Address, phone, email
+- **Business Hours**: Operating hours and time zones
+- **Holiday Calendar**: Organization holidays and closures
+
+#### **System Settings**
+- **Default Currency**: Primary currency for financial operations
+- **Date and Time**: Date format, time zone, time format
+- **Language**: Primary and secondary languages
+- **Notifications**: Default notification settings
+
+### **Advanced Settings**
+
+#### **Security Configuration**
+- **Authentication**: Multi-factor authentication settings
+- **Session Management**: Session timeout and security policies
+- **Access Controls**: IP restrictions and access policies
+- **Audit Settings**: Audit trail configuration
+
+#### **Integration Settings**
+- **API Access**: API key management and access controls
+- **Third-Party Integrations**: External service connections
+- **Data Export**: Export format and frequency settings
+- **Backup Configuration**: Automated backup settings
+
+## 🚨 **Troubleshooting Workspace Issues**
+
+### **Common Issues**
+
+#### **Workspace Access Problems**
+- **Permission Issues**: Check user roles and permissions
+- **Workspace Assignment**: Verify workspace assignments
+- **Inheritance Problems**: Check permission inheritance settings
+- **Cross-Workspace Access**: Verify cross-workspace permissions
+
+#### **Data Synchronization Issues**
+- **Inheritance Delays**: Wait for inheritance to propagate
+- **Sync Failures**: Check network connectivity and permissions
+- **Data Conflicts**: Resolve conflicting data between workspaces
+- **Cache Issues**: Clear browser cache and refresh
+
+### **Best Practices**
+
+#### **Workspace Organization**
+- **Clear Naming**: Use clear, descriptive workspace names
+- **Logical Hierarchy**: Organize workspaces logically
+- **Consistent Structure**: Maintain consistent structure across workspaces
+- **Documentation**: Document workspace purposes and relationships
+
+#### **Permission Management**
+- **Principle of Least Privilege**: Grant minimum necessary permissions
+- **Regular Reviews**: Regularly review and update permissions
+- **Audit Trails**: Monitor permission changes and access
+- **Training**: Train users on workspace management
+
+---
+
+**Next Steps**: Learn about [Roles & Permissions](/docs/roles-and-permissions) to understand how to manage access control within your workspaces. 

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Architecture Diagram</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 100%;
+            overflow: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            color: #666;
+            margin: 0;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Workspace Management System</h1>
+            <p>System Architecture Diagram</p>
+            <a href="SYSTEM_ARCHITECTURE_DIAGRAM.svg" download class="download-btn">Download SVG</a>
+        </div>
+        
+        <!-- Embed the SVG directly -->
+        <svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#8A0F3C;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#CF163C;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="frontendGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="businessGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="serviceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="dataGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                </linearGradient>
+                <!-- Arrow marker definition -->
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+                </marker>
+            </defs>
+            
+            <!-- Background -->
+            <rect width="1200" height="800" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+            
+            <!-- Title -->
+            <rect x="0" y="0" width="1200" height="60" fill="url(#headerGradient)"/>
+            <text x="600" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white">
+                Workspace Management System - Architecture Overview
+            </text>
+            
+            <!-- Frontend Layer -->
+            <rect x="50" y="80" width="1100" height="120" fill="url(#frontendGradient)" rx="8" opacity="0.9"/>
+            <text x="70" y="105" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Frontend Layer</text>
+            <text x="70" y="125" font-family="Arial, sans-serif" font-size="12" fill="white">Next.js 14 • React 18 • TypeScript • Tailwind CSS • Shadcn/ui</text>
+            
+            <!-- Frontend Components -->
+            <rect x="70" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="130" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Dashboard</text>
+            
+            <rect x="200" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="260" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Financial Mgmt</text>
+            
+            <rect x="330" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="390" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">HR Management</text>
+            
+            <rect x="460" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="520" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Task Management</text>
+            
+            <rect x="590" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="650" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Team Collaboration</text>
+            
+            <rect x="720" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="780" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Reports System</text>
+            
+            <rect x="850" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="910" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Calendar System</text>
+            
+            <rect x="980" y="140" width="120" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="1040" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Analytics</text>
+            
+            <!-- Business Logic Layer -->
+            <rect x="50" y="220" width="1100" height="100" fill="url(#businessGradient)" rx="8" opacity="0.9"/>
+            <text x="70" y="245" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Business Logic Layer</text>
+            
+            <!-- Business Logic Components -->
+            <rect x="70" y="260" width="150" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="145" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">Authentication Context</text>
+            
+            <rect x="240" y="260" width="150" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="315" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">Authorization (RBAC)</text>
+            
+            <rect x="410" y="260" width="150" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="485" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">Workspace Context</text>
+            
+            <rect x="580" y="260" width="150" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="655" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">AI Services Engine</text>
+            
+            <rect x="750" y="260" width="150" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="825" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">Knowledge Services</text>
+            
+            <rect x="920" y="260" width="150" height="40" fill="white" rx="4" opacity="0.9"/>
+            <text x="995" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#059669">Notification System</text>
+            
+            <!-- Service Layer -->
+            <rect x="50" y="340" width="1100" height="120" fill="url(#serviceGradient)" rx="8" opacity="0.9"/>
+            <text x="70" y="365" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Service Layer</text>
+            
+            <!-- Service Components Row 1 -->
+            <rect x="70" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="130" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">User Service</text>
+            
+            <rect x="200" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="260" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Team Service</text>
+            
+            <rect x="330" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="390" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Task Service</text>
+            
+            <rect x="460" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="520" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Report Service</text>
+            
+            <rect x="590" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="650" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Financial Service</text>
+            
+            <rect x="720" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="780" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">HR Service</text>
+            
+            <rect x="850" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="910" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Calendar Service</text>
+            
+            <rect x="980" y="380" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="1040" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Analytics Service</text>
+            
+            <!-- Service Components Row 2 -->
+            <rect x="200" y="420" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="260" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Workspace Service</text>
+            
+            <rect x="330" y="420" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="390" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Project Service</text>
+            
+            <rect x="460" y="420" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="520" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Email Service</text>
+            
+            <rect x="590" y="420" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="650" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Export Service</text>
+            
+            <rect x="720" y="420" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="780" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Invitation Service</text>
+            
+            <rect x="850" y="420" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="910" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#D97706">Activity Service</text>
+            
+            <!-- Data Layer -->
+            <rect x="50" y="480" width="1100" height="80" fill="url(#dataGradient)" rx="8" opacity="0.9"/>
+            <text x="70" y="505" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Data Layer</text>
+            
+            <!-- Data Components -->
+            <rect x="200" y="520" width="200" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="300" y="542" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7C3AED">Firebase Firestore</text>
+            
+            <rect x="420" y="520" width="180" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="510" y="542" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7C3AED">Firebase Auth</text>
+            
+            <rect x="620" y="520" width="180" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="710" y="542" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7C3AED">Firebase Storage</text>
+            
+            <!-- External Services Layer -->
+            <rect x="50" y="580" width="1100" height="80" fill="#6B7280" rx="8" opacity="0.9"/>
+            <text x="70" y="605" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">External Services</text>
+            
+            <!-- External Service Components -->
+            <rect x="150" y="620" width="150" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="225" y="642" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Email Service</text>
+            
+            <rect x="320" y="620" width="150" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="395" y="642" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Export Service</text>
+            
+            <rect x="490" y="620" width="150" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="565" y="642" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">AI Integration</text>
+            
+            <rect x="660" y="620" width="150" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="735" y="642" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Third-party APIs</text>
+            
+            <rect x="830" y="620" width="150" height="35" fill="white" rx="4" opacity="0.9"/>
+            <text x="905" y="642" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Video Call Service</text>
+            
+            <!-- Data Flow Arrows -->
+            <!-- Frontend to Business Logic -->
+            <path d="M 600 200 L 600 220" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Business Logic to Service Layer -->
+            <path d="M 600 320 L 600 340" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Service Layer to Data Layer -->
+            <path d="M 600 460 L 600 480" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Service Layer to External Services -->
+            <path d="M 600 460 L 600 580" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,5"/>
+            
+            <!-- Legend -->
+            <rect x="50" y="680" width="300" height="100" fill="white" stroke="#e2e8f0" stroke-width="1" rx="4"/>
+            <text x="60" y="700" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#374151">Architecture Legend</text>
+            
+            <line x1="60" y1="710" x2="80" y2="710" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="90" y="715" font-family="Arial, sans-serif" font-size="10" fill="#374151">Data Flow</text>
+            
+            <line x1="60" y1="730" x2="80" y2="730" stroke="#374151" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+            <text x="90" y="735" font-family="Arial, sans-serif" font-size="10" fill="#374151">External Integration</text>
+            
+            <rect x="60" y="745" width="15" height="15" fill="url(#frontendGradient)" rx="2"/>
+            <text x="85" y="757" font-family="Arial, sans-serif" font-size="10" fill="#374151">Frontend Layer</text>
+            
+            <rect x="180" y="745" width="15" height="15" fill="url(#serviceGradient)" rx="2"/>
+            <text x="205" y="757" font-family="Arial, sans-serif" font-size="10" fill="#374151">Service Layer</text>
+            
+            <!-- Key Features Box -->
+            <rect x="400" y="680" width="350" height="100" fill="white" stroke="#e2e8f0" stroke-width="1" rx="4"/>
+            <text x="410" y="700" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#374151">Key Features</text>
+            
+            <text x="410" y="720" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Multi-workspace Architecture with RBAC</text>
+            <text x="410" y="735" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Real-time Data Synchronization</text>
+            <text x="410" y="750" font-family="Arial, sans-serif" font-size="10" fill="#374151">• AI-powered Analytics & Insights</text>
+            <text x="410" y="765" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Comprehensive Business Module Integration</text>
+            
+            <!-- Technology Stack Box -->
+            <rect x="800" y="680" width="350" height="100" fill="white" stroke="#e2e8f0" stroke-width="1" rx="4"/>
+            <text x="810" y="700" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#374151">Technology Stack</text>
+            
+            <text x="810" y="720" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Next.js 14 + React 18 + TypeScript</text>
+            <text x="810" y="735" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Firebase (Firestore, Auth, Storage)</text>
+            <text x="810" y="750" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Tailwind CSS + Shadcn/ui Components</text>
+            <text x="810" y="765" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Modular Service Architecture</text>
+        </svg>
+    </div>
+</body>
+</html>

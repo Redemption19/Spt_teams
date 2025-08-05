@@ -29,9 +29,10 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import { Employee, EmployeeService } from '@/lib/employee-service';
+import { Employee, EmployeeDocument, EmployeeService } from '@/lib/employee-service';
 import { EmployeeDetailSkeleton } from '@/components/hr/employees/EmployeeLoadingSkeleton';
 import { EmployeeDocumentUploadDialog } from '@/components/hr/employees/EmployeeDocumentUploadDialog';
+import { EmployeeDocumentDeleteDialog } from '@/components/hr/employees/EmployeeDocumentDeleteDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { format } from 'date-fns';
@@ -47,6 +48,8 @@ export default function EmployeeDetailPage() {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<EmployeeDocument | null>(null);
 
   const loadEmployee = useCallback(async () => {
     try {
@@ -527,24 +530,9 @@ export default function EmployeeDetailPage() {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={async () => {
-                            if (confirm('Are you sure you want to delete this document?')) {
-                              try {
-                                await EmployeeService.removeEmployeeDocument(employee.id, doc.id, user?.uid || 'system');
-                                toast({
-                                  title: 'Document deleted',
-                                  description: 'The document has been removed successfully.',
-                                });
-                                loadEmployee(); // Refresh the employee data
-                              } catch (error) {
-                                console.error('Error deleting document:', error);
-                                toast({
-                                  title: 'Delete failed',
-                                  description: 'Failed to delete document. Please try again.',
-                                  variant: 'destructive'
-                                });
-                              }
-                            }
+                          onClick={() => {
+                            setDocumentToDelete(doc);
+                            setDeleteDialogOpen(true);
                           }}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -578,6 +566,20 @@ export default function EmployeeDetailPage() {
           onUpload={loadEmployee}
           isOpen={uploadDialogOpen}
           onOpenChange={setUploadDialogOpen}
+        />
+      )}
+
+      {/* Document Delete Dialog */}
+      {employee && documentToDelete && deleteDialogOpen && (
+        <EmployeeDocumentDeleteDialog
+          document={documentToDelete}
+          employeeId={employee.id}
+          employeeName={`${employee.personalInfo.firstName} ${employee.personalInfo.lastName}`}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setDocumentToDelete(null);
+          }}
+          onSuccess={loadEmployee}
         />
       )}
     </div>

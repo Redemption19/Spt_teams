@@ -254,7 +254,7 @@ export default function ViewJobPostingPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
+      <div className="px-4 py-8 space-y-6">
         {/* Job Overview */}
         <Card className="card-enhanced">
           <CardHeader>

@@ -118,7 +118,7 @@ export default function RecruitmentPage() {
 
     try {
       setLoading(true);
-
+      
       // Load saved workspace from localStorage first (for owners)
       const savedWorkspace = shouldShowCrossWorkspace ? localStorage.getItem('recruitment-selected-workspace') : null;
       if (savedWorkspace && !selectedWorkspace) {
@@ -206,11 +206,11 @@ export default function RecruitmentPage() {
         description: 'Recruitment data has been refreshed.',
       });
     } catch (error) {
-      toast({
+        toast({
         title: 'Refresh Failed',
         description: 'Failed to refresh data. Please try again.',
-        variant: 'destructive'
-      });
+          variant: 'destructive'
+        });
     } finally {
       setRefreshing(false);
     }
@@ -255,17 +255,147 @@ export default function RecruitmentPage() {
   };
 
   const handleDeleteCandidate = async (candidateId: string) => {
+    if (!confirm('Are you sure you want to delete this candidate? This action cannot be undone.')) {
+      return;
+    }
+
     try {
       await RecruitmentService.deleteCandidate(candidateId);
-      await loadData();
       toast({
         title: 'Candidate Deleted',
         description: 'The candidate has been deleted successfully.',
       });
+      loadData();
     } catch (error) {
+      console.error('Error deleting candidate:', error);
       toast({
         title: 'Deletion Failed',
         description: 'Failed to delete candidate. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleScheduleInterview = async (data: Partial<Interview>) => {
+    if (!currentWorkspace?.id) {
+      toast({
+        title: 'Error',
+        description: 'No workspace selected.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      // Combine date and time into a single Date object
+      const interviewDate = new Date(data.date!);
+      const [hours, minutes] = data.time!.split(':').map(Number);
+      interviewDate.setHours(hours, minutes, 0, 0);
+
+      const interviewId = await RecruitmentService.createInterview({
+        workspaceId: currentWorkspace.id,
+        candidateId: data.candidateId!,
+        jobPostingId: data.jobPostingId!,
+        type: data.type!,
+        date: interviewDate,
+        time: data.time!,
+        duration: data.duration!,
+        interviewer: data.interviewer!,
+        location: data.location || '',
+        meetingLink: data.meetingLink || '',
+        status: 'scheduled',
+        createdBy: user?.uid || 'unknown'
+      });
+
+      // Send interview invitation to candidate
+      try {
+        const candidate = await RecruitmentService.getCandidate(data.candidateId!);
+        const jobPosting = await RecruitmentService.getJobPosting(data.jobPostingId!);
+        
+        if (candidate && jobPosting) {
+          await RecruitmentService.sendInterviewInvitation(
+            interviewId,
+            candidate.email,
+            candidate.name,
+            jobPosting.title,
+            interviewDate,
+            data.time!,
+            data.interviewer!
+          );
+
+          toast({
+            title: 'Interview Scheduled',
+            description: `Interview scheduled and invitation sent to ${candidate.name}`,
+          });
+        } else {
+          toast({
+            title: 'Interview Scheduled',
+            description: 'Interview scheduled successfully',
+          });
+        }
+      } catch (inviteError) {
+        console.error('Error sending interview invitation:', inviteError);
+        toast({
+          title: 'Interview Scheduled',
+          description: 'The interview has been scheduled successfully.',
+        });
+      }
+      
+      loadData();
+    } catch (error) {
+      console.error('Error scheduling interview:', error);
+      toast({
+        title: 'Scheduling Failed',
+        description: 'Failed to schedule interview. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleUpdateInterview = async (interviewId: string, data: Partial<Interview>) => {
+    try {
+      // If both date and time are being updated, combine them
+      let updateData = { ...data };
+      if (data.date && data.time) {
+        const interviewDate = new Date(data.date);
+        const [hours, minutes] = data.time.split(':').map(Number);
+        interviewDate.setHours(hours, minutes, 0, 0);
+        updateData.date = interviewDate;
+      }
+
+      await RecruitmentService.updateInterview(interviewId, updateData);
+      toast({
+        title: 'Interview Updated',
+        description: 'The interview has been updated successfully.',
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error updating interview:', error);
+      toast({
+        title: 'Update Failed',
+        description: 'Failed to update interview. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteInterview = async (interviewId: string) => {
+    if (!confirm('Are you sure you want to delete this interview? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await RecruitmentService.deleteInterview(interviewId);
+      toast({
+        title: 'Interview Deleted',
+        description: 'The interview has been deleted successfully.',
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error deleting interview:', error);
+      toast({
+        title: 'Deletion Failed',
+        description: 'Failed to delete interview. Please try again.',
         variant: 'destructive'
       });
     }
@@ -297,9 +427,9 @@ export default function RecruitmentPage() {
               onClick={() => router.push('/dashboard/hr/recruitment/create')}
               className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Post Job
-            </Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Post Job
+              </Button>
           )}
           
         </div>
@@ -343,7 +473,7 @@ export default function RecruitmentPage() {
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600 mb-2">{candidates.length}</div>
                   <div className="text-sm text-muted-foreground">Total Candidates</div>
-                </div>
+                  </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-purple-600 mb-2">{interviews.filter(i => i.status === 'scheduled').length}</div>
                   <div className="text-sm text-muted-foreground">Scheduled Interviews</div>
@@ -376,6 +506,9 @@ export default function RecruitmentPage() {
             candidates={candidates}
             jobPostings={jobPostings}
             loading={loading}
+            onScheduleInterview={canManageRecruitment ? handleScheduleInterview : undefined}
+            onUpdateInterview={canManageRecruitment ? handleUpdateInterview : undefined}
+            onDeleteInterview={canManageRecruitment ? handleDeleteInterview : undefined}
           />
         </TabsContent>
 

@@ -12,7 +12,8 @@ import {
   Download,
   Settings,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Shield
 } from 'lucide-react';
 import { useRolePermissions, useIsAdminOrOwner, useIsOwner } from '@/lib/rbac-hooks';
 import { useAuth } from '@/lib/auth-context';
@@ -191,6 +192,55 @@ export function ReportsDropdown() {
       accessibleWorkspaces: isOwner ? accessibleWorkspaces : undefined,
       setShowAllWorkspaces,
     };
+
+    // Access control checks for direct URL access
+    
+    // Member-only views - only accessible by members
+    if (currentView === 'member-reports-dashboard' && userRole !== 'member') {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="p-4 rounded-full bg-destructive/10 w-fit mx-auto">
+              <Shield className="w-12 h-12 text-destructive" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground">Access Restricted</h3>
+            <p className="text-muted-foreground max-w-md">
+              This dashboard is only available to members. Admins and owners have access to the main Reports Dashboard.
+            </p>
+            <Button 
+              onClick={() => updateView('reports-dashboard')} 
+              variant="outline"
+            >
+              Go to Reports Dashboard
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Admin-only views - only accessible by admins/owners
+    const adminOnlyViews = ['all-reports', 'report-templates', 'reports-dashboard', 'pending-approvals', 'export-reports'];
+    if (adminOnlyViews.includes(currentView) && !isAdminOrOwner) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="p-4 rounded-full bg-destructive/10 w-fit mx-auto">
+              <Shield className="w-12 h-12 text-destructive" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground">Access Restricted</h3>
+            <p className="text-muted-foreground max-w-md">
+              This feature is only available to administrators and workspace owners.
+            </p>
+            <Button 
+              onClick={() => updateView('member-reports-dashboard')} 
+              variant="outline"
+            >
+              Go to My Reports Dashboard
+            </Button>
+          </div>
+        </div>
+      );
+    }
 
     switch (currentView) {
       case 'my-reports':

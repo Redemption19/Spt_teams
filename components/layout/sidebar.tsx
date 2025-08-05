@@ -96,8 +96,9 @@ const navigationGroups = [
             name: 'My Reports Dashboard',
             href: '/dashboard/reports?view=member-reports-dashboard',
             icon: BarChart3,
-            description: 'Your personalized reports analytics and insights',
+            description: 'Your personalized reports analytics and insights (Members only)',
             viewParam: 'member-reports-dashboard',
+            memberOnly: true,
           },
           {
             name: 'All Reports',
@@ -532,6 +533,10 @@ export function Sidebar({ className }: SidebarProps) {
               {item.items?.map((nestedItem: any) => {
                 // Skip admin-only items if user is not admin/owner
                 if (nestedItem.adminOnly && !isAdminOrOwner) {
+                  return null;
+                }
+                // Skip member-only items if user is not a member
+                if (nestedItem.memberOnly && userProfile?.role !== 'member') {
                   return null;
                 }
                 return renderNavigationItem(nestedItem, true, true);

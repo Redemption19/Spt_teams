@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace Management System - User Flow Diagram</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 95vw;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+            padding: 20px;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 0 10px;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            overflow: hidden;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+        .info-card h3 {
+            color: #2d3748;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            word-wrap: break-word;
+        }
+        .info-card ul {
+            color: #4a5568;
+            margin: 0;
+            padding-left: 20px;
+            word-wrap: break-word;
+        }
+        .info-card li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .info-card strong {
+            word-wrap: break-word;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .download-btn {
+                display: block;
+                margin: 10px 0;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .info-card {
+                padding: 15px;
+            }
+            .info-card h3 {
+                font-size: 1.1rem;
+            }
+            .info-card li {
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 User Flow Diagram</h1>
+        <p class="subtitle">Complete user journey mapping for the Workspace Management System</p>
+        
+        <div class="diagram-container">
+            <svg width="1500" height="2000" viewBox="0 0 1500 2000" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Gradients for different flow types -->
+                <linearGradient id="authGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="onboardingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="dashboardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="workflowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="roleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#EF4444;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#DC2626;stop-opacity:1" />
+                </linearGradient>
+                
+                <!-- Arrow markers -->
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+                </marker>
+                <marker id="arrowheadBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#3B82F6" />
+                </marker>
+                <marker id="arrowheadGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#10B981" />
+                </marker>
+                <marker id="arrowheadPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#8B5CF6" />
+                </marker>
+                <marker id="arrowheadOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#F59E0B" />
+                </marker>
+              </defs>
+              
+              <!-- Background -->
+              <rect width="1400" height="2000" fill="#F8FAFC"/>
+              
+              <!-- Title -->
+              <text x="700" y="40" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1F2937">Workspace Management System - User Flow Diagram</text>
+              
+              <!-- Authentication Flow Section -->
+              <rect x="50" y="80" width="1300" height="200" rx="10" fill="url(#authGradient)" opacity="0.1" stroke="#3B82F6" stroke-width="2"/>
+              <text x="70" y="105" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1E40AF">Authentication Flow</text>
+              
+              <!-- Entry Points -->
+              <rect x="80" y="120" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+              <text x="140" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1E40AF">Landing Page</text>
+              <text x="140" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/</text>
+              <text x="140" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Marketing Site</text>
+              
+              <!-- Login Options -->
+              <rect x="250" y="120" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+              <text x="310" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1E40AF">Login</text>
+              <text x="310" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/login</text>
+              <text x="310" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Email/Google/Guest</text>
+              
+              <rect x="420" y="120" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+              <text x="480" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1E40AF">Register</text>
+              <text x="480" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/register</text>
+              <text x="480" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">New Account</text>
+              
+              <rect x="590" y="120" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+              <text x="650" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1E40AF">Invitation</text>
+              <text x="650" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/invite?token=</text>
+              <text x="650" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Pre-assigned Role</text>
+              
+              <!-- Role Determination -->
+              <rect x="760" y="120" width="150" height="60" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2"/>
+              <text x="835" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1E40AF">Role Determination</text>
+              <text x="835" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">First User → Owner</text>
+              <text x="835" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Others → Member</text>
+              
+              <!-- Authentication Flow Arrows -->
+              <line x1="200" y1="150" x2="240" y2="150" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+              <line x1="370" y1="150" x2="410" y2="150" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+              <line x1="540" y1="150" x2="580" y2="150" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+              <line x1="710" y1="150" x2="750" y2="150" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+              
+              <!-- Onboarding Flow Section -->
+              <rect x="50" y="320" width="1300" height="180" rx="10" fill="url(#onboardingGradient)" opacity="0.1" stroke="#10B981" stroke-width="2"/>
+              <text x="70" y="345" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#059669">Onboarding Flow (New Users)</text>
+              
+              <!-- Onboarding Steps -->
+              <rect x="80" y="360" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+              <text x="140" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Welcome</text>
+              <text x="140" y="395" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Introduction</text>
+              <text x="140" y="410" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">System Overview</text>
+              
+              <rect x="250" y="360" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+              <text x="310" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Workspace</text>
+              <text x="310" y="395" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Join Existing or</text>
+              <text x="310" y="410" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Create New</text>
+              
+              <rect x="420" y="360" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+              <text x="480" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Setup</text>
+              <text x="480" y="395" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Profile Details</text>
+              <text x="480" y="410" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Preferences</text>
+              
+              <rect x="590" y="360" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+              <text x="650" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Complete</text>
+              <text x="650" y="395" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Redirect to</text>
+              <text x="650" y="410" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Dashboard</text>
+              
+              <!-- Onboarding Arrows -->
+              <line x1="200" y1="390" x2="240" y2="390" stroke="#10B981" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+              <line x1="370" y1="390" x2="410" y2="390" stroke="#10B981" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+              <line x1="540" y1="390" x2="580" y2="390" stroke="#10B981" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+              
+              <!-- Connection from Auth to Onboarding -->
+              <line x1="835" y1="180" x2="835" y2="220" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <text x="845" y="205" font-family="Arial, sans-serif" font-size="10" fill="#374151">New User</text>
+              <line x1="835" y1="220" x2="140" y2="350" stroke="#374151" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+              
+              <!-- Dashboard Entry Section -->
+              <rect x="50" y="540" width="1400" height="200" rx="10" fill="url(#dashboardGradient)" opacity="0.1" stroke="#8B5CF6" stroke-width="2"/>
+              <text x="70" y="565" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#7C3AED">Dashboard Entry & Role-Based Access</text>
+              
+              <!-- Dashboard Overview -->
+              <rect x="80" y="580" width="180" height="100" rx="8" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+              <text x="170" y="605" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#7C3AED">Dashboard Overview</text>
+              <text x="170" y="620" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard</text>
+              <text x="170" y="635" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Quick Stats</text>
+              <text x="170" y="650" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Recent Activity</text>
+              <text x="170" y="665" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Role-based Widgets</text>
+              
+              <!-- Role-based Navigation -->
+              <rect x="300" y="580" width="160" height="120" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+              <text x="380" y="610" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Owner Access</text>
+              <text x="380" y="630" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• All Workspaces</text>
+              <text x="380" y="645" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Global Analytics</text>
+              <text x="380" y="660" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• System Settings</text>
+              <text x="380" y="675" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• User Management</text>
+              
+              <rect x="500" y="580" width="160" height="120" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="580" y="610" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Admin Access</text>
+              <text x="580" y="630" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Workspace Mgmt</text>
+              <text x="580" y="645" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Team Analytics</text>
+              <text x="580" y="660" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Approvals</text>
+              <text x="580" y="675" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Reports</text>
+              
+              <rect x="700" y="580" width="160" height="120" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+              <text x="780" y="610" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Member Access</text>
+              <text x="780" y="630" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Personal Tasks</text>
+              <text x="780" y="645" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Team Collaboration</text>
+              <text x="780" y="660" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Submit Reports</text>
+              <text x="780" y="675" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• View Calendar</text>
+              
+              <rect x="900" y="580" width="160" height="120" rx="8" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+              <text x="980" y="610" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#4B5563">Guest Access</text>
+              <text x="980" y="630" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Limited View</text>
+              <text x="980" y="645" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Public Resources</text>
+              <text x="980" y="660" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Basic Navigation</text>
+              <text x="980" y="675" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Guest Banner</text>
+              
+              <!-- Connection from Onboarding to Dashboard -->
+              <line x1="650" y1="420" x2="650" y2="480" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <text x="660" y="455" font-family="Arial, sans-serif" font-size="10" fill="#374151">Redirect</text>
+              <line x1="650" y1="480" x2="155" y2="570" stroke="#374151" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+              
+              <!-- Main Navigation Structure -->
+              <rect x="50" y="780" width="1300" height="400" rx="10" fill="url(#workflowGradient)" opacity="0.1" stroke="#F59E0B" stroke-width="2"/>
+              <text x="70" y="805" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#D97706">Main Navigation Structure</text>
+              
+              <!-- Core Modules -->
+              <rect x="80" y="820" width="140" height="100" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="150" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Workspace</text>
+              <text x="150" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Projects & Tasks</text>
+              <text x="150" y="870" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Folders</text>
+              <text x="150" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Reports (Nested)</text>
+              <text x="150" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Analytics</text>
+              <text x="150" y="915" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Manage Workspaces</text>
+              
+              <rect x="250" y="820" width="140" height="100" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="320" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Organization</text>
+              <text x="320" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Departments</text>
+              <text x="320" y="870" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Branches</text>
+              <text x="320" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Regions</text>
+              <text x="320" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Teams</text>
+              
+              <rect x="420" y="820" width="140" height="100" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="490" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Financial Mgmt</text>
+              <text x="490" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Expenses</text>
+              <text x="490" y="870" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Budgets (Admin)</text>
+              <text x="490" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Invoices (Admin)</text>
+              <text x="490" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Cost Centers</text>
+              <text x="490" y="915" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Currency Settings</text>
+              
+              <rect x="590" y="820" width="140" height="100" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="660" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">HR Management</text>
+              <text x="660" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Employee Mgmt</text>
+              <text x="660" y="870" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Attendance</text>
+              <text x="660" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Leave Management</text>
+              <text x="660" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Payroll</text>
+              <text x="660" y="915" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Recruitment</text>
+              
+              <rect x="760" y="820" width="140" height="100" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="830" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Users & Admin</text>
+              <text x="830" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• User Management</text>
+              <text x="830" y="870" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Permissions</text>
+              <text x="830" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Invitations</text>
+              <text x="830" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Migration Tools</text>
+              <text x="830" y="915" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">• User Transfer</text>
+              
+              <!-- Additional Features -->
+              <rect x="80" y="950" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="140" y="970" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">AI Assistant</text>
+              <text x="140" y="985" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard/ai</text>
+              <text x="140" y="1000" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Smart Recommendations</text>
+              
+              <rect x="220" y="950" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="280" y="970" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Calendar</text>
+              <text x="280" y="985" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard/calendar</text>
+              <text x="280" y="1000" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Events & Deadlines</text>
+              
+              <rect x="360" y="950" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="420" y="970" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Notifications</text>
+              <text x="420" y="985" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard/notifications</text>
+              <text x="420" y="1000" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Real-time Updates</text>
+              
+              <rect x="500" y="950" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="560" y="970" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Support</text>
+              <text x="560" y="985" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard/support</text>
+              <text x="560" y="1000" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Help & Documentation</text>
+              
+              <rect x="640" y="950" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="700" y="970" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Activity Log</text>
+              <text x="700" y="985" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard/activity</text>
+              <text x="700" y="1000" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">System Activity</text>
+              
+              <rect x="780" y="950" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+              <text x="840" y="970" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#D97706">Settings</text>
+              <text x="840" y="985" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">/dashboard/settings</text>
+              <text x="840" y="1000" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">Profile & Preferences</text>
+              
+              <!-- Key Workflows Section -->
+              <rect x="50" y="1220" width="1300" height="300" rx="10" fill="url(#roleGradient)" opacity="0.1" stroke="#EF4444" stroke-width="2"/>
+              <text x="70" y="1245" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#DC2626">Key User Workflows</text>
+              
+              <!-- Task Management Workflow -->
+              <rect x="80" y="1260" width="200" height="120" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+              <text x="180" y="1280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Task Management</text>
+              <text x="180" y="1295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">1. Navigate to Tasks</text>
+              <text x="180" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">2. Create New Task</text>
+              <text x="180" y="1325" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">3. Set Priority & Due Date</text>
+              <text x="180" y="1340" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">4. Assign to Team Member</text>
+              <text x="180" y="1355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">5. Track Progress</text>
+              <text x="180" y="1370" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">6. Mark Complete</text>
+              
+              <!-- Report Submission Workflow -->
+              <rect x="300" y="1260" width="200" height="120" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+              <text x="400" y="1280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Report Submission</text>
+              <text x="400" y="1295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">1. Access Reports Section</text>
+              <text x="400" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">2. Choose Template</text>
+              <text x="400" y="1325" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">3. Fill Required Fields</text>
+              <text x="400" y="1340" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">4. Attach Documents</text>
+              <text x="400" y="1355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">5. Submit for Review</text>
+              <text x="400" y="1370" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">6. Track Approval Status</text>
+              
+              <!-- Team Collaboration Workflow -->
+              <rect x="520" y="1260" width="200" height="120" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+              <text x="620" y="1280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Team Collaboration</text>
+              <text x="620" y="1295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">1. Join/Create Team</text>
+              <text x="620" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">2. Share Resources</text>
+              <text x="620" y="1325" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">3. Communicate via Chat</text>
+              <text x="620" y="1340" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">4. Schedule Meetings</text>
+              <text x="620" y="1355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">5. Track Team Progress</text>
+              <text x="620" y="1370" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">6. Generate Team Reports</text>
+              
+              <!-- Admin Approval Workflow -->
+              <rect x="740" y="1260" width="200" height="120" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+              <text x="840" y="1280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Admin Approval</text>
+              <text x="840" y="1295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">1. Review Pending Items</text>
+              <text x="840" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">2. Examine Details</text>
+              <text x="840" y="1325" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">3. Add Comments</text>
+              <text x="840" y="1340" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">4. Approve/Reject</text>
+              <text x="840" y="1355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">5. Send Notifications</text>
+              <text x="840" y="1370" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">6. Update Status</text>
+              
+              <!-- Owner Analytics Workflow -->
+              <rect x="960" y="1260" width="200" height="120" rx="8" fill="#FFFFFF" stroke="#EF4444" stroke-width="2"/>
+              <text x="1060" y="1280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Owner Analytics</text>
+              <text x="1060" y="1295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">1. Access Global Dashboard</text>
+              <text x="1060" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">2. View Cross-workspace Data</text>
+              <text x="1060" y="1325" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">3. Generate Reports</text>
+              <text x="1060" y="1340" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">4. Analyze Trends</text>
+              <text x="1060" y="1355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">5. Make Strategic Decisions</text>
+              <text x="1060" y="1370" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#374151">6. Export Analytics</text>
+              
+              <!-- Exit Points Section -->
+              <rect x="50" y="1560" width="1300" height="120" rx="10" fill="#F3F4F6" stroke="#6B7280" stroke-width="2"/>
+              <text x="70" y="1585" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#374151">Exit Points & Session Management</text>
+              
+              <rect x="80" y="1600" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+              <text x="140" y="1620" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#374151">Logout</text>
+              <text x="140" y="1635" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Clear Session</text>
+              <text x="140" y="1650" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Return to Login</text>
+              
+              <rect x="220" y="1600" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+              <text x="280" y="1620" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#374151">Session Timeout</text>
+              <text x="280" y="1635" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Auto Logout</text>
+              <text x="280" y="1650" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Security Measure</text>
+              
+              <rect x="360" y="1600" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+              <text x="420" y="1620" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#374151">Profile Settings</text>
+              <text x="420" y="1635" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Account Management</text>
+              <text x="420" y="1650" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Password Change</text>
+              
+              <rect x="500" y="1600" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+              <text x="560" y="1620" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#374151">Workspace Switch</text>
+              <text x="560" y="1635" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Multi-workspace</text>
+              <text x="560" y="1650" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Context Change</text>
+              
+              <!-- Legend -->
+              <rect x="50" y="1720" width="1300" height="200" rx="10" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="2"/>
+              <text x="70" y="1745" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#374151">Legend & Key Features</text>
+              
+              <!-- Flow Types -->
+              <text x="80" y="1770" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#374151">Flow Types:</text>
+              <rect x="80" y="1780" width="20" height="15" fill="url(#authGradient)"/>
+              <text x="110" y="1792" font-family="Arial, sans-serif" font-size="12" fill="#374151">Authentication Flow</text>
+              <rect x="80" y="1800" width="20" height="15" fill="url(#onboardingGradient)"/>
+              <text x="110" y="1812" font-family="Arial, sans-serif" font-size="12" fill="#374151">Onboarding Flow</text>
+              <rect x="80" y="1820" width="20" height="15" fill="url(#dashboardGradient)"/>
+              <text x="110" y="1832" font-family="Arial, sans-serif" font-size="12" fill="#374151">Dashboard & Navigation</text>
+              <rect x="80" y="1840" width="20" height="15" fill="url(#workflowGradient)"/>
+              <text x="110" y="1852" font-family="Arial, sans-serif" font-size="12" fill="#374151">Main Navigation</text>
+              <rect x="80" y="1860" width="20" height="15" fill="url(#roleGradient)"/>
+              <text x="110" y="1872" font-family="Arial, sans-serif" font-size="12" fill="#374151">Key Workflows</text>
+              
+              <!-- Key Features -->
+              <text x="350" y="1770" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#374151">Key Features:</text>
+              <text x="350" y="1790" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Multi-method Authentication (Email, Google, Guest)</text>
+              <text x="350" y="1810" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Role-based Access Control (Owner, Admin, Member, Guest)</text>
+              <text x="350" y="1830" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Multi-workspace Architecture</text>
+              <text x="350" y="1850" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Invitation-based Registration</text>
+              <text x="350" y="1870" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Comprehensive Business Modules</text>
+              
+              <!-- Technology Stack -->
+              <text x="750" y="1770" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#374151">Technology Stack:</text>
+              <text x="750" y="1790" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Frontend: Next.js 14, React 18, TypeScript</text>
+              <text x="750" y="1810" font-family="Arial, sans-serif" font-size="12" fill="#374151">• UI: Tailwind CSS, Shadcn/ui Components</text>
+              <text x="750" y="1830" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Backend: Firebase (Auth, Firestore, Storage)</text>
+              <text x="750" y="1850" font-family="Arial, sans-serif" font-size="12" fill="#374151">• AI: OpenAI Integration, Smart Recommendations</text>
+              <text x="750" y="1870" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Real-time: WebSocket, Live Updates</text>
+              
+              <!-- Footer -->
+              <text x="700" y="1960" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6B7280">Workspace Management System - User Flow Diagram v1.0</text>
+              <text x="700" y="1980" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF">Generated: December 2024 | Comprehensive user journey mapping</text>
+            </svg>
+        </div>
+        
+        <div class="download-section">
+            <h3>📥 Download Options</h3>
+            <p>Save the user flow diagram for your documentation or presentations:</p>
+            <a href="USER_FLOW_DIAGRAM.svg" download="team-management-user-flow.svg" class="download-btn">📄 Download SVG</a>
+            <a href="user-flow-viewer.html" download="user-flow-viewer.html" class="download-btn">🌐 Download HTML Viewer</a>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📋 Purpose</h3>
+                <ul>
+                    <li><strong>Development Planning:</strong> Understand user journeys for feature development</li>
+                    <li><strong>UX/UI Design:</strong> Identify pain points and optimization opportunities</li>
+                    <li><strong>Documentation:</strong> Visual reference for team onboarding and training</li>
+                    <li><strong>Quality Assurance:</strong> Test scenarios and user acceptance criteria</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                        <h3>🔧 Recent Updates</h3>
+                        <ul>
+                            <li><strong>Increased Card Height:</strong> Enhanced role-based access cards from 100px to 120px height for better content accommodation</li>
+                            <li><strong>Improved Text Spacing:</strong> Adjusted vertical text positioning with proper 15px intervals for better readability</li>
+                            <li><strong>Layout Optimization:</strong> Extended section width from 1300px to 1400px for better card distribution</li>
+                            <li><strong>SVG Dimensions:</strong> Updated overall SVG width to 1500px with proper viewBox scaling</li>
+                            <li><strong>Visual Consistency:</strong> Maintained uniform card sizes (160×120px) across all role types</li>
+                            <li><strong>Enhanced Content Display:</strong> Larger cards now provide more space for role descriptions and features</li>
+                        </ul>
+                    </div>
+            
+            <div class="info-card">
+                <h3>🔐 Authentication Flows</h3>
+                <ul>
+                    <li><strong>Multi-method Login:</strong> Email/password, Google OAuth, Guest access</li>
+                    <li><strong>Registration Types:</strong> Direct signup, invitation-based, first-user owner</li>
+                    <li><strong>Role Assignment:</strong> Automatic role determination based on context</li>
+                    <li><strong>Security:</strong> Session management, password reset, email verification</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🚀 Onboarding Experience</h3>
+                <ul>
+                    <li><strong>Welcome Flow:</strong> System introduction and feature overview</li>
+                    <li><strong>Workspace Setup:</strong> Join existing or create new workspace</li>
+                    <li><strong>Profile Configuration:</strong> Personal details and preferences</li>
+                    <li><strong>Guided Tour:</strong> Interactive introduction to key features</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🎯 Role-Based Access</h3>
+                <ul>
+                    <li><strong>Owner:</strong> Global access, cross-workspace analytics, system administration</li>
+                    <li><strong>Admin:</strong> Workspace management, team oversight, approval workflows</li>
+                    <li><strong>Member:</strong> Personal tasks, team collaboration, report submission</li>
+                    <li><strong>Guest:</strong> Limited access, public resources, basic navigation</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🏗️ Core Modules</h3>
+                <ul>
+                    <li><strong>Workspace:</strong> Projects, tasks, folders, reports, analytics</li>
+                    <li><strong>Organization:</strong> Departments, branches, regions, teams</li>
+                    <li><strong>Financial:</strong> Expenses, budgets, invoices, cost centers</li>
+                    <li><strong>HR:</strong> Employee management, attendance, payroll, recruitment</li>
+                    <li><strong>Users:</strong> User management, permissions, invitations</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>⚡ Key Workflows</h3>
+                <ul>
+                    <li><strong>Task Management:</strong> Create, assign, track, and complete tasks</li>
+                    <li><strong>Report Submission:</strong> Template-based reporting with approval workflow</li>
+                    <li><strong>Team Collaboration:</strong> Resource sharing, communication, progress tracking</li>
+                    <li><strong>Admin Approval:</strong> Review, comment, approve/reject workflow</li>
+                    <li><strong>Analytics:</strong> Cross-workspace insights and strategic decision making</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🔧 Technical Features</h3>
+                <ul>
+                    <li><strong>Real-time Updates:</strong> Live notifications and data synchronization</li>
+                    <li><strong>AI Integration:</strong> Smart recommendations and workflow optimization</li>
+                    <li><strong>Multi-workspace:</strong> Hierarchical workspace management</li>
+                    <li><strong>Responsive Design:</strong> Mobile-first, cross-device compatibility</li>
+                    <li><strong>Security:</strong> RBAC, session management, data protection</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
