@@ -105,6 +105,15 @@ export class VideoCallService {
     try {
       const client = await this.initializeClient();
       
+      // Debug logging
+      console.log('🔍 Video Call Service - Join Call:', {
+        channel: config.channel,
+        channelLength: config.channel?.length,
+        appId: config.appId ? 'Configured' : 'Not configured',
+        hasToken: !!config.token,
+        uid: config.uid
+      });
+      
       // Check if already joined or connecting to prevent duplicate attempts
       if (this.isJoined || client.connectionState === 'CONNECTING' || client.connectionState === 'CONNECTED') {
         return;
@@ -112,6 +121,13 @@ export class VideoCallService {
       
       // Validate channel name
       const validation = validateChannelName(config.channel);
+      console.log('🔍 Video Call Service - Channel Validation:', {
+        channel: config.channel,
+        isValid: validation.isValid,
+        errors: validation.errors,
+        length: config.channel?.length
+      });
+      
       if (!validation.isValid) {
         throw new Error(`Invalid channel name: ${validation.errors.join(', ')}`);
       }

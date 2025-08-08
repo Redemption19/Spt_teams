@@ -17,6 +17,12 @@ import { DashboardStats } from '../types';
 export default function DashboardScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
+  
+  console.log('🏠 Dashboard screen loaded, user:', user?.email);
+  
+  useEffect(() => {
+    console.log('🏠 Dashboard useEffect triggered');
+  }, []);
   const [stats, setStats] = useState<DashboardStats>({
     totalTasks: 0,
     completedTasks: 0,

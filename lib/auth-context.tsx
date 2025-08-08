@@ -402,14 +402,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsNewUser(false);
   };
 
-  // Handle redirection for new users
+  // Handle redirection for authenticated users
   useEffect(() => {
-    if (user && isNewUser && !loading) {
-      // Use window.location for redirection to avoid hook issues
-      console.log('New user detected, redirecting to onboarding');
-      window.location.href = '/onboarding';
+    if (user && !loading) {
+      if (isNewUser) {
+        // New users go to onboarding
+        console.log('New user detected, redirecting to onboarding');
+        window.location.href = '/onboarding';
+      } else {
+        // Existing users go to dashboard
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath === '/login' || currentPath === '/register' || currentPath === '/';
+        
+        if (isAuthPage) {
+          console.log('Existing user authenticated, redirecting to dashboard');
+          window.location.href = '/dashboard';
+        }
+      }
     }
   }, [user, isNewUser, loading]);
+
+  // Handle redirection for unauthenticated users
+  useEffect(() => {
+    if (!user && !loading) {
+      const currentPath = window.location.pathname;
+      const isProtectedRoute = currentPath.startsWith('/dashboard') || 
+                              currentPath.startsWith('/onboarding') || 
+                              currentPath.startsWith('/profile') || 
+                              currentPath.startsWith('/settings');
+      
+      if (isProtectedRoute) {
+        console.log('Unauthenticated user trying to access protected route, redirecting to login');
+        window.location.href = '/login';
+      }
+    }
+  }, [user, loading]);
+
+  // Handle redirection for authenticated users accessing public pages
+  useEffect(() => {
+    if (user && !loading && !isNewUser) {
+      const currentPath = window.location.pathname;
+      const isPublicPage = currentPath === '/' || 
+                          currentPath === '/login' || 
+                          currentPath === '/register';
+      
+      if (isPublicPage) {
+        console.log('Authenticated user accessing public page, redirecting to dashboard');
+        window.location.href = '/dashboard';
+      }
+    }
+  }, [user, loading, isNewUser]);
 
   const refreshUserProfile = async () => {
     if (user && !isGuest) {

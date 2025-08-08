@@ -1,6 +1,5 @@
 # TODO:
 
-- [x] create-channel-name-utility: Create a utility function to generate short, valid Agora channel names within 64-character limit (priority: High)
-- [x] update-interview-management: Update InterviewManagement.tsx to use the new channel name generation utility (priority: High)
-- [x] add-channel-validation: Add validation to video call service to prevent invalid channel names (priority: Medium)
-- [x] test-video-call-fix: Test the video call functionality to ensure the error is resolved (priority: Medium)
+- [x] create-middleware-auth-redirect: Create middleware.ts file to handle authentication redirection for protected routes (priority: High)
+- [x] update-auth-context-redirect: Update auth context to redirect existing users to dashboard after successful login (priority: High)
+- [x] test-login-redirection: Test login redirection for both new and existing users to ensure proper navigation (priority: Medium)

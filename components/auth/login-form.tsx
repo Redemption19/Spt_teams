@@ -262,9 +262,8 @@ export function LoginForm() {
         description: 'Successfully signed in to your account'
       });
       
-      // Let the auth context handle redirection
-      // New users will be redirected to /onboarding, existing users to /dashboard
-      setLoading(false);
+      // Auth context will handle redirection automatically
+      // No need to manually redirect here
     } catch (error) {
       console.error('Login error:', error);
       
@@ -322,9 +321,8 @@ export function LoginForm() {
         description: 'Successfully signed in with Google'
       });
       
-      // Let the auth context handle redirection
-      // New users will be redirected to /onboarding, existing users to /dashboard
-      setLoading(false);
+      // Auth context will handle redirection automatically
+      // No need to manually redirect here
     } catch (error) {
       console.error('Google sign-in error:', error);
       recordLoginAttempt(false);
@@ -375,8 +373,8 @@ export function LoginForm() {
         description: 'Guest mode activated successfully'
       });
       
-      // Let the auth context handle redirection
-      setLoading(false);
+      // Auth context will handle redirection automatically
+      // No need to manually redirect here
     } catch (error) {
       console.error('Guest sign-in error:', error);
       recordLoginAttempt(false);

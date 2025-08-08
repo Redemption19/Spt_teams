@@ -12,6 +12,7 @@ import { Video, Users, Clock, Settings, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useToast } from '@/hooks/use-toast';
+import { generateChannelName, sanitizeChannelName } from '@/lib/video-call-utils';
 
 export default function StartMeetingPage() {
   const router = useRouter();
@@ -30,9 +31,17 @@ export default function StartMeetingPage() {
     enableScreenShare: true
   });
 
-  // Generate a unique meeting ID
+  // Generate a unique meeting ID using proper channel name generation
   const generateMeetingId = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const generatedId = generateChannelName('meeting');
+    // Ensure it's properly sanitized
+    const sanitizedId = sanitizeChannelName(generatedId);
+    console.log('🔍 Meeting ID Generation:', {
+      generated: generatedId,
+      sanitized: sanitizedId,
+      changed: generatedId !== sanitizedId
+    });
+    return sanitizedId;
   };
 
   const [meetingId] = useState(generateMeetingId());
@@ -93,15 +102,15 @@ export default function StartMeetingPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Start New Meeting</h1>
-        <p className="text-muted-foreground">Create an instant video meeting and invite participants</p>
+    <div className="space-y-4 sm:space-y-6 w-full max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Start New Meeting</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Create an instant video meeting and invite participants</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Meeting Setup */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -112,32 +121,32 @@ export default function StartMeetingPage() {
                 Configure your meeting settings and preferences
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Meeting Title *</Label>
+                <Label htmlFor="title" className="text-sm font-medium">Meeting Title *</Label>
                 <Input
                   id="title"
                   placeholder="Enter meeting title..."
                   value={meetingData.title}
                   onChange={(e) => setMeetingData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full"
+                  className="w-full h-10 sm:h-11 text-base"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
+                <Label htmlFor="description" className="text-sm font-medium">Description (Optional)</Label>
                 <Textarea
                   id="description"
                   placeholder="Add meeting agenda or description..."
                   value={meetingData.description}
                   onChange={(e) => setMeetingData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full min-h-[80px]"
+                  className="w-full min-h-[80px] sm:min-h-[100px] text-base resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="participants">Max Participants</Label>
+                  <Label htmlFor="participants" className="text-sm font-medium">Max Participants</Label>
                   <Input
                     id="participants"
                     type="number"
@@ -145,18 +154,19 @@ export default function StartMeetingPage() {
                     max="50"
                     value={meetingData.maxParticipants}
                     onChange={(e) => setMeetingData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 10 }))}
+                    className="h-10 sm:h-11 text-base"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Meeting ID</Label>
+                  <Label className="text-sm font-medium">Meeting ID</Label>
                   <div className="flex items-center gap-2">
-                    <Input value={meetingId} readOnly className="font-mono text-sm" />
+                    <Input value={meetingId} readOnly className="font-mono text-sm h-10 sm:h-11 flex-1" />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={copyMeetingLink}
-                      className="shrink-0"
+                      className="shrink-0 h-10 w-10 sm:h-11 sm:w-11 p-0"
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
@@ -171,15 +181,15 @@ export default function StartMeetingPage() {
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-3">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col gap-3">
                 <Button 
                   onClick={handleStartMeeting}
                   disabled={isLoading || !meetingData.title.trim()}
-                  className="flex-1"
+                  className="w-full h-12 sm:h-14 text-base font-medium"
                   size="lg"
                 >
-                  <Video className="h-4 w-4 mr-2" />
+                  <Video className="h-5 w-5 mr-2" />
                   {isLoading ? 'Starting...' : 'Start Meeting Now'}
                 </Button>
                 
@@ -187,10 +197,10 @@ export default function StartMeetingPage() {
                   variant="outline"
                   onClick={copyMeetingLink}
                   disabled={!meetingData.title.trim()}
-                  className="flex-1"
+                  className="w-full h-12 sm:h-14 text-base font-medium"
                   size="lg"
                 >
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="h-5 w-5 mr-2" />
                   Copy Meeting Link
                 </Button>
               </div>
@@ -199,7 +209,7 @@ export default function StartMeetingPage() {
         </div>
 
         {/* Meeting Info Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -207,26 +217,26 @@ export default function StartMeetingPage() {
                 Meeting Info
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Host</span>
-                  <Badge variant="secondary">{user?.displayName || user?.email}</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-muted-foreground flex-shrink-0">Host</span>
+                  <Badge variant="secondary" className="text-xs truncate max-w-[150px]">{user?.displayName || user?.email}</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Workspace</span>
-                  <Badge variant="outline">{currentWorkspace?.name}</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-muted-foreground flex-shrink-0">Workspace</span>
+                  <Badge variant="outline" className="text-xs truncate max-w-[150px]">{currentWorkspace?.name}</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Max Participants</span>
-                  <Badge>{meetingData.maxParticipants}</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-muted-foreground flex-shrink-0">Max Participants</span>
+                  <Badge className="text-xs">{meetingData.maxParticipants}</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Meeting Type</span>
-                  <Badge variant="secondary">Instant</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-muted-foreground flex-shrink-0">Meeting Type</span>
+                  <Badge variant="secondary" className="text-xs">Instant</Badge>
                 </div>
               </div>
             </CardContent>
@@ -239,26 +249,26 @@ export default function StartMeetingPage() {
                 Features
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Video & Audio</span>
-                  <Badge variant="secondary">Enabled</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm flex-shrink-0">Video & Audio</span>
+                  <Badge variant="secondary" className="text-xs">Enabled</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Screen Sharing</span>
-                  <Badge variant="secondary">Enabled</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm flex-shrink-0">Screen Sharing</span>
+                  <Badge variant="secondary" className="text-xs">Enabled</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Chat</span>
-                  <Badge variant="secondary">Enabled</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm flex-shrink-0">Chat</span>
+                  <Badge variant="secondary" className="text-xs">Enabled</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Recording</span>
-                  <Badge variant="outline">Available</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm flex-shrink-0">Recording</span>
+                  <Badge variant="outline" className="text-xs">Available</Badge>
                 </div>
               </div>
             </CardContent>
@@ -271,12 +281,24 @@ export default function StartMeetingPage() {
                 Quick Tips
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>• Share the meeting link with participants</p>
-                <p>• Test your camera and microphone before starting</p>
-                <p>• Use a stable internet connection</p>
-                <p>• Enable notifications for better experience</p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary mt-1">•</span>
+                  <span>Share the meeting link with participants</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary mt-1">•</span>
+                  <span>Test your camera and microphone before starting</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary mt-1">•</span>
+                  <span>Use a stable internet connection</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary mt-1">•</span>
+                  <span>Enable notifications for better experience</span>
+                </p>
               </div>
             </CardContent>
           </Card>

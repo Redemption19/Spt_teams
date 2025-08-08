@@ -69,28 +69,30 @@ export default function VideoCallHistoryPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Meeting History</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Meeting History</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           View and manage your past video calls and recordings
         </p>
       </div>
 
-      <MeetingList
-        meetings={historyMeetings}
-        loading={loading}
-        onViewRecording={handleViewRecording}
-        onDownloadRecording={handleDownloadRecording}
-        onDelete={handleDeleteMeeting}
-        showActions={true}
-        allowFiltering={true}
-        allowSorting={true}
-        allowSearch={true}
-        defaultViewMode="list"
-        emptyMessage="No meeting history"
-        emptyDescription="Your completed and cancelled meetings will appear here."
-      />
+      <div className="w-full">
+        <MeetingList
+          meetings={historyMeetings}
+          loading={loading}
+          onViewRecording={handleViewRecording}
+          onDownloadRecording={handleDownloadRecording}
+          onDelete={handleDeleteMeeting}
+          showActions={true}
+          allowFiltering={true}
+          allowSorting={true}
+          allowSearch={true}
+          defaultViewMode="list"
+          emptyMessage="No meeting history"
+          emptyDescription="Your completed and cancelled meetings will appear here."
+        />
+      </div>
     </div>
   );
 }

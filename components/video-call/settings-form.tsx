@@ -406,37 +406,37 @@ export function SettingsForm({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Video Call Settings</h2>
-          <p className="text-muted-foreground">Configure your video call preferences</p>
+          <h2 className="text-xl sm:text-2xl font-bold">Video Call Settings</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Configure your video call preferences</p>
         </div>
         {hasChanges && (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs sm:text-sm w-fit">
             Unsaved changes
           </Badge>
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
         {/* Navigation */}
-        <div className="lg:w-64">
-          <nav className="space-y-1">
+        <div className="xl:w-64">
+          <nav className="flex xl:flex-col gap-1 overflow-x-auto xl:overflow-x-visible pb-2 xl:pb-0">
             {sections.map((section) => {
               const Icon = section.icon;
               return (
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-md transition-colors ${
+                  className={`flex items-center gap-2 sm:gap-3 px-3 py-2 text-left rounded-md transition-colors whitespace-nowrap xl:w-full min-h-[44px] touch-manipulation ${
                     activeSection === section.id
                       ? 'bg-primary text-primary-foreground'
                       : 'hover:bg-muted'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {section.label}
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm sm:text-base">{section.label}</span>
                 </button>
               );
             })}
@@ -488,15 +488,15 @@ export function SettingsForm({
                       )}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="general.autoJoinAudio"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-base">Auto-join Audio</FormLabel>
-                              <FormDescription>
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 sm:p-4">
+                            <div className="space-y-0.5 flex-1 min-w-0 pr-3">
+                              <FormLabel className="text-sm sm:text-base">Auto-join Audio</FormLabel>
+                              <FormDescription className="text-xs sm:text-sm">
                                 Automatically join with audio enabled
                               </FormDescription>
                             </div>
@@ -516,8 +516,8 @@ export function SettingsForm({
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Auto-join Video</FormLabel>
-                              <FormDescription>
+                              <FormLabel className="text-sm sm:text-base">Auto-join Video</FormLabel>
+                              <FormDescription className="text-xs sm:text-sm">
                                 Automatically join with video enabled
                               </FormDescription>
                             </div>
@@ -537,8 +537,8 @@ export function SettingsForm({
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Waiting Room</FormLabel>
-                              <FormDescription>
+                              <FormLabel className="text-sm sm:text-base">Waiting Room</FormLabel>
+                              <FormDescription className="text-xs sm:text-sm">
                                 Require host approval to join
                               </FormDescription>
                             </div>
@@ -558,8 +558,8 @@ export function SettingsForm({
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Screen Sharing</FormLabel>
-                              <FormDescription>
+                              <FormLabel className="text-sm sm:text-base">Screen Sharing</FormLabel>
+                              <FormDescription className="text-xs sm:text-sm">
                                 Allow participants to share screens
                               </FormDescription>
                             </div>
@@ -590,7 +590,7 @@ export function SettingsForm({
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="audio.inputDevice"

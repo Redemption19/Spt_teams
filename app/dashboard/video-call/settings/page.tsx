@@ -27,19 +27,21 @@ export default function VideoCallSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Video Call Settings</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Video Call Settings</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Configure your video calling preferences and defaults
         </p>
       </div>
 
-      <SettingsForm
-        settings={settings}
-        loading={loading}
-        onSave={handleSaveSettings}
-      />
+      <div className="w-full">
+        <SettingsForm
+          settings={settings}
+          loading={loading}
+          onSave={handleSaveSettings}
+        />
+      </div>
     </div>
   );
 }

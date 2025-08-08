@@ -14,6 +14,7 @@ import { Calendar, Clock, Users, Mail, Copy, Check, Plus, X } from 'lucide-react
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useToast } from '@/hooks/use-toast';
+import { generateChannelName } from '@/lib/video-call-utils';
 
 export default function ScheduleMeetingPage() {
   const router = useRouter();
@@ -42,9 +43,9 @@ export default function ScheduleMeetingPage() {
 
   const [newParticipant, setNewParticipant] = useState('');
 
-  // Generate a unique meeting ID
+  // Generate a unique meeting ID using proper channel name generation
   const generateMeetingId = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return generateChannelName('meeting');
   };
 
   const [meetingId] = useState(generateMeetingId());

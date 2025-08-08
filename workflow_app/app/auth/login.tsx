@@ -248,15 +248,17 @@ export default function LoginScreen() {
         await AsyncStorage.removeItem('rememberedEmail');
       }
       
-      // Show success alert
-      Alert.alert(
-        'Welcome back!',
-        'Successfully signed in to your account',
-        [{ text: 'OK' }]
-      );
+      // Show success alert with a small delay to let auth store process
+      setTimeout(() => {
+        Alert.alert(
+          'Welcome back!',
+          'Successfully signed in to your account',
+          [{ text: 'OK' }]
+        );
+      }, 100);
       
-      // Let the auth store handle redirection
-      setLoading(false);
+      // Don't set loading to false here - let the auth store handle it
+      // The auth store will set loading to false and trigger redirection
     } catch (error: any) {
       console.error('Login error:', error);
       
@@ -282,7 +284,8 @@ export default function LoginScreen() {
         Alert.alert('Sign In Error', errorMessage);
       }
     } finally {
-      setLoading(false);
+      // Only set loading to false on error, not on success
+      // On success, let the auth store handle the loading state
     }
   };
 
@@ -305,14 +308,16 @@ export default function LoginScreen() {
       // Clear rate limiting data on successful login
       await clearRateLimitData();
       
-      // Show success alert
-      Alert.alert(
-        'Welcome!',
-        'Successfully signed in with Google',
-        [{ text: 'OK' }]
-      );
+      // Show success alert with a small delay to let auth store process
+      setTimeout(() => {
+        Alert.alert(
+          'Welcome!',
+          'Successfully signed in with Google',
+          [{ text: 'OK' }]
+        );
+      }, 100);
       
-      setLoading(false);
+      // Don't set loading to false here - let the auth store handle it
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       await recordLoginAttempt(false);
@@ -331,7 +336,8 @@ export default function LoginScreen() {
         Alert.alert('Google Sign In Error', errorMessage);
       }
     } finally {
-      setLoading(false);
+      // Only set loading to false on error, not on success
+      // On success, let the auth store handle the loading state
     }
   };
 
@@ -354,14 +360,16 @@ export default function LoginScreen() {
       // Clear rate limiting data on successful login
       await clearRateLimitData();
       
-      // Show success alert
-      Alert.alert(
-        'Welcome!',
-        'You are now exploring as a guest. Guest mode activated successfully.',
-        [{ text: 'OK' }]
-      );
+      // Show success alert with a small delay to let auth store process
+      setTimeout(() => {
+        Alert.alert(
+          'Welcome!',
+          'You are now exploring as a guest. Guest mode activated successfully.',
+          [{ text: 'OK' }]
+        );
+      }, 100);
       
-      setLoading(false);
+      // Don't set loading to false here - let the auth store handle it
     } catch (error: any) {
       console.error('Guest sign-in error:', error);
       await recordLoginAttempt(false);
@@ -370,7 +378,8 @@ export default function LoginScreen() {
       setError(errorMessage);
       Alert.alert('Guest Sign In Error', errorMessage);
     } finally {
-      setLoading(false);
+      // Only set loading to false on error, not on success
+      // On success, let the auth store handle the loading state
     }
   };
 

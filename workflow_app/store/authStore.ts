@@ -18,6 +18,7 @@ interface AuthActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setIsNewUser: (isNewUser: boolean) => void;
+  clearNewUserFlag: () => void;
   
   // Auth operations
   signIn: (email: string, password: string) => Promise<void>;
@@ -54,11 +55,16 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       // Actions
-      setUser: (user) => set({ 
-        user, 
-        isAuthenticated: !!user,
-        error: null 
-      }),
+      setUser: (user) => {
+        console.log('🔄 Setting user in store:', user?.email);
+        set({ 
+          user, 
+          isAuthenticated: !!user,
+          error: null,
+          isLoading: false // Ensure loading is set to false when user is set
+        });
+        console.log('✅ User state updated in store');
+      },
       
       setLoading: (isLoading) => set({ isLoading }),
       
@@ -66,19 +72,26 @@ export const useAuthStore = create<AuthStore>()(
       
       setIsNewUser: (isNewUser) => set({ isNewUser }),
       
+      clearNewUserFlag: () => set({ isNewUser: false }),
+      
       // Auth operations
       signIn: async (email, password) => {
+        console.log('🔐 Starting sign in process...');
         set({ isLoading: true, error: null });
         try {
           const { user, isNewUser } = await AuthService.signInWithEmail(email, password);
+          console.log('✅ AuthService sign in successful:', user.email, 'isNewUser:', isNewUser);
           await AuthService.saveUserToStorage(user);
+          console.log('💾 User saved to storage, setting store state...');
           set({ 
             user, 
             isAuthenticated: true, 
             isNewUser,
             isLoading: false 
           });
+          console.log('✅ Store state updated, should trigger redirection');
         } catch (error: any) {
+          console.error('❌ Sign in error:', error);
           set({ 
             error: error.message, 
             isLoading: false 
@@ -185,6 +198,14 @@ export const useAuthStore = create<AuthStore>()(
         isAuthenticated: state.isAuthenticated,
         isNewUser: state.isNewUser
       }),
+      onRehydrateStorage: () => (state) => {
+        console.log('🔄 Auth store rehydrated:', {
+          user: state?.user?.email,
+          isAuthenticated: state?.isAuthenticated,
+          isNewUser: state?.isNewUser,
+          isLoading: state?.isLoading
+        });
+      },
     }
   )
 );

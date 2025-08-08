@@ -9,6 +9,7 @@ import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { usePermissions } from '@/hooks/use-permissions';
+import { validateChannelName, sanitizeChannelName } from '@/lib/video-call-utils';
 
 interface VideoCallPageProps {
   searchParams: {
@@ -34,17 +35,37 @@ function VideoCallContent() {
   const [error, setError] = useState<string | null>(null);
 
   // Extract parameters
-  const channelName = searchParams.get('channel');
+  let channelName = searchParams.get('channel');
   const meetingTitle = searchParams.get('title');
   const token = searchParams.get('token');
   const interviewId = searchParams.get('interview');
   const teamId = searchParams.get('team');
   const eventId = searchParams.get('event');
   
+  // Sanitize the channel name immediately after extraction
+  if (channelName) {
+    const originalChannelName = channelName;
+    channelName = sanitizeChannelName(channelName);
+    console.log('🔍 Channel Name Sanitization:', {
+      original: originalChannelName,
+      sanitized: channelName,
+      changed: originalChannelName !== channelName
+    });
+  }
+  
   // Get Agora App ID from environment variables
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
 
   useEffect(() => {
+    // Debug logging
+    console.log('🔍 Video Call Debug Info:', {
+      channelName,
+      appId: appId ? 'Configured' : 'Not configured',
+      interviewId,
+      teamId,
+      eventId
+    });
+
     // Validation
     if (!channelName) {
       setError('Missing channel name');
@@ -53,6 +74,20 @@ function VideoCallContent() {
 
     if (!appId) {
       setError('Video calling is not configured. Please contact your administrator.');
+      return;
+    }
+
+    // Validate channel name format
+    const validation = validateChannelName(channelName);
+    console.log('🔍 Channel Name Validation:', {
+      channelName,
+      isValid: validation.isValid,
+      errors: validation.errors,
+      length: channelName.length
+    });
+    
+    if (!validation.isValid) {
+      setError(`Invalid channel name: ${validation.errors.join(', ')}`);
       return;
     }
 

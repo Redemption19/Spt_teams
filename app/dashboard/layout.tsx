@@ -13,6 +13,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { GuestBanner } from '@/components/layout/guest-banner';
+import { RouteGuard } from '@/components/auth/route-guard';
 
 // Separate component that uses useAuth inside AuthProvider
 function DashboardContent({ children }: { children: React.ReactNode }) {
@@ -23,11 +24,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const touchStartX = useRef<number>(0);
   const touchCurrentX = useRef<number>(0);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/');
-    }
-  }, [user, loading, router]);
+  // Remove the old authentication check since RouteGuard will handle it
 
   // Handle swipe gestures for mobile sidebar
   useEffect(() => {
@@ -74,41 +71,40 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     setIsMobileSidebarOpen(false);
   }, [pathname]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+  // Remove the old loading and auth checks since RouteGuard will handle them
+
+  // Don't render anything if user is null - RouteGuard will handle the redirect
+  if (!user) {
+    return null;
   }
 
-  if (!user) return null;
-
   return (
-    <WorkspaceProvider userId={user.uid} isGuest={isGuest}>
-      <NotificationProvider>
-        <WorkspaceAssistantProvider>
-          <div className="min-h-screen bg-background">
-            <div className="flex h-screen">
-              <div className="hidden md:block">
-                <Sidebar />
-              </div>
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <Header />
-                <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
-                  <div className="max-w-7xl mx-auto">
-                    <GuestBanner />
-                    {children}
-                  </div>
-                </main>
+    <RouteGuard requireAuth={true}>
+      <WorkspaceProvider userId={user.uid} isGuest={isGuest}>
+        <NotificationProvider>
+          <WorkspaceAssistantProvider>
+            <div className="min-h-screen bg-background">
+              <div className="flex h-screen">
+                <div className="hidden md:block">
+                  <Sidebar />
+                </div>
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <Header />
+                  <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
+                    <div className="max-w-7xl mx-auto">
+                      <GuestBanner />
+                      {children}
+                    </div>
+                  </main>
+                </div>
               </div>
             </div>
-          </div>
-          <FloatingWorkspaceAssistant />
-          <Toaster />
-        </WorkspaceAssistantProvider>
-      </NotificationProvider>
-    </WorkspaceProvider>
+            <FloatingWorkspaceAssistant />
+            <Toaster />
+          </WorkspaceAssistantProvider>
+        </NotificationProvider>
+      </WorkspaceProvider>
+    </RouteGuard>
   );
 }
 

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
-import { BRAND_COLORS, SPACING, TYPOGRAPHY } from '../constants/theme';
+import { BRAND_COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
 export default function Index() {
   const router = useRouter();
@@ -14,25 +14,53 @@ export default function Index() {
       isNewUser, 
       isLoading, 
       hasUser: !!user,
-      error 
+      error,
+      userEmail: user?.email
     });
+    
+    // Force re-render when auth state changes
+    console.log('🔄 Index useEffect triggered - checking redirection logic');
 
     // Add timeout to prevent infinite loading
     const timeout = setTimeout(() => {
       if (isLoading) {
-        console.log('⏰ Loading timeout, redirecting to login');
-        router.replace('/auth/login');
+        console.log('⏰ Loading timeout, checking auth state...');
+        if (isAuthenticated && user) {
+          console.log('⏰ Timeout but user is authenticated, redirecting to dashboard');
+          router.replace('/dashboard');
+        } else {
+          console.log('⏰ Loading timeout, redirecting to login');
+          router.replace('/auth/login');
+        }
       }
-    }, 5000); // 5 second timeout
+    }, 8000); // 8 second timeout
 
     if (!isLoading) {
+      console.log('🚀 Not loading, checking auth state...');
       if (isAuthenticated && user) {
-        console.log('✅ User authenticated, redirecting to dashboard');
-        router.replace('/dashboard');
+        console.log('✅ User is authenticated:', user.email);
+        if (isNewUser) {
+          console.log('🆕 New user detected, redirecting to onboarding');
+          router.replace('/onboarding');
+        } else {
+          console.log('✅ Existing user authenticated, redirecting to dashboard');
+          console.log('🔄 About to navigate to dashboard...');
+          router.replace('/dashboard');
+          console.log('🔄 Navigation command sent to dashboard');
+          
+          // Force navigation after a small delay to ensure it works
+          setTimeout(() => {
+            console.log('🔄 Force navigation to dashboard');
+            router.replace('/dashboard');
+          }, 500);
+        }
       } else {
         console.log('🔐 User not authenticated, redirecting to login');
+        console.log('isAuthenticated:', isAuthenticated, 'user:', !!user);
         router.replace('/auth/login');
       }
+    } else {
+      console.log('⏳ Still loading...');
     }
 
     return () => clearTimeout(timeout);
@@ -54,9 +82,21 @@ export default function Index() {
         <Text style={styles.loadingText}>
           {isLoading ? 'Loading...' : 'Redirecting...'}
         </Text>
+        <Text style={styles.debugText}>
+          Debug: Auth={isAuthenticated ? 'Yes' : 'No'}, User={user ? 'Yes' : 'No'}, New={isNewUser ? 'Yes' : 'No'}
+        </Text>
         {error && (
           <Text style={styles.errorText}>Error: {error}</Text>
         )}
+        <TouchableOpacity 
+          style={styles.debugButton} 
+          onPress={() => {
+            console.log('🔧 Manual redirect to dashboard');
+            router.replace('/dashboard');
+          }}
+        >
+          <Text style={styles.debugButtonText}>Manual Dashboard</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -109,5 +149,23 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     marginTop: SPACING.sm,
     textAlign: 'center',
+  },
+  debugText: {
+    fontSize: TYPOGRAPHY.sizes.xs,
+    color: '#6b7280',
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
+  debugButton: {
+    backgroundColor: BRAND_COLORS.primary,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    marginTop: SPACING.md,
+  },
+  debugButtonText: {
+    color: '#ffffff',
+    fontSize: TYPOGRAPHY.sizes.sm,
+    fontWeight: TYPOGRAPHY.weights.medium,
   },
 });
