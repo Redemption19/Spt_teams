@@ -178,20 +178,20 @@ export default function AssignFolderDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[90vw] h-[85vh] overflow-hidden">
-        <DialogHeader className="pb-3">
-          <DialogTitle className="flex items-center space-x-2">
-            <UserPlus className="h-5 w-5 text-primary" />
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="flex items-center space-x-2 text-base sm:text-lg break-words">
+            <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
             <span>Assign Folder to Member</span>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="h-full flex flex-col">
-          <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 overflow-hidden">
             
-            <div className="space-y-4 overflow-y-auto">
+            <div className="space-y-3 sm:space-y-4 overflow-y-auto pr-2">
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-primary border-b border-border pb-1">
+                <h3 className="text-base sm:text-lg font-semibold text-primary border-b border-border pb-1">
                   Select Member
                 </h3>
                 
@@ -202,7 +202,7 @@ export default function AssignFolderDialog({
                       placeholder="Search members..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-10"
+                      className="pl-10 h-11 sm:h-10 touch-manipulation"
                     />
                   </div>
 
@@ -211,7 +211,7 @@ export default function AssignFolderDialog({
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
                   ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-2">
+                    <div className="space-y-2 max-h-40 sm:max-h-48 overflow-y-auto border rounded-lg p-2 sm:p-3">
                       {filteredMembers.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">
                           No members found.
@@ -219,9 +219,9 @@ export default function AssignFolderDialog({
                       ) : (
                         <RadioGroup value={form.memberId} onValueChange={(value) => setForm(prev => ({ ...prev, memberId: value }))}>
                           {filteredMembers.map(member => (
-                            <div key={member.id} className="flex items-center space-x-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
-                              <RadioGroupItem value={member.id} id={member.id} />
-                              <Avatar className="h-8 w-8">
+                            <div key={member.id} className="flex items-center space-x-3 p-3 sm:p-2 hover:bg-muted rounded-lg cursor-pointer touch-manipulation">
+                              <RadioGroupItem value={member.id} id={member.id} className="touch-manipulation" />
+                              <Avatar className="h-10 w-10 sm:h-8 sm:w-8">
                                 <AvatarImage src={member.avatar} />
                                 <AvatarFallback className="text-xs">
                                   {member.name.charAt(0).toUpperCase()}
@@ -241,17 +241,17 @@ export default function AssignFolderDialog({
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-primary border-b border-border pb-1">
+                <h3 className="text-base sm:text-lg font-semibold text-primary border-b border-border pb-1">
                   Assignment Type
                 </h3>
                 
                 <RadioGroup value={assignmentType} onValueChange={(value: any) => setAssignmentType(value)}>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                    <RadioGroupItem value="existing" id="existing" />
+                  <div className="flex items-center space-x-2 p-3 sm:p-4 border rounded-lg touch-manipulation">
+                    <RadioGroupItem value="existing" id="existing" className="touch-manipulation" />
                     <Label htmlFor="existing" className="cursor-pointer flex-1">
                       <div className="flex items-center space-x-2">
                         <FolderOpen className="h-4 w-4" />
-                        <span className="font-medium">Assign Existing Folder</span>
+                        <span className="font-medium text-sm sm:text-base">Assign Existing Folder</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Give member access to an existing folder
@@ -259,12 +259,12 @@ export default function AssignFolderDialog({
                     </Label>
                   </div>
                   
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                    <RadioGroupItem value="new" id="new" />
+                  <div className="flex items-center space-x-2 p-3 sm:p-4 border rounded-lg touch-manipulation">
+                    <RadioGroupItem value="new" id="new" className="touch-manipulation" />
                     <Label htmlFor="new" className="cursor-pointer flex-1">
                       <div className="flex items-center space-x-2">
                         <Plus className="h-4 w-4" />
-                        <span className="font-medium">Create New Folder</span>
+                        <span className="font-medium text-sm sm:text-base">Create New Folder</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Create a new folder specifically for this member
@@ -275,9 +275,9 @@ export default function AssignFolderDialog({
               </div>
             </div>
 
-            <div className="space-y-4 overflow-y-auto">
+            <div className="space-y-3 sm:space-y-4 overflow-y-auto pr-2">
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-primary border-b border-border pb-1">
+                <h3 className="text-base sm:text-lg font-semibold text-primary border-b border-border pb-1">
                   {assignmentType === 'existing' ? 'Select Folder' : 'Create Folder'}
                 </h3>
                 
@@ -285,7 +285,7 @@ export default function AssignFolderDialog({
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Available Folders</Label>
                     <Select value={form.folderId} onValueChange={(value) => setForm(prev => ({ ...prev, folderId: value }))}>
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-11 sm:h-10 touch-manipulation">
                         <SelectValue placeholder="Select a folder to assign" />
                       </SelectTrigger>
                       <SelectContent>
@@ -309,7 +309,7 @@ export default function AssignFolderDialog({
                         value={form.folderName}
                         onChange={(e) => setForm(prev => ({ ...prev, folderName: e.target.value }))}
                         placeholder="Enter folder name"
-                        className="h-10"
+                        className="h-11 sm:h-10 touch-manipulation"
                       />
                     </div>
                     
@@ -320,7 +320,7 @@ export default function AssignFolderDialog({
                         onChange={(e) => setForm(prev => ({ ...prev, folderDescription: e.target.value }))}
                         placeholder="Brief description"
                         rows={3}
-                        className="resize-none"
+                        className="resize-none touch-manipulation"
                       />
                     </div>
                   </div>
@@ -328,12 +328,12 @@ export default function AssignFolderDialog({
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-md font-semibold text-foreground border-b border-border pb-1">
+                <h4 className="text-sm sm:text-base font-semibold text-foreground border-b border-border pb-1">
                   Member Permissions
                 </h4>
                 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center justify-between p-3 sm:p-2 bg-muted rounded-lg touch-manipulation">
                     <Label className="text-sm font-medium">Can Upload Files</Label>
                     <Switch
                       checked={form.permissions.canUpload}
@@ -343,10 +343,11 @@ export default function AssignFolderDialog({
                           permissions: { ...prev.permissions, canUpload: checked }
                         }))
                       }
+                      className="touch-manipulation"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between p-3 sm:p-2 bg-muted rounded-lg touch-manipulation">
                     <Label className="text-sm font-medium">Can Edit Folder</Label>
                     <Switch
                       checked={form.permissions.canEdit}
@@ -356,10 +357,11 @@ export default function AssignFolderDialog({
                           permissions: { ...prev.permissions, canEdit: checked }
                         }))
                       }
+                      className="touch-manipulation"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between p-3 sm:p-2 bg-muted rounded-lg touch-manipulation">
                     <Label className="text-sm font-medium">Can Share Folder</Label>
                     <Switch
                       checked={form.permissions.canShare}
@@ -369,6 +371,7 @@ export default function AssignFolderDialog({
                           permissions: { ...prev.permissions, canShare: checked }
                         }))
                       }
+                      className="touch-manipulation"
                     />
                   </div>
                 </div>
@@ -395,14 +398,14 @@ export default function AssignFolderDialog({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-border mt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="h-10 px-6">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-2 pt-4 border-t border-border mt-4 p-4 sm:p-0">
+            <Button type="button" variant="outline" onClick={onClose} className="h-11 sm:h-10 px-6 w-full sm:w-auto touch-manipulation">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={submitting || !form.memberId}
-              className="h-10 px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              className="h-11 sm:h-10 px-6 w-full sm:w-auto bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 touch-manipulation truncate"
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Assign Folder
@@ -412,4 +415,4 @@ export default function AssignFolderDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

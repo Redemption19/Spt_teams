@@ -881,6 +881,13 @@ export class ReportService {
   ): Promise<void> {
     try {
       const reportDoc = this.getReportDoc(workspaceId, reportId);
+      
+      // Get the current report data to access author information
+      const reportSnap = await getDoc(reportDoc);
+      if (!reportSnap.exists()) {
+        throw new Error('Report not found');
+      }
+      const report = reportSnap.data() as EnhancedReport;
 
       const updateData: any = {
         status: 'approved',
@@ -909,6 +916,31 @@ export class ReportService {
         console.error('Error logging approval activity:', error);
       }
 
+      // Create notification for report author
+      if (report.authorId && report.authorId !== reviewerId) {
+        try {
+          await NotificationService.createNotification({
+            userId: report.authorId,
+            workspaceId,
+            type: 'report_approved',
+            title: 'Report Approved',
+            message: `Your report "${report.title}" has been approved.${reviewComment ? ` Comment: ${reviewComment}` : ''}`,
+            icon: '✅',
+            priority: 'medium',
+            actionUrl: `/dashboard/reports/view/${reportId}`,
+            actionLabel: 'View Report',
+            metadata: {
+              reportId,
+              reportTitle: report.title,
+              reviewComment: reviewComment || null
+            }
+          });
+        } catch (error) {
+          console.error('Error creating approval notification:', error);
+          // Don't throw error as this is not critical to the main operation
+        }
+      }
+
     } catch (error) {
       console.error('Error approving report:', error);
       throw new Error('Failed to approve report');
@@ -930,6 +962,13 @@ export class ReportService {
       }
 
       const reportDoc = this.getReportDoc(workspaceId, reportId);
+      
+      // Get the current report data to access author information
+      const reportSnap = await getDoc(reportDoc);
+      if (!reportSnap.exists()) {
+        throw new Error('Report not found');
+      }
+      const report = reportSnap.data() as EnhancedReport;
 
       await updateDoc(reportDoc, {
         status: 'rejected',
@@ -951,6 +990,31 @@ export class ReportService {
         );
       } catch (error) {
         console.error('Error logging rejection activity:', error);
+      }
+
+      // Create notification for report author
+      if (report.authorId && report.authorId !== reviewerId) {
+        try {
+          await NotificationService.createNotification({
+            userId: report.authorId,
+            workspaceId,
+            type: 'report_rejected',
+            title: 'Report Rejected',
+            message: `Your report "${report.title}" has been rejected. Reason: ${reviewComment.trim()}`,
+            icon: '❌',
+            priority: 'high',
+            actionUrl: `/dashboard/reports/view/${reportId}`,
+            actionLabel: 'View Report',
+            metadata: {
+              reportId,
+              reportTitle: report.title,
+              rejectionReason: reviewComment.trim()
+            }
+          });
+        } catch (error) {
+          console.error('Error creating rejection notification:', error);
+          // Don't throw error as this is not critical to the main operation
+        }
       }
 
     } catch (error) {
@@ -1023,4 +1087,4 @@ export class ReportService {
       throw new Error('Failed to add comment to report');
     }
   }
-} 
+}

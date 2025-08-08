@@ -305,13 +305,13 @@ export default function LeavesPage() {
             <div className="h-4 w-96 bg-muted rounded animate-pulse" />
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="stats-card">
-              <CardHeader className="space-y-0 pb-2">
+              <CardHeader className="space-y-0 pb-2 p-4 sm:p-6">
                 <div className="h-4 w-24 bg-muted rounded animate-pulse" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6">
                 <div className="h-8 w-20 bg-muted rounded animate-pulse mb-2" />
                 <div className="h-3 w-16 bg-muted rounded animate-pulse" />
               </CardContent>
@@ -325,34 +325,35 @@ export default function LeavesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground leading-tight">
             {isEmployee ? 'My Leave Dashboard' : 'Leave Management'}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base leading-relaxed">
             {isEmployee 
               ? `Manage your leave requests and view balances for ${format(new Date(), 'MMMM dd, yyyy')}`
               : `Manage leave requests, track balances, and handle approvals for ${format(new Date(), 'MMMM dd, yyyy')}`
             }
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3 lg:flex-shrink-0">
           <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center space-x-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="flex items-center justify-center space-x-2 h-11 w-full sm:w-auto min-w-[120px] hover:bg-accent hover:text-accent-foreground transition-colors touch-manipulation"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </Button>
           
           {/* Annual Leave Application Form Button */}
-          <Link href="/dashboard/hr/leaves/application">
-            <Button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
-              <FileText className="h-4 w-4" />
-              <span>{!isEmployee ? 'New Annual Form' : 'Request Annual Leave'}</span>
+          <Link href="/dashboard/hr/leaves/application" className="w-full sm:w-auto">
+            <Button className="flex items-center justify-center space-x-2 h-11 w-full sm:min-w-[160px] bg-primary hover:bg-primary/90 text-primary-foreground transition-colors touch-manipulation">
+              <FileText className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{!isEmployee ? 'New Annual Form' : 'Request Annual Leave'}</span>
+              <span className="sm:hidden truncate">{!isEmployee ? 'New Form' : 'Request Leave'}</span>
             </Button>
           </Link>
         </div>
@@ -361,39 +362,43 @@ export default function LeavesPage() {
       {/* Cross-workspace info for owners */}
       {shouldShowCrossWorkspace && (
         <Card className="card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-foreground">
-              <Globe className="h-5 w-5 text-primary" />
-              <span>Cross-Workspace Management</span>
-              <Badge variant="outline" className="ml-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 text-foreground">
+              <div className="flex items-center space-x-2">
+                <Globe className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="text-base sm:text-lg">Cross-Workspace Management</span>
+              </div>
+              <Badge variant="outline" className="self-start sm:self-center">
                 <Globe className="h-3 w-3 mr-1" />
                 Owner View
               </Badge>
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Select a workspace to view and manage its leave data
-              {selectedWorkspace && allWorkspaces.length > 0 && (
-                <span className="ml-2 font-medium text-foreground">
-                  • Currently viewing: {allWorkspaces.find(ws => ws.id === selectedWorkspace)?.name || 'Unknown'}
-                </span>
-              )}
+            <CardDescription className="text-muted-foreground text-sm leading-relaxed">
+              <div className="space-y-1">
+                <div>Select a workspace to view and manage its leave data</div>
+                {selectedWorkspace && allWorkspaces.length > 0 && (
+                  <div className="font-medium text-foreground text-xs sm:text-sm">
+                    Currently viewing: <span className="text-primary">{allWorkspaces.find(ws => ws.id === selectedWorkspace)?.name || 'Unknown'}</span>
+                  </div>
+                )}
+              </div>
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-6">
+              <div className="flex-1 min-w-0">
                 <Select value={selectedWorkspace} onValueChange={handleWorkspaceChange}>
-                  <SelectTrigger className="border-border/50 focus:border-primary">
+                  <SelectTrigger className="w-full h-11 border-border/50 focus:border-primary">
                     <SelectValue placeholder="Select a workspace" />
                   </SelectTrigger>
                   <SelectContent>
                     {allWorkspaces.map(workspace => (
                       <SelectItem key={workspace.id} value={workspace.id}>
-                        <div className="flex items-center space-x-2">
-                          <Building className="h-4 w-4" />
-                          <span>{workspace.name}</span>
+                        <div className="flex items-center space-x-2 w-full">
+                          <Building className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate flex-1">{workspace.name}</span>
                           {workspace.type && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs flex-shrink-0 ml-2">
                               {workspace.type}
                             </Badge>
                           )}
@@ -403,8 +408,9 @@ export default function LeavesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium">Total Workspaces:</span> {allWorkspaces.length}
+              <div className="text-sm text-muted-foreground text-center lg:text-right lg:flex-shrink-0">
+                <span className="font-medium">Total Workspaces:</span> 
+                <span className="ml-1 text-foreground font-semibold">{allWorkspaces.length}</span>
               </div>
             </div>
           </CardContent>
@@ -428,12 +434,22 @@ export default function LeavesPage() {
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-          <TabsTrigger value="requests">Leave Requests</TabsTrigger>
-          <TabsTrigger value="balances">Leave Balances</TabsTrigger>
-          <TabsTrigger value="types">Leave Types</TabsTrigger>
-          <TabsTrigger value="calendar">Team Calendar</TabsTrigger>
-          <TabsTrigger value="applications">Annual Applications</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto bg-muted p-1 text-muted-foreground rounded-lg">
+          <TabsTrigger value="requests" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Leave Requests</span>
+          </TabsTrigger>
+          <TabsTrigger value="balances" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Leave Balances</span>
+          </TabsTrigger>
+          <TabsTrigger value="types" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Leave Types</span>
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Team Calendar</span>
+          </TabsTrigger>
+          <TabsTrigger value="applications" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation col-span-2 sm:col-span-1">
+            <span className="truncate">Annual Applications</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests" className="space-y-4">

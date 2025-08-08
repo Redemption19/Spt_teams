@@ -51,12 +51,12 @@ export default function EditTeamDialog({
 }: EditTeamDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="w-[95vw] max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden rounded-xl">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4 max-h-[95vh] overflow-hidden rounded-xl">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-lg sm:text-xl">Edit Team</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg break-words">Edit Team</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 sm:space-y-5 max-h-[calc(95vh-180px)] sm:max-h-[calc(90vh-180px)] overflow-y-auto pr-2">
+        <div className="space-y-4 sm:space-y-5 max-h-[calc(95vh-200px)] overflow-y-auto pr-2">
           <div>
             <Label htmlFor="edit-team-name" className="text-sm font-medium">
               Team Name <span className="text-red-500">*</span>
@@ -139,22 +139,22 @@ export default function EditTeamDialog({
             variant="outline"
             onClick={() => setIsOpen(false)}
             disabled={isSubmitting}
-            className="h-11 sm:h-10 touch-manipulation rounded-lg border-border/50"
+            className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation rounded-lg border-border/50"
           >
             Cancel
           </Button>
           <Button 
             onClick={onSubmit} 
             disabled={isSubmitting || !teamForm.name.trim()} 
-            className="h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 touch-manipulation rounded-lg"
+            className="w-full sm:w-auto h-11 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 touch-manipulation rounded-lg"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Updating...
+                <Loader2 className="h-4 w-4 animate-spin mr-2 flex-shrink-0" />
+                <span className="truncate">Updating...</span>
               </>
             ) : (
-              'Update Team'
+              <span className="truncate">Update Team</span>
             )}
           </Button>
         </div>

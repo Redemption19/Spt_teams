@@ -93,17 +93,17 @@ export function AttendanceCard({
   
   return (
     <Card className="card-enhanced hover:shadow-lg transition-all duration-300">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+      <CardHeader className="pb-2 sm:pb-3">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
             {showEmployeeName && (
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-primary" />
-                <span className="font-medium text-sm text-foreground">{record.employeeName}</span>
+                <span className="font-medium text-sm text-foreground truncate">{record.employeeName}</span>
                 {showWorkspaceName && record.workspaceName && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs flex-shrink-0">
                     <Building className="h-3 w-3 mr-1" />
-                    {record.workspaceName}
+                    <span className="truncate max-w-20">{record.workspaceName}</span>
                   </Badge>
                 )}
               </div>
@@ -115,7 +115,7 @@ export function AttendanceCard({
               </span>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between sm:justify-end space-x-2">
             {getStatusBadge(record.status)}
             {(canEdit || canDelete) && (
               <div className="flex items-center space-x-1">
@@ -124,9 +124,9 @@ export function AttendanceCard({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit?.(record)}
-                    className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground"
+                    className="h-9 w-9 sm:h-8 sm:w-8 p-0 hover:bg-accent hover:text-accent-foreground"
                   >
-                    <Edit className="h-3 w-3" />
+                    <Edit className="h-4 w-4 sm:h-3 sm:w-3" />
                   </Button>
                 )}
                 {canDelete && (
@@ -134,9 +134,9 @@ export function AttendanceCard({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete?.(record)}
-                    className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                    className="h-9 w-9 sm:h-8 sm:w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4 sm:h-3 sm:w-3" />
                   </Button>
                 )}
               </div>
@@ -145,14 +145,14 @@ export function AttendanceCard({
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {/* Time Information - Only show for non-absent records */}
         {record.status !== 'absent' ? (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Play className="h-4 w-4 text-green-600" />
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs text-muted-foreground">Clock In</p>
                   <p className="text-sm font-semibold text-foreground">
                     {formatTime(record.clockIn)}
@@ -164,7 +164,7 @@ export function AttendanceCard({
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Square className="h-4 w-4 text-red-600" />
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs text-muted-foreground">Clock Out</p>
                   <p className="text-sm font-semibold text-foreground">
                     {formatTime(record.clockOut)}
@@ -177,7 +177,7 @@ export function AttendanceCard({
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <XCircle className="h-4 w-4 text-red-600" />
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-xs text-muted-foreground">Status</p>
                 <p className="text-sm font-semibold text-red-600">
                   Employee was absent on this date
@@ -192,7 +192,7 @@ export function AttendanceCard({
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               {breakStatus.icon}
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-xs text-muted-foreground">Break</p>
                 <p className={`text-sm font-semibold ${breakStatus.className}`}>
                   {breakStatus.text}
@@ -207,7 +207,7 @@ export function AttendanceCard({
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4 text-primary" />
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-xs text-muted-foreground">Work Hours</p>
                 <p className="text-sm font-semibold text-foreground">
                   {formatWorkHours(record.workHours)}
@@ -221,10 +221,10 @@ export function AttendanceCard({
         {record.location && (
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <div>
+              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0 flex-1">
                 <p className="text-xs text-muted-foreground">Location</p>
-                <p className="text-sm text-foreground">{record.location}</p>
+                <p className="text-sm text-foreground break-words">{record.location}</p>
               </div>
             </div>
           </div>
@@ -234,36 +234,36 @@ export function AttendanceCard({
         {record.notes && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">Notes</p>
-            <p className="text-sm text-foreground bg-muted/30 p-2 rounded border border-border/30">
+            <p className="text-sm text-foreground bg-muted/30 p-3 sm:p-2 rounded border border-border/30 break-words">
               {record.notes}
             </p>
           </div>
         )}
 
         {/* Status Indicators */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/30">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 pt-2 border-t border-border/30">
+          <div className="flex flex-wrap items-center gap-2">
             {record.status === 'absent' ? (
-              <Badge variant="outline" className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
+              <Badge variant="outline" className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 text-xs">
                 <XCircle className="h-3 w-3 mr-1" />
                 Absent
               </Badge>
             ) : (
               <>
                 {isClockInOnly && (
-                  <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                  <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">
                     <Play className="h-3 w-3 mr-1" />
                     Active
                   </Badge>
                 )}
                 {record.breakStart && !record.breakEnd && (
-                  <Badge variant="outline" className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800">
+                  <Badge variant="outline" className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 text-xs">
                     <Coffee className="h-3 w-3 mr-1" />
                     On Break
                   </Badge>
                 )}
                 {record.clockOut && (
-                  <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">
+                  <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-xs">
                     <Square className="h-3 w-3 mr-1" />
                     Completed
                   </Badge>

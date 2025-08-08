@@ -17,7 +17,7 @@ export type ActivityType =
   | 'user_created' | 'user_updated' | 'user_deleted' | 'user_login' | 'user_logout'
   | 'user_transferred_out' | 'user_transferred_in'
   | 'team_created' | 'team_updated' | 'team_deleted' | 'team_member_added' | 'team_member_removed'
-  | 'team_lead_assigned' | 'team_lead_removed'
+  | 'team_lead_assigned' | 'team_lead_removed' | 'team_meeting_started' | 'team_meeting_scheduled'
   | 'branch_created' | 'branch_updated' | 'branch_deleted' | 'branch_manager_assigned'
   | 'region_created' | 'region_updated' | 'region_deleted'
   | 'workspace_created' | 'workspace_updated' | 'workspace_settings_changed'
@@ -29,6 +29,8 @@ export type ActivityType =
   | 'report_created' | 'report_updated' | 'report_submitted' | 'report_approved' | 'report_rejected' | 'report_status_changed' | 'report_deleted'
   | 'folder_created' | 'folder_updated' | 'folder_deleted'
   | 'support_ticket_created' | 'support_ticket_updated' | 'support_ticket_resolved' | 'support_ticket_closed'
+  | 'meeting_created' | 'meeting_updated' | 'meeting_started' | 'meeting_ended' | 'meeting_joined' | 'meeting_left' | 'meeting_deleted'
+  | 'video_settings_updated'
   | 'settings_changed' | 'security_event' | 'system_event';
 
 export interface EnhancedActivityLog extends ActivityLog {

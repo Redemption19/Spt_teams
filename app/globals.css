@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal overflow globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Ensure all containers respect viewport width */
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent tables from causing horizontal overflow */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-first responsive table wrapper */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .table-responsive th,
+  .table-responsive td {
+    padding: 0.5rem 0.25rem;
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -303,6 +335,106 @@
 /* Firefox scrollbar colors */
 .dark * {
   scrollbar-color: hsl(var(--primary) / 0.7) hsl(var(--muted) / 0.2);
+}
+
+/* Toast Theme Integration */
+.toast-theme-aware [data-sonner-toast] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Success toast styling */
+.toast-theme-aware [data-sonner-toast][data-type="success"] {
+  border-left: 4px solid hsl(var(--primary)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.toast-theme-aware [data-sonner-toast][data-type="success"] [data-icon] {
+  color: hsl(var(--primary)) !important;
+}
+
+/* Error toast styling */
+.toast-theme-aware [data-sonner-toast][data-type="error"] {
+  border-left: 4px solid hsl(var(--destructive)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.toast-theme-aware [data-sonner-toast][data-type="error"] [data-icon] {
+  color: hsl(var(--destructive)) !important;
+}
+
+/* Warning toast styling */
+.toast-theme-aware [data-sonner-toast][data-type="warning"] {
+  border-left: 4px solid hsl(var(--accent)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.toast-theme-aware [data-sonner-toast][data-type="warning"] [data-icon] {
+  color: hsl(var(--accent)) !important;
+}
+
+/* Info toast styling */
+.toast-theme-aware [data-sonner-toast][data-type="info"] {
+  border-left: 4px solid hsl(var(--secondary)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.toast-theme-aware [data-sonner-toast][data-type="info"] [data-icon] {
+  color: hsl(var(--secondary)) !important;
+}
+
+/* Dark mode specific toast enhancements */
+.dark .toast-theme-aware [data-sonner-toast] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .toast-theme-aware [data-sonner-toast][data-type="success"] {
+  border-left: 4px solid hsl(var(--primary)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.dark .toast-theme-aware [data-sonner-toast][data-type="error"] {
+  border-left: 4px solid hsl(var(--destructive)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.dark .toast-theme-aware [data-sonner-toast][data-type="warning"] {
+  border-left: 4px solid hsl(var(--accent)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.dark .toast-theme-aware [data-sonner-toast][data-type="info"] {
+  border-left: 4px solid hsl(var(--secondary)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+/* Toast close button styling */
+.toast-theme-aware [data-sonner-toast] [data-close-button] {
+  color: hsl(var(--muted-foreground)) !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.toast-theme-aware [data-sonner-toast] [data-close-button]:hover {
+  color: hsl(var(--foreground)) !important;
+  background: hsl(var(--muted)) !important;
+}
+
+/* Toast description styling */
+.toast-theme-aware [data-sonner-toast] [data-description] {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Toast title styling */
+.toast-theme-aware [data-sonner-toast] [data-title] {
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600 !important;
 }
 
 /* Subtle scrollbar for input fields and textareas */

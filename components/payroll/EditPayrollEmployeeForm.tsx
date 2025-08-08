@@ -350,57 +350,67 @@ export default function EditPayrollEmployeeForm({
   if (loading) {
     return (
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Payroll Employee</DialogTitle>
-            <DialogDescription>
-              Update payroll information for {employee.employeeName}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <span className="ml-2">Loading form data...</span>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-3 sm:p-6">
+        <DialogHeader className="space-y-1 sm:space-y-3">
+          <DialogTitle className="text-base sm:text-lg lg:text-xl font-semibold">Edit Payroll Employee</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm lg:text-base">
+            Update payroll information for {employee.employeeName}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-center py-6 sm:py-8">
+          <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin" />
+          <span className="ml-2 text-xs sm:text-sm lg:text-base">Loading form data...</span>
+        </div>
+      </DialogContent>
+    </Dialog>
     );
   }
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Payroll Employee</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-3 sm:p-6">
+        <DialogHeader className="space-y-1 sm:space-y-3">
+          <DialogTitle className="text-base sm:text-lg lg:text-xl font-semibold">Edit Payroll Employee</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm lg:text-base">
             Update payroll information for {employee.employeeName} with salary, allowances, and deductions
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="salary">Salary & Allowances</TabsTrigger>
-            <TabsTrigger value="deductions">Deductions</TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-3 sm:space-y-4">
+          <div className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-3 h-auto min-h-[40px] bg-muted p-1 gap-1">
+              <TabsTrigger value="basic" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate touch-manipulation">
+                <span className="hidden sm:inline">Basic Info</span>
+                <span className="sm:hidden">Basic</span>
+              </TabsTrigger>
+              <TabsTrigger value="salary" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate touch-manipulation">
+                <span className="hidden sm:inline">Salary & Allowances</span>
+                <span className="sm:hidden">Salary</span>
+              </TabsTrigger>
+              <TabsTrigger value="deductions" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate touch-manipulation">
+                Deductions
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="basic" className="space-y-4">
+          <TabsContent value="basic" className="space-y-3 sm:space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   Employee Information
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm lg:text-base">
                   Update employee details and basic payroll information
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {shouldShowCrossWorkspace && (
                     <div className="space-y-2">
-                      <Label htmlFor="workspace">Workspace *</Label>
+                      <Label htmlFor="workspace" className="text-sm sm:text-base font-medium">Workspace *</Label>
                       <Select value={formData.selectedWorkspaceId} onValueChange={handleWorkspaceChange}>
-                        <SelectTrigger>
+                        <SelectTrigger className="min-h-[40px] text-sm sm:text-base">
                           <SelectValue placeholder="Select workspace" />
                         </SelectTrigger>
                         <SelectContent>
@@ -422,9 +432,9 @@ export default function EditPayrollEmployeeForm({
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="employee">Employee *</Label>
+                    <Label htmlFor="employee" className="text-sm sm:text-base font-medium">Employee *</Label>
                     <Select value={formData.employeeId} onValueChange={handleEmployeeChange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="min-h-[40px] text-sm sm:text-base">
                         <SelectValue placeholder="Select employee" />
                       </SelectTrigger>
                       <SelectContent>
@@ -445,33 +455,35 @@ export default function EditPayrollEmployeeForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="employeeName">Employee Name</Label>
+                    <Label htmlFor="employeeName" className="text-sm sm:text-base font-medium">Employee Name</Label>
                     <Input
                       id="employeeName"
                       value={formData.employeeName}
                       onChange={(e) => handleInputChange('employeeName', e.target.value)}
                       placeholder="Employee name"
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="employeeEmail">Employee Email</Label>
+                    <Label htmlFor="employeeEmail" className="text-sm sm:text-base font-medium">Employee Email</Label>
                     <Input
                       id="employeeEmail"
                       type="email"
                       value={formData.employeeEmail}
                       onChange={(e) => handleInputChange('employeeEmail', e.target.value)}
                       placeholder="Employee email"
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="department">Department *</Label>
+                    <Label htmlFor="department" className="text-sm sm:text-base font-medium">Department *</Label>
                     <Select 
                       value={formData.department || 'unassigned'} 
                       onValueChange={(value) => handleInputChange('department', value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="min-h-[40px] text-sm sm:text-base">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                       <SelectContent>
@@ -486,24 +498,25 @@ export default function EditPayrollEmployeeForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="role">Role *</Label>
+                    <Label htmlFor="role" className="text-sm sm:text-base font-medium">Role *</Label>
                     <Input
                       id="role"
                       value={formData.role}
                       onChange={(e) => handleInputChange('role', e.target.value)}
                       placeholder="Employee role"
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="payrollStatus">Payroll Status</Label>
+                    <Label htmlFor="payrollStatus" className="text-sm sm:text-base font-medium">Payroll Status</Label>
                     <Select 
-                      value={formData.payrollStatus} 
-                      onValueChange={(value) => handleInputChange('payrollStatus', value as any)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                        value={formData.payrollStatus} 
+                        onValueChange={(value) => handleInputChange('payrollStatus', value as any)}
+                      >
+                        <SelectTrigger className="min-h-[40px] text-sm sm:text-base">
+                          <SelectValue />
+                        </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="processed">Processed</SelectItem>
@@ -517,34 +530,35 @@ export default function EditPayrollEmployeeForm({
             </Card>
           </TabsContent>
 
-          <TabsContent value="salary" className="space-y-4">
+          <TabsContent value="salary" className="space-y-3 sm:space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                  <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   Salary & Allowances
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm lg:text-base">
                   Set up base salary, currency, and various allowances
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="baseSalary">Base Salary *</Label>
+                    <Label htmlFor="baseSalary" className="text-sm sm:text-base font-medium">Base Salary *</Label>
                     <Input
                       id="baseSalary"
                       type="number"
                       placeholder="0.00"
                       value={formData.baseSalary}
                       onChange={(e) => handleInputChange('baseSalary', e.target.value)}
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
+                    <Label htmlFor="currency" className="text-sm sm:text-base font-medium">Currency</Label>
                     <Select value={formData.currency} onValueChange={(value) => handleInputChange('currency', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="min-h-[40px] text-sm sm:text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -557,82 +571,90 @@ export default function EditPayrollEmployeeForm({
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isFixedSalary">Fixed Salary</Label>
+                  <div className="space-y-2 sm:col-span-2">
+                    <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <Label htmlFor="isFixedSalary" className="text-xs sm:text-sm lg:text-base font-medium">Fixed Salary</Label>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          {formData.isFixedSalary 
+                            ? "This employee has a fixed monthly salary with no variable components."
+                            : "This employee may have variable components like overtime or bonuses."
+                          }
+                        </p>
+                      </div>
                       <Switch
                         id="isFixedSalary"
                         checked={formData.isFixedSalary}
                         onCheckedChange={(checked) => handleInputChange('isFixedSalary', checked.toString())}
+                        className="flex-shrink-0"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formData.isFixedSalary 
-                        ? "This employee has a fixed monthly salary with no variable components."
-                        : "This employee may have variable components like overtime or bonuses."
-                      }
-                    </p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium">Allowances</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <h4 className="font-medium text-xs sm:text-sm lg:text-base">Allowances</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="housingAllowance">Housing Allowance</Label>
+                      <Label htmlFor="housingAllowance" className="text-sm sm:text-base font-medium">Housing Allowance</Label>
                       <Input
                         id="housingAllowance"
                         type="number"
                         placeholder="0.00"
                         value={formData.housingAllowance}
                         onChange={(e) => handleInputChange('housingAllowance', e.target.value)}
+                        className="min-h-[40px] text-sm sm:text-base"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="transportAllowance">Transport Allowance</Label>
+                      <Label htmlFor="transportAllowance" className="text-sm sm:text-base font-medium">Transport Allowance</Label>
                       <Input
                         id="transportAllowance"
                         type="number"
                         placeholder="0.00"
                         value={formData.transportAllowance}
                         onChange={(e) => handleInputChange('transportAllowance', e.target.value)}
+                        className="min-h-[40px] text-sm sm:text-base"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="medicalAllowance">Medical Allowance</Label>
+                      <Label htmlFor="medicalAllowance" className="text-sm sm:text-base font-medium">Medical Allowance</Label>
                       <Input
                         id="medicalAllowance"
                         type="number"
                         placeholder="0.00"
                         value={formData.medicalAllowance}
                         onChange={(e) => handleInputChange('medicalAllowance', e.target.value)}
+                        className="min-h-[40px] text-sm sm:text-base"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="mealAllowance">Meal Allowance</Label>
+                      <Label htmlFor="mealAllowance" className="text-sm sm:text-base font-medium">Meal Allowance</Label>
                       <Input
                         id="mealAllowance"
                         type="number"
                         placeholder="0.00"
                         value={formData.mealAllowance}
                         onChange={(e) => handleInputChange('mealAllowance', e.target.value)}
+                        className="min-h-[40px] text-sm sm:text-base"
                       />
                     </div>
 
                     {!formData.isFixedSalary && (
                       <div className="space-y-2">
-                        <Label htmlFor="otherAllowance">Other Allowance (Variable)</Label>
+                        <Label htmlFor="otherAllowance" className="text-sm sm:text-base font-medium">Other Allowance (Variable)</Label>
                         <Input
                           id="otherAllowance"
                           type="number"
                           placeholder="0.00"
                           value={formData.otherAllowance}
                           onChange={(e) => handleInputChange('otherAllowance', e.target.value)}
+                          className="min-h-[40px] text-sm sm:text-base"
                         />
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Variable allowance that may change monthly
                         </p>
                       </div>
@@ -640,11 +662,11 @@ export default function EditPayrollEmployeeForm({
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium">Variable Components</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <h4 className="font-medium text-xs sm:text-sm lg:text-base">Variable Components</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="overtime">Overtime Rate</Label>
+                      <Label htmlFor="overtime" className="text-sm sm:text-base font-medium">Overtime Rate</Label>
                       <Input
                         id="overtime"
                         type="number"
@@ -652,16 +674,17 @@ export default function EditPayrollEmployeeForm({
                         value={formData.overtime}
                         onChange={(e) => handleInputChange('overtime', e.target.value)}
                         disabled={formData.isFixedSalary}
+                        className="min-h-[40px] text-sm sm:text-base"
                       />
                       {formData.isFixedSalary && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Disabled for fixed salary employees
                         </p>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="bonus">Bonus</Label>
+                      <Label htmlFor="bonus" className="text-sm sm:text-base font-medium">Bonus</Label>
                       <Input
                         id="bonus"
                         type="number"
@@ -669,9 +692,10 @@ export default function EditPayrollEmployeeForm({
                         value={formData.bonus}
                         onChange={(e) => handleInputChange('bonus', e.target.value)}
                         disabled={formData.isFixedSalary}
+                        className="min-h-[40px] text-sm sm:text-base"
                       />
                       {formData.isFixedSalary && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Disabled for fixed salary employees
                         </p>
                       )}
@@ -682,78 +706,83 @@ export default function EditPayrollEmployeeForm({
             </Card>
           </TabsContent>
 
-          <TabsContent value="deductions" className="space-y-4">
+          <TabsContent value="deductions" className="space-y-3 sm:space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                  <Calculator className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   Deductions
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm lg:text-base">
                   Set up tax and other deductions
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="tax">Tax</Label>
+                    <Label htmlFor="tax" className="text-sm sm:text-base font-medium">Tax</Label>
                     <Input
                       id="tax"
                       type="number"
                       placeholder="0.00"
                       value={formData.tax}
                       onChange={(e) => handleInputChange('tax', e.target.value)}
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="socialSecurity">Social Security</Label>
+                    <Label htmlFor="socialSecurity" className="text-sm sm:text-base font-medium">Social Security</Label>
                     <Input
                       id="socialSecurity"
                       type="number"
                       placeholder="0.00"
                       value={formData.socialSecurity}
                       onChange={(e) => handleInputChange('socialSecurity', e.target.value)}
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="pension">Pension</Label>
+                    <Label htmlFor="pension" className="text-sm sm:text-base font-medium">Pension</Label>
                     <Input
                       id="pension"
                       type="number"
                       placeholder="0.00"
                       value={formData.pension}
                       onChange={(e) => handleInputChange('pension', e.target.value)}
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="insurance">Insurance</Label>
+                    <Label htmlFor="insurance" className="text-sm sm:text-base font-medium">Insurance</Label>
                     <Input
                       id="insurance"
                       type="number"
                       placeholder="0.00"
                       value={formData.insurance}
                       onChange={(e) => handleInputChange('insurance', e.target.value)}
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="otherDeduction">Other Deductions</Label>
+                    <Label htmlFor="otherDeduction" className="text-sm sm:text-base font-medium">Other Deductions</Label>
                     <Input
                       id="otherDeduction"
                       type="number"
                       placeholder="0.00"
                       value={formData.otherDeduction}
                       onChange={(e) => handleInputChange('otherDeduction', e.target.value)}
+                      className="min-h-[40px] text-sm sm:text-base"
                     />
                   </div>
                 </div>
 
-                <Alert>
-                  <Calculator className="h-4 w-4" />
-                  <AlertDescription>
+                <Alert className="p-3 sm:p-4">
+                  <Calculator className="h-4 w-4 flex-shrink-0" />
+                  <AlertDescription className="text-xs sm:text-sm lg:text-base">
                     <strong>Calculated Net Salary:</strong> {formData.currency} {calculateNetSalary().toFixed(2)}
                   </AlertDescription>
                 </Alert>
@@ -762,20 +791,29 @@ export default function EditPayrollEmployeeForm({
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
+        <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2 pt-3 sm:pt-6 border-t">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={saving}
+            className="w-full sm:w-auto min-h-[40px] text-xs sm:text-sm lg:text-base order-2 sm:order-1 touch-manipulation"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={saving}>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={saving}
+            className="w-full sm:w-auto min-h-[40px] text-xs sm:text-sm lg:text-base order-1 sm:order-2 touch-manipulation"
+          >
             {saving ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Updating...
+                <Loader2 className="w-4 h-4 mr-2 animate-spin flex-shrink-0" />
+                <span className="truncate">Updating...</span>
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 mr-2" />
-                Update Employee
+                <Save className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">Update Employee</span>
               </>
             )}
           </Button>

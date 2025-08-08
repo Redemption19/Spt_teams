@@ -321,64 +321,69 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-6">
-        <div className="flex items-center gap-4">
+      <CardHeader className="pb-4 sm:pb-6">
+        <div className="flex items-center gap-2 sm:gap-4">
           {onCancel && (
-            <Button variant="ghost" size="sm" onClick={onCancel}>
+            <Button variant="ghost" size="sm" onClick={onCancel} className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3">
               <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">Back</span>
             </Button>
           )}
-          <div>
-            <CardTitle className="text-xl">
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-lg sm:text-xl truncate">
               {isEdit ? 'Edit Invoice' : 'Create New Invoice'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               {isEdit ? 'Update invoice details' : 'Generate professional invoices for your clients'}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="px-3 sm:px-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+            <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
+              <TabsTrigger value="basic" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                <FileText className="w-3 sm:w-4 h-3 sm:h-4" />
                 <span className="hidden sm:inline">Basic Info</span>
+                <span className="sm:hidden">Basic</span>
               </TabsTrigger>
-              <TabsTrigger value="items" className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
+              <TabsTrigger value="items" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                <DollarSign className="w-3 sm:w-4 h-3 sm:h-4" />
                 <span className="hidden sm:inline">Items</span>
+                <span className="sm:hidden">Items</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+              <TabsTrigger value="settings" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                <Settings className="w-3 sm:w-4 h-3 sm:h-4" />
                 <span className="hidden sm:inline">Settings</span>
+                <span className="sm:hidden">Set</span>
               </TabsTrigger>
-              <TabsTrigger value="terms" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
+              <TabsTrigger value="terms" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                <Users className="w-3 sm:w-4 h-3 sm:h-4" />
                 <span className="hidden sm:inline">Terms</span>
+                <span className="sm:hidden">Terms</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Basic Information Tab */}
-            <TabsContent value="basic" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TabsContent value="basic" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                 <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="client" className="text-sm font-medium">Client</Label>
+                  <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                    <Label htmlFor="client" className="text-xs sm:text-sm font-medium">Client</Label>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => setShowClientModal(true)}
-                      className="h-7 px-2"
+                      className="h-6 sm:h-7 px-1.5 sm:px-2 text-xs"
                     >
-                      <UserPlus className="w-3 h-3 mr-1" />
-                      New
+                      <UserPlus className="w-3 h-3 mr-0.5 sm:mr-1" />
+                      <span className="hidden sm:inline">New</span>
                     </Button>
                   </div>
                   <Select value={formData.clientId} onValueChange={(value) => handleInputChange('clientId', value)}>
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                       <SelectValue placeholder={clientsLoading ? "Loading clients..." : "Select client"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -402,13 +407,13 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
                 </div>
 
                 <div>
-                  <Label htmlFor="project" className="text-sm font-medium">Project (Optional)</Label>
+                  <Label htmlFor="project" className="text-xs sm:text-sm font-medium">Project (Optional)</Label>
                   <Select 
                     value={formData.projectId} 
                     onValueChange={(value) => handleInputChange('projectId', value)}
                     disabled={!formData.clientId}
                   >
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
@@ -423,21 +428,22 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="type" className="text-sm font-medium">Invoice Type *</Label>
+                  <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                    <Label htmlFor="type" className="text-xs sm:text-sm font-medium">Invoice Type *</Label>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => setShowTypeModal(true)}
-                      className="h-7 px-2"
+                      className="h-6 sm:h-7 px-1.5 sm:px-2 text-xs"
                     >
-                      <Plus className="w-3 h-3 mr-1" />
-                      New Type
+                      <Plus className="w-3 h-3 mr-0.5 sm:mr-1" />
+                      <span className="hidden sm:inline">New Type</span>
+                      <span className="sm:hidden">New</span>
                     </Button>
                   </div>
                   <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                       <SelectValue placeholder={typesLoading ? "Loading types..." : "Select type"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -469,104 +475,107 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <Label className="text-sm font-medium">Due Date *</Label>
+                <div className="sm:col-span-2">
+                  <Label className="text-xs sm:text-sm font-medium">Due Date *</Label>
                   <DatePicker
                     value={formData.dueDate}
                     onChange={(date) => handleInputChange('dueDate', date || new Date())}
-                    className="mt-1.5"
+                    className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                   />
                 </div>
               </div>
             </TabsContent>
 
             {/* Items Tab */}
-            <TabsContent value="items" className="space-y-6 mt-6">
-              <div className="space-y-4">
+            <TabsContent value="items" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Invoice Items</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Item
+                  <Label className="text-xs sm:text-sm font-medium">Invoice Items</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={addItem} className="h-8 sm:h-9 text-xs sm:text-sm">
+                    <Plus className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Add Item</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 </div>
                 
                 {formData.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg">
-                    <div className="md:col-span-5">
-                      <Label className="text-sm font-medium">Description *</Label>
-                      <Input
-                        value={item.description}
-                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        placeholder="Item description"
-                        className="mt-1.5"
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label className="text-sm font-medium">Quantity *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                        className="mt-1.5"
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-3">
-                      <Label className="text-sm font-medium">Unit Price *</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unitPrice}
-                        onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                        className="mt-1.5"
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2 flex items-end">
-                      <div className="w-full">
-                        <Label className="text-sm font-medium">Total</Label>
-                        <div className="mt-1.5 p-2 bg-muted rounded text-sm font-medium">
-                          {(item.quantity * item.unitPrice).toFixed(2)}
-                        </div>
+                  <div key={index} className="grid grid-cols-1 gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
+                      <div className="sm:col-span-5">
+                        <Label className="text-xs sm:text-sm font-medium">Description *</Label>
+                        <Input
+                          value={item.description}
+                          onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                          placeholder="Item description"
+                          className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
+                          required
+                        />
                       </div>
-                      {formData.items.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(index)}
-                          className="ml-2 h-8 w-8 p-0"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                      )}
+                      <div className="sm:col-span-2">
+                        <Label className="text-xs sm:text-sm font-medium">Quantity *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                          className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
+                          required
+                        />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <Label className="text-xs sm:text-sm font-medium">Unit Price *</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
+                          required
+                        />
+                      </div>
+                      <div className="sm:col-span-2 flex items-end">
+                        <div className="w-full">
+                          <Label className="text-xs sm:text-sm font-medium">Total</Label>
+                          <div className="mt-1 sm:mt-1.5 p-2 bg-muted rounded text-xs sm:text-sm font-medium h-9 sm:h-10 flex items-center">
+                            {(item.quantity * item.unitPrice).toFixed(2)}
+                          </div>
+                        </div>
+                        {formData.items.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeItem(index)}
+                            className="ml-2 h-6 sm:h-8 w-6 sm:w-8 p-0"
+                          >
+                            <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
                 
                 {/* Summary */}
-                <div className="border-t pt-4">
-                  <div className="space-y-2 max-w-sm ml-auto">
-                    <div className="flex justify-between">
+                <div className="border-t pt-3 sm:pt-4">
+                  <div className="space-y-2 max-w-full sm:max-w-sm ml-auto">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Subtotal:</span>
                       <span className="font-medium">{calculateSubtotal().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Tax ({formData.taxRate}%):</span>
                       <span className="font-medium">{calculateTax().toFixed(2)}</span>
                     </div>
                     {(formData.discount || 0) > 0 && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span>Discount:</span>
                         <span className="font-medium">-{(formData.discount || 0).toFixed(2)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
+                    <div className="flex justify-between text-sm sm:text-lg font-bold border-t pt-2">
                       <span>Total:</span>
                       <span>{calculateTotal().toFixed(2)}</span>
                     </div>
@@ -576,10 +585,10 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
             </TabsContent>
 
             {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TabsContent value="settings" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                 <div>
-                  <Label htmlFor="taxRate" className="text-sm font-medium">Tax Rate (%)</Label>
+                  <Label htmlFor="taxRate" className="text-xs sm:text-sm font-medium">Tax Rate (%)</Label>
                   <Input
                     id="taxRate"
                     type="number"
@@ -588,12 +597,12 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
                     step="0.01"
                     value={formData.taxRate}
                     onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
-                    className="mt-1.5"
+                    className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="discount" className="text-sm font-medium">Discount Amount</Label>
+                  <Label htmlFor="discount" className="text-xs sm:text-sm font-medium">Discount Amount</Label>
                   <Input
                     id="discount"
                     type="number"
@@ -601,57 +610,59 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
                     step="0.01"
                     value={formData.discount || ''}
                     onChange={(e) => handleInputChange('discount', parseFloat(e.target.value) || 0)}
-                    className="mt-1.5"
+                    className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                   />
                 </div>
               </div>
               
               <div>
-                <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+                <Label htmlFor="notes" className="text-xs sm:text-sm font-medium">Notes</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => handleInputChange('notes', e.target.value)}
                   placeholder="Additional notes for the client..."
                   rows={3}
-                  className="mt-1.5 resize-none"
+                  className="mt-1 sm:mt-1.5 resize-none text-xs sm:text-sm"
                 />
               </div>
             </TabsContent>
 
             {/* Terms Tab */}
-            <TabsContent value="terms" className="space-y-6 mt-6">
+            <TabsContent value="terms" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
               <div>
-                <Label htmlFor="terms" className="text-sm font-medium">Payment Terms</Label>
+                <Label htmlFor="terms" className="text-xs sm:text-sm font-medium">Payment Terms</Label>
                 <Textarea
                   id="terms"
                   value={formData.terms}
                   onChange={(e) => handleInputChange('terms', e.target.value)}
                   placeholder="Payment terms and conditions..."
                   rows={6}
-                  className="mt-1.5 resize-none"
+                  className="mt-1 sm:mt-1.5 resize-none text-xs sm:text-sm"
                 />
               </div>
             </TabsContent>
           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
             {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1 h-12">
+              <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:flex-1 h-10 sm:h-12 text-xs sm:text-sm">
                 Cancel
               </Button>
             )}
-            <Button type="submit" disabled={loading} className="flex-1 h-12">
+            <Button type="submit" disabled={loading} className="w-full sm:flex-1 h-10 sm:h-12 text-xs sm:text-sm">
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isEdit ? 'Updating...' : 'Creating...'}
+                  <div className="animate-spin rounded-full h-3 sm:h-4 w-3 sm:w-4 border-b-2 border-white mr-1 sm:mr-2"></div>
+                  <span className="sm:hidden">{isEdit ? 'Updating...' : 'Creating...'}</span>
+                  <span className="hidden sm:inline">{isEdit ? 'Updating...' : 'Creating...'}</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isEdit ? 'Update Invoice' : 'Create Invoice'}
+                  <Save className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="sm:hidden">{isEdit ? 'Update' : 'Create'}</span>
+                  <span className="hidden sm:inline">{isEdit ? 'Update Invoice' : 'Create Invoice'}</span>
                 </>
               )}
             </Button>

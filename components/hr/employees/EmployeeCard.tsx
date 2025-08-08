@@ -121,57 +121,66 @@ export function EmployeeCard({
 
   return (
     <Card className="card-enhanced hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 flex-1">
-            <Avatar className="h-12 w-12">
+      <CardContent className="p-4 sm:p-6">
+        {/* Mobile-first layout: stack vertically on small screens */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Main content section */}
+          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`} alt={fullName} />
               <AvatarFallback>
                 {employee.personalInfo.firstName[0]}{employee.personalInfo.lastName[0]}
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h3 className="text-lg font-semibold">{fullName}</h3>
-                {getStatusBadge(employee.status)}
-                {getEmploymentTypeBadge(employee.employmentDetails.employmentType)}
+            <div className="flex-1 min-w-0">
+              {/* Name and badges */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <h3 className="text-base sm:text-lg font-semibold truncate">{fullName}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {getStatusBadge(employee.status)}
+                  {getEmploymentTypeBadge(employee.employmentDetails.employmentType)}
+                </div>
               </div>
               
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                <span className="flex items-center gap-1">
-                  <Briefcase className="w-3 h-3" />
-                  {employee.employmentDetails.role} • {employee.employmentDetails.department}
+              {/* Employee details - stack on mobile */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-muted-foreground mt-2">
+                <span className="flex items-center gap-1 truncate">
+                  <Briefcase className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{employee.employmentDetails.role} • {employee.employmentDetails.department}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <Mail className="w-3 h-3" />
-                  {employee.personalInfo.email}
+                <span className="flex items-center gap-1 truncate">
+                  <Mail className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{employee.personalInfo.email}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  Hired {format(new Date(employee.employmentDetails.hireDate), 'MMM dd, yyyy')}
+                <span className="flex items-center gap-1 truncate">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">Hired {format(new Date(employee.employmentDetails.hireDate), 'MMM dd, yyyy')}</span>
                 </span>
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                <span className="flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
-                  {employee.personalInfo.phone}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-muted-foreground mt-1">
+                <span className="flex items-center gap-1 truncate">
+                  <Phone className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{employee.personalInfo.phone}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {employee.employmentDetails.workLocation === 'office' ? 'Office' : 
-                   employee.employmentDetails.workLocation === 'remote' ? 'Remote' : 'Hybrid'}
+                <span className="flex items-center gap-1 truncate">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">
+                    {employee.employmentDetails.workLocation === 'office' ? 'Office' : 
+                     employee.employmentDetails.workLocation === 'remote' ? 'Remote' : 'Hybrid'}
+                  </span>
                 </span>
                 {employee.employmentDetails.manager && (
-                  <span>Manager: {employee.employmentDetails.manager}</span>
+                  <span className="truncate">Manager: {employee.employmentDetails.manager}</span>
                 )}
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="text-right mr-4">
+          {/* Actions section - stack on mobile */}
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
+            <div className="text-left sm:text-right">
               <p className="text-sm font-medium">ID: {employee.employeeId}</p>
               <p className="text-xs text-muted-foreground">
                 {uploadedDocs}/{totalDocs} docs uploaded
@@ -180,7 +189,7 @@ export function EmployeeCard({
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button variant="ghost" className="h-10 w-10 p-0 touch-target">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -244,10 +253,10 @@ export function EmployeeCard({
           </div>
         )}
         
-        {/* Quick Stats */}
+        {/* Quick Stats - responsive grid */}
         <div className="mt-4 pt-4 border-t">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center sm:text-center">
+            <div className="flex justify-between sm:block">
               <p className="text-sm font-medium text-green-600">Salary</p>
               <p className="text-xs text-muted-foreground">
                 {new Intl.NumberFormat('en-US', {
@@ -256,7 +265,7 @@ export function EmployeeCard({
                 }).format(employee.compensation.baseSalary)}
               </p>
             </div>
-            <div>
+            <div className="flex justify-between sm:block">
               <p className="text-sm font-medium text-blue-600">Tenure</p>
               <p className="text-xs text-muted-foreground">
                 {Math.floor(
@@ -265,13 +274,13 @@ export function EmployeeCard({
                 )} years
               </p>
             </div>
-            <div>
+            <div className="flex justify-between sm:block">
               <p className="text-sm font-medium text-purple-600">Department</p>
-              <p className="text-xs text-muted-foreground">{employee.employmentDetails.department}</p>
+              <p className="text-xs text-muted-foreground truncate">{employee.employmentDetails.department}</p>
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

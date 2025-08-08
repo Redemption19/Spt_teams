@@ -353,13 +353,13 @@ export default function PayrollPage() {
             <div className="h-4 w-96 bg-gray-200 rounded animate-pulse" />
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-6">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="card-enhanced">
-              <CardHeader>
+              <CardHeader className="p-4 sm:p-6">
                 <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6">
                 <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
               </CardContent>
             </Card>
@@ -377,43 +377,43 @@ export default function PayrollPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payroll Management</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-start lg:justify-between lg:space-y-0 lg:gap-6">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight truncate">Payroll Management</h1>
+          <p className="text-muted-foreground text-sm sm:text-base mt-1">
             Manage salary structures, process payroll, and generate payslips
           </p>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="text-xs">
-              <Calendar className="w-3 h-3 mr-1" />
-              {availablePeriods.find(p => p.value === selectedPeriod)?.label || 'Select Period'}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <Badge variant="outline" className="text-xs px-2 py-1">
+              <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{availablePeriods.find(p => p.value === selectedPeriod)?.label || 'Select Period'}</span>
             </Badge>
             {selectedPeriod === format(new Date(), 'yyyy-MM') && (
-              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary px-2 py-1">
                 Current Period
               </Badge>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col space-y-3 sm:space-y-2 lg:space-y-3 lg:flex-shrink-0 lg:w-auto">
           {/* Cross-Workspace Management */}
           {shouldShowCrossWorkspace && allWorkspaces.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Select value={selectedWorkspace} onValueChange={handleWorkspaceChange}>
-                <SelectTrigger className="w-[220px] border-border/50 focus:border-primary bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
+                <SelectTrigger className="w-full sm:w-[200px] lg:w-[220px] min-h-[40px] border-border/50 focus:border-primary bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
                   <SelectValue placeholder="Select workspace" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={workspaceId}>
                     <div className="flex items-center gap-2">
-                      <Building className="w-3 h-3" />
-                      <span>Current Workspace</span>
+                      <Building className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">Current Workspace</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="all">
                     <div className="flex items-center gap-2">
-                      <Globe className="w-3 h-3" />
-                      <span>All Workspaces</span>
+                      <Globe className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">All Workspaces</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -422,11 +422,11 @@ export default function PayrollPage() {
           )}
           
           <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[220px] border-border/50 focus:border-primary bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
+            <SelectTrigger className="w-full sm:w-[200px] lg:w-[220px] min-h-[40px] border-border/50 focus:border-primary bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <SelectValue placeholder="Select period" />
-                <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto flex-shrink-0" />
               </div>
             </SelectTrigger>
             <SelectContent className="min-w-[220px]">
@@ -488,15 +488,19 @@ export default function PayrollPage() {
             </SelectContent>
           </Select>
           
-          <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
-          </Button>
-          
-          <Button onClick={handleProcessPayroll}>
-            <Calculator className="w-4 h-4 mr-2" />
-            Process Payroll
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto min-h-[40px] px-3">
+              <Download className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Export Report</span>
+              <span className="sm:hidden truncate">Export</span>
+            </Button>
+            
+            <Button onClick={handleProcessPayroll} className="w-full sm:w-auto min-h-[40px] px-3">
+              <Calculator className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Process Payroll</span>
+              <span className="sm:hidden truncate">Process</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -504,17 +508,32 @@ export default function PayrollPage() {
       <PayrollStats stats={payrollSummary} loading={loading} />
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="employees">Employee Salaries</TabsTrigger>
-          <TabsTrigger value="payslips">Payslips</TabsTrigger>
-          <TabsTrigger value="taxes">Tax Reports</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto min-h-[40px] bg-muted p-1 text-muted-foreground gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Home</span>
+            </TabsTrigger>
+            <TabsTrigger value="employees" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+              <span className="hidden sm:inline">Employee Salaries</span>
+              <span className="sm:hidden">Employees</span>
+            </TabsTrigger>
+            <TabsTrigger value="payslips" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+              Payslips
+            </TabsTrigger>
+            <TabsTrigger value="taxes" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+              <span className="hidden sm:inline">Tax Reports</span>
+              <span className="sm:hidden">Taxes</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] col-span-2 sm:col-span-1 truncate">
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             <Card className="card-enhanced">
               <CardHeader>
                 <CardTitle>Payroll Processing Status</CardTitle>
@@ -535,9 +554,9 @@ export default function PayrollPage() {
                     <Badge variant="default" className="bg-green-100 text-green-800">{payrollEmployees.filter(emp => emp.payrollStatus === 'paid').length}</Badge>
                   </div>
                   <div className="pt-4">
-                    <Button onClick={handleProcessPayroll} className="w-full">
-                      <Calculator className="w-4 h-4 mr-2" />
-                      Process Remaining Payroll
+                    <Button onClick={handleProcessPayroll} className="w-full min-h-[40px]">
+                      <Calculator className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Process Remaining Payroll</span>
                     </Button>
                   </div>
                 </div>
@@ -551,21 +570,21 @@ export default function PayrollPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start" onClick={handleGeneratePayslips}>
-                    <FileText className="w-4 h-4 mr-2" />
-                    Generate Payslips
+                  <Button variant="outline" className="w-full justify-start min-h-[40px]" onClick={handleGeneratePayslips}>
+                    <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Generate Payslips</span>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Import Attendance Data
+                  <Button variant="outline" className="w-full justify-start min-h-[40px]">
+                    <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Import Attendance Data</span>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Receipt className="w-4 h-4 mr-2" />
-                    Tax Filing Reports
+                  <Button variant="outline" className="w-full justify-start min-h-[40px]">
+                    <Receipt className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Tax Filing Reports</span>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Download className="w-4 h-4 mr-2" />
-                    Export Payroll Summary
+                  <Button variant="outline" className="w-full justify-start min-h-[40px]">
+                    <Download className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Export Payroll Summary</span>
                   </Button>
                 </div>
               </CardContent>

@@ -25,6 +25,7 @@ import {
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { generateMeetingChannelName } from '@/lib/video-call-utils';
 
 interface VideoCallLauncherProps {
   // Quick start props
@@ -70,7 +71,7 @@ export default function VideoCallLauncher({
 
   // Generate meeting details
   const generateMeetingDetails = () => {
-    const generatedChannelName = channelName || `meeting-${Date.now()}`;
+    const generatedChannelName = channelName || generateMeetingChannelName();
     const generatedTitle = meetingTitle || 
       (interviewId ? 'Interview Call' : 
        teamId ? 'Team Meeting' : 

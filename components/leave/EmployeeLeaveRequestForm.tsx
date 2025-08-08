@@ -159,45 +159,45 @@ export default function EmployeeLeaveRequestForm({
   const selectedType = leaveTypes.find(lt => lt.id === selectedLeaveType);
 
   return (
-    <Card className="card-enhanced">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2 text-foreground">
-          <Calendar className="h-5 w-5 text-primary" />
-          <span>Request Leave</span>
+    <Card className="card-enhanced w-full max-w-4xl mx-auto">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
+          <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+          <span className="truncate">Request Leave</span>
         </CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-muted-foreground text-sm sm:text-base">
           Submit a new leave request for approval
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="px-4 sm:px-6 pb-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Employee Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="employee-name">Your Name</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="employee-name" className="text-sm font-medium">Your Name</Label>
               <Input
                 id="employee-name"
                 value={employeeName}
                 disabled
-                className="bg-muted"
+                className="bg-muted h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
-            <div>
-              <Label htmlFor="employee-email">Your Email</Label>
+            <div className="space-y-2">
+              <Label htmlFor="employee-email" className="text-sm font-medium">Your Email</Label>
               <Input
                 id="employee-email"
                 value={employeeEmail}
                 disabled
-                className="bg-muted"
+                className="bg-muted h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
           </div>
 
           {/* Leave Type Selection */}
-          <div>
-            <Label htmlFor="leave-type">Leave Type *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="leave-type" className="text-sm font-medium">Leave Type *</Label>
             <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
-              <SelectTrigger className="border-border/50 focus:border-primary">
+              <SelectTrigger className="border-border/50 focus:border-primary h-10 sm:h-11 text-sm sm:text-base">
                 <SelectValue placeholder="Select leave type" />
               </SelectTrigger>
               <SelectContent>
@@ -226,40 +226,42 @@ export default function EmployeeLeaveRequestForm({
           </div>
 
           {/* Date Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="start-date">Start Date *</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-date" className="text-sm font-medium">Start Date *</Label>
               <Input
                 id="start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => handleStartDateChange(e.target.value)}
                 min={format(new Date(), 'yyyy-MM-dd')}
-                className="border-border/50 focus:border-primary"
+                className="border-border/50 focus:border-primary h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
-            <div>
-              <Label htmlFor="end-date">End Date *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="end-date" className="text-sm font-medium">End Date *</Label>
               <Input
                 id="end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate || format(new Date(), 'yyyy-MM-dd')}
-                className="border-border/50 focus:border-primary"
+                className="border-border/50 focus:border-primary h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
           </div>
 
           {/* Days Calculation */}
           {days > 0 && (
-            <div className="flex items-center space-x-2 p-3 bg-muted rounded-lg">
-              <Clock className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">
-                Total Days: {days} {days === 1 ? 'day' : 'days'}
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-sm sm:text-base font-medium">
+                  Total Days: {days} {days === 1 ? 'day' : 'days'}
+                </span>
+              </div>
               {selectedType && days > selectedType.maxDays && (
-                <Badge variant="destructive" className="ml-auto">
+                <Badge variant="destructive" className="w-fit">
                   Exceeds limit ({selectedType.maxDays} days)
                 </Badge>
               )}
@@ -267,51 +269,53 @@ export default function EmployeeLeaveRequestForm({
           )}
 
           {/* Reason */}
-          <div>
-            <Label htmlFor="reason">Reason for Leave *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="reason" className="text-sm font-medium">Reason for Leave *</Label>
             <Textarea
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Please provide a detailed reason for your leave request..."
-              className="border-border/50 focus:border-primary min-h-[100px]"
+              className="border-border/50 focus:border-primary min-h-[100px] sm:min-h-[120px] text-sm sm:text-base resize-none"
               maxLength={500}
             />
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {reason.length}/500 characters
             </p>
           </div>
 
           {/* Emergency Toggle */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-border/50">
             <Switch
               id="emergency"
               checked={emergency}
               onCheckedChange={setEmergency}
+              className="data-[state=checked]:bg-orange-500"
             />
-            <Label htmlFor="emergency" className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-orange-500" />
-              <span>Emergency Leave</span>
+            <Label htmlFor="emergency" className="flex items-center gap-2 cursor-pointer">
+              <AlertCircle className="h-4 w-4 text-orange-500 flex-shrink-0" />
+              <span className="text-sm sm:text-base font-medium">Emergency Leave</span>
             </Label>
           </div>
 
           {emergency && (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-sm text-orange-800">
-                <AlertCircle className="h-4 w-4 inline mr-1" />
-                Emergency leave requests will be prioritized for faster processing.
+            <div className="p-3 sm:p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+              <p className="text-sm sm:text-base text-orange-800 dark:text-orange-200 flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>Emergency leave requests will be prioritized for faster processing.</span>
               </p>
             </div>
           )}
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-border/50">
             {onCancel && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
                 disabled={loading}
+                className="h-10 sm:h-11 text-sm sm:text-base order-2 sm:order-1"
               >
                 Cancel
               </Button>
@@ -319,17 +323,19 @@ export default function EmployeeLeaveRequestForm({
             <Button
               type="submit"
               disabled={loading || !selectedLeaveType || !startDate || !endDate || !reason.trim()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 sm:h-11 text-sm sm:text-base order-1 sm:order-2"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting...
+                  <span className="hidden sm:inline">Submitting...</span>
+                  <span className="sm:hidden">Submit</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Submit Request
+                  <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="hidden sm:inline">Submit Request</span>
+                  <span className="sm:hidden">Submit</span>
                 </>
               )}
             </Button>
@@ -338,4 +344,4 @@ export default function EmployeeLeaveRequestForm({
       </CardContent>
     </Card>
   );
-} 
+}

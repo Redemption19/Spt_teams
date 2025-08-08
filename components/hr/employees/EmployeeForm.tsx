@@ -381,12 +381,12 @@ export function EmployeeForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="w-[95vw] max-w-[800px] max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-2 sm:space-y-3">
+          <DialogTitle className="text-lg sm:text-xl">
             {mode === 'create' ? 'Add New Employee' : 'Edit Employee'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base">
             {mode === 'create' 
               ? 'Fill in the employee information to add them to your workspace.'
               : 'Update the employee information below.'
@@ -395,53 +395,58 @@ export function EmployeeForm({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Personal
+          <TabsList className="grid w-full grid-cols-3 h-12 sm:h-10">
+            <TabsTrigger value="personal" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 touch-manipulation">
+              <User className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Personal</span>
+              <span className="xs:hidden">Info</span>
             </TabsTrigger>
-            <TabsTrigger value="employment" className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4" />
-              Employment
+            <TabsTrigger value="employment" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 touch-manipulation">
+              <Briefcase className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Employment</span>
+              <span className="xs:hidden">Job</span>
             </TabsTrigger>
-            <TabsTrigger value="compensation" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Compensation
+            <TabsTrigger value="compensation" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 touch-manipulation">
+              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Compensation</span>
+              <span className="xs:hidden">Pay</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="personal" className="space-y-4">
+          <TabsContent value="personal" className="space-y-3 sm:space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Basic personal details and contact information</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Personal Information</CardTitle>
+                <CardDescription className="text-sm">Basic personal details and contact information</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="firstName">First Name *</Label>
+                    <Label htmlFor="firstName" className="text-sm font-medium">First Name *</Label>
                     <Input
                       id="firstName"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
                       placeholder="John"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Label htmlFor="lastName" className="text-sm font-medium">Last Name *</Label>
                     <Input
                       id="lastName"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
                       placeholder="Doe"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="email">Email Address *</Label>
-                    <div className="relative">
+                    <Label htmlFor="email" className="text-sm font-medium">Email Address *</Label>
+                    <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
                         id="email"
@@ -449,39 +454,40 @@ export function EmployeeForm({
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         placeholder="john.doe@company.com"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <div className="relative">
+                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number *</Label>
+                    <div className="relative mt-1">
                       <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
                         id="phone"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                         placeholder="+1234567890"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                    <Label htmlFor="dateOfBirth" className="text-sm font-medium">Date of Birth *</Label>
                     <Input
                       id="dateOfBirth"
                       type="date"
                       value={formData.dateOfBirth}
                       onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="gender" className="text-sm font-medium">Gender</Label>
                     <Select value={formData.gender} onValueChange={(value: any) => handleInputChange('gender', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -493,53 +499,58 @@ export function EmployeeForm({
                 </div>
 
                 <div>
-                  <Label htmlFor="street">Street Address</Label>
+                  <Label htmlFor="street" className="text-sm font-medium">Street Address</Label>
                   <Input
                     id="street"
                     value={formData.street}
                     onChange={(e) => handleInputChange('street', e.target.value)}
                     placeholder="123 Main Street"
+                    className="h-11 sm:h-10 mt-1"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city" className="text-sm font-medium">City</Label>
                     <Input
                       id="city"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
                       placeholder="Accra"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">State/Province</Label>
+                    <Label htmlFor="state" className="text-sm font-medium">State/Province</Label>
                     <Input
                       id="state"
                       value={formData.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
                       placeholder="Accra"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="zipCode">ZIP/Postal Code</Label>
+                    <Label htmlFor="zipCode" className="text-sm font-medium">ZIP/Postal Code</Label>
                     <Input
                       id="zipCode"
                       value={formData.zipCode}
                       onChange={(e) => handleInputChange('zipCode', e.target.value)}
                       placeholder="10001"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="country" className="text-sm font-medium">Country</Label>
                     <Input
                       id="country"
                       value={formData.country}
                       onChange={(e) => handleInputChange('country', e.target.value)}
                       placeholder="Ghana"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
@@ -547,65 +558,69 @@ export function EmployeeForm({
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Emergency Contact</CardTitle>
-                <CardDescription>Contact information for emergencies</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Emergency Contact</CardTitle>
+                <CardDescription className="text-sm">Contact information for emergencies</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="emergencyContactName">Contact Name</Label>
+                    <Label htmlFor="emergencyContactName" className="text-sm font-medium">Contact Name</Label>
                     <Input
                       id="emergencyContactName"
                       value={formData.emergencyContactName}
                       onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
                       placeholder="Jane Doe"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContactRelationship">Relationship</Label>
+                    <Label htmlFor="emergencyContactRelationship" className="text-sm font-medium">Relationship</Label>
                     <Input
                       id="emergencyContactRelationship"
                       value={formData.emergencyContactRelationship}
                       onChange={(e) => handleInputChange('emergencyContactRelationship', e.target.value)}
                       placeholder="Spouse"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
+                  <Label htmlFor="emergencyContactPhone" className="text-sm font-medium">Contact Phone</Label>
                   <Input
                     id="emergencyContactPhone"
                     value={formData.emergencyContactPhone}
                     onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
                     placeholder="+233547890123"
+                    className="h-11 sm:h-10 mt-1"
                   />
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="employment" className="space-y-4">
+          <TabsContent value="employment" className="space-y-3 sm:space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Employment Details</CardTitle>
-                <CardDescription>Job role, department, and employment information</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Employment Details</CardTitle>
+                <CardDescription className="text-sm">Job role, department, and employment information</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="role">Job Title/Role *</Label>
+                    <Label htmlFor="role" className="text-sm font-medium">Job Title/Role *</Label>
                     <Input
                       id="role"
                       value={formData.role}
                       onChange={(e) => handleInputChange('role', e.target.value)}
                       placeholder="Software Engineer"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="department">Department *</Label>
+                    <Label htmlFor="department" className="text-sm font-medium">Department *</Label>
                     <Select value={formData.department} onValueChange={handleDepartmentChange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 mt-1">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                       <SelectContent>
@@ -619,11 +634,11 @@ export function EmployeeForm({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="manager">Manager</Label>
+                    <Label htmlFor="manager" className="text-sm font-medium">Manager</Label>
                     <Select value={formData.manager} onValueChange={handleManagerChange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 mt-1">
                         <SelectValue placeholder="Select manager" />
                       </SelectTrigger>
                       <SelectContent>
@@ -636,21 +651,22 @@ export function EmployeeForm({
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="hireDate">Hire Date *</Label>
+                    <Label htmlFor="hireDate" className="text-sm font-medium">Hire Date *</Label>
                     <Input
                       id="hireDate"
                       type="date"
                       value={formData.hireDate}
                       onChange={(e) => handleInputChange('hireDate', e.target.value)}
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="employmentType">Employment Type</Label>
+                    <Label htmlFor="employmentType" className="text-sm font-medium">Employment Type</Label>
                     <Select value={formData.employmentType} onValueChange={(value: any) => handleInputChange('employmentType', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -662,9 +678,9 @@ export function EmployeeForm({
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="workLocation">Work Location</Label>
+                    <Label htmlFor="workLocation" className="text-sm font-medium">Work Location</Label>
                     <Select value={formData.workLocation} onValueChange={(value: any) => handleInputChange('workLocation', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -677,23 +693,25 @@ export function EmployeeForm({
                 </div>
 
                 {formData.employmentType === 'contract' && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <Label htmlFor="probationEndDate">Probation End Date</Label>
+                      <Label htmlFor="probationEndDate" className="text-sm font-medium">Probation End Date</Label>
                       <Input
                         id="probationEndDate"
                         type="date"
                         value={formData.probationEndDate}
                         onChange={(e) => handleInputChange('probationEndDate', e.target.value)}
+                        className="h-11 sm:h-10 mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="contractEndDate">Contract End Date</Label>
+                      <Label htmlFor="contractEndDate" className="text-sm font-medium">Contract End Date</Label>
                       <Input
                         id="contractEndDate"
                         type="date"
                         value={formData.contractEndDate}
                         onChange={(e) => handleInputChange('contractEndDate', e.target.value)}
+                        className="h-11 sm:h-10 mt-1"
                       />
                     </div>
                   </div>
@@ -702,37 +720,39 @@ export function EmployeeForm({
             </Card>
           </TabsContent>
 
-          <TabsContent value="compensation" className="space-y-4">
+          <TabsContent value="compensation" className="space-y-3 sm:space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Salary & Compensation</CardTitle>
-                <CardDescription>Base salary, allowances, and benefits</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Salary & Compensation</CardTitle>
+                <CardDescription className="text-sm">Base salary, allowances, and benefits</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="baseSalary">Base Salary *</Label>
+                    <Label htmlFor="baseSalary" className="text-sm font-medium">Base Salary *</Label>
                     <Input
                       id="baseSalary"
                       type="number"
                       value={formData.baseSalary}
                       onChange={(e) => handleInputChange('baseSalary', e.target.value)}
                       placeholder="50000"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="currency">Currency</Label>
+                    <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
                     <Input
                       id="currency"
                       value={formData.currency}
                       onChange={(e) => handleInputChange('currency', e.target.value)}
                       placeholder="USD"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="payFrequency">Pay Frequency</Label>
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <Label htmlFor="payFrequency" className="text-sm font-medium">Pay Frequency</Label>
                     <Select value={formData.payFrequency} onValueChange={(value: any) => handleInputChange('payFrequency', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -744,60 +764,65 @@ export function EmployeeForm({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="housingAllowance">Housing Allowance</Label>
+                    <Label htmlFor="housingAllowance" className="text-sm font-medium">Housing Allowance</Label>
                     <Input
                       id="housingAllowance"
                       type="number"
                       value={formData.housingAllowance}
                       onChange={(e) => handleInputChange('housingAllowance', e.target.value)}
                       placeholder="0"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="transportAllowance">Transport Allowance</Label>
+                    <Label htmlFor="transportAllowance" className="text-sm font-medium">Transport Allowance</Label>
                     <Input
                       id="transportAllowance"
                       type="number"
                       value={formData.transportAllowance}
                       onChange={(e) => handleInputChange('transportAllowance', e.target.value)}
                       placeholder="0"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="medicalAllowance">Medical Allowance</Label>
+                    <Label htmlFor="medicalAllowance" className="text-sm font-medium">Medical Allowance</Label>
                     <Input
                       id="medicalAllowance"
                       type="number"
                       value={formData.medicalAllowance}
                       onChange={(e) => handleInputChange('medicalAllowance', e.target.value)}
                       placeholder="0"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="otherAllowance">Other Allowance</Label>
+                    <Label htmlFor="otherAllowance" className="text-sm font-medium">Other Allowance</Label>
                     <Input
                       id="otherAllowance"
                       type="number"
                       value={formData.otherAllowance}
                       onChange={(e) => handleInputChange('otherAllowance', e.target.value)}
                       placeholder="0"
+                      className="h-11 sm:h-10 mt-1"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="benefits">Benefits (comma-separated)</Label>
+                  <Label htmlFor="benefits" className="text-sm font-medium">Benefits (comma-separated)</Label>
                   <Textarea
                     id="benefits"
                     value={formData.benefits}
                     onChange={(e) => handleInputChange('benefits', e.target.value)}
                     placeholder="Health Insurance, Dental Coverage, Life Insurance"
                     rows={3}
+                    className="mt-1 min-h-[80px] resize-none"
                   />
                 </div>
               </CardContent>
@@ -805,11 +830,20 @@ export function EmployeeForm({
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 sm:pt-6 border-t">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={loading}
+            className="h-11 sm:h-10 w-full sm:w-auto touch-manipulation"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={loading}
+            className="h-11 sm:h-10 w-full sm:w-auto touch-manipulation"
+          >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {mode === 'create' ? 'Create Employee' : 'Update Employee'}
           </Button>

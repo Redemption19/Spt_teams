@@ -202,75 +202,78 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Payroll Dashboard</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight truncate">My Payroll Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             View your salary information, payslips, and payroll details
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleRefresh}
             disabled={refreshing}
+            className="min-h-[40px] text-xs sm:text-sm px-3 sm:px-4"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+            <span className="sm:hidden">Sync</span>
           </Button>
         </div>
       </div>
 
       {/* Employee Info Card */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <User className="w-4 h-4 sm:w-5 sm:h-5" />
             Employee Information
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Employee Name</p>
-              <p className="text-lg font-semibold">{payrollEmployee.employeeName}</p>
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Employee Name</p>
+              <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">{payrollEmployee.employeeName}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Employee ID</p>
-              <p className="text-lg font-semibold">{payrollEmployee.employeeId}</p>
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Employee ID</p>
+              <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">{payrollEmployee.employeeId}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Department</p>
-              <p className="text-lg font-semibold">{payrollEmployee.department}</p>
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Department</p>
+              <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">{payrollEmployee.department}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Role</p>
-              <p className="text-lg font-semibold">{payrollEmployee.role}</p>
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Role</p>
+              <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">{payrollEmployee.role}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Payroll Status</p>
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Payroll Status</p>
               <div className="mt-1">
                 {getStatusBadge(payrollEmployee.payrollStatus)}
               </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Salary Type</p>
+            <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Salary Type</p>
               <div className="mt-1">
-                <Badge variant={payrollEmployee.isFixedSalary ? 'outline' : 'destructive'}>
-                  {payrollEmployee.isFixedSalary ? 'Fixed Salary' : 'Variable Salary'}
+                <Badge variant={payrollEmployee.isFixedSalary ? 'outline' : 'destructive'} className="text-xs">
+                  <span className="hidden sm:inline">{payrollEmployee.isFixedSalary ? 'Fixed Salary' : 'Variable Salary'}</span>
+                  <span className="sm:hidden">{payrollEmployee.isFixedSalary ? 'Fixed' : 'Variable'}</span>
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 {payrollEmployee.isFixedSalary 
                   ? 'Your salary is fixed monthly with no variable components'
                   : 'Your salary may include variable components like overtime or bonuses'
                 }
               </p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Currency</p>
-              <p className="text-lg font-semibold">{payrollEmployee.currency}</p>
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">Currency</p>
+              <p className="text-sm sm:text-base lg:text-lg font-semibold">{payrollEmployee.currency}</p>
             </div>
           </div>
         </CardContent>
@@ -278,16 +281,16 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
 
       {/* Salary Type Explanation */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
             Salary Type Information
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
             Understanding your salary structure and processing
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           {payrollEmployee.isFixedSalary ? (
             <div className="space-y-3">
               <div className="flex items-start gap-3">
@@ -337,50 +340,50 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
       </Card>
 
       {/* Salary Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Base Salary</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Base Salary</CardTitle>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
               {formatAmount(payrollEmployee.baseSalary)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Allowances</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Allowances</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 truncate">
               {formatAmount(calculateTotalAllowances())}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deductions</CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Deductions</CardTitle>
+            <Calculator className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600 truncate">
               {formatAmount(calculateTotalDeductions())}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Salary</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Net Salary</CardTitle>
+            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 truncate">
               {formatAmount(payrollEmployee.netSalary)}
             </div>
           </CardContent>
@@ -389,27 +392,39 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-          <TabsTrigger value="overview">Salary Breakdown</TabsTrigger>
-          <TabsTrigger value="payslips">Payslips</TabsTrigger>
-          <TabsTrigger value="allowances">Allowances</TabsTrigger>
-          <TabsTrigger value="deductions">Deductions</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto min-h-[40px] bg-muted p-1 gap-1 overflow-x-auto">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+            <span className="hidden sm:inline">Salary Breakdown</span>
+            <span className="sm:hidden">Salary</span>
+          </TabsTrigger>
+          <TabsTrigger value="payslips" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+            <span className="hidden sm:inline">Payslips</span>
+            <span className="sm:hidden">Payslips</span>
+          </TabsTrigger>
+          <TabsTrigger value="allowances" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+            <span className="hidden sm:inline">Allowances</span>
+            <span className="sm:hidden">Allow.</span>
+          </TabsTrigger>
+          <TabsTrigger value="deductions" className="text-xs sm:text-sm px-2 py-2 sm:py-2.5 min-h-[36px] truncate">
+            <span className="hidden sm:inline">Deductions</span>
+            <span className="sm:hidden">Deduct.</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             {/* Salary Breakdown */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="w-5 h-5" />
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <PieChart className="w-4 h-4 sm:w-5 sm:h-5" />
                   Salary Breakdown
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Detailed breakdown of your salary components
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Base Salary</span>
@@ -455,16 +470,16 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
 
             {/* Current Period Summary */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Current Period ({selectedPeriod})
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="truncate">Current Period ({selectedPeriod})</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Summary for the selected pay period
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6">
                 {currentPayslip ? (
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
@@ -487,11 +502,12 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full"
+                        className="w-full min-h-[40px] text-xs sm:text-sm"
                         onClick={() => handleDownloadPayslip(currentPayslip)}
                       >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Payslip
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Download Payslip</span>
+                        <span className="sm:hidden">Download</span>
                       </Button>
                     </div>
                   </div>
@@ -508,43 +524,46 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
 
         <TabsContent value="payslips" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Receipt className="w-5 h-5" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Receipt className="w-4 h-4 sm:w-5 sm:h-5" />
                 Payslip History
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 View all your payslips and download them
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               {payslips.length > 0 ? (
                 <div className="space-y-3">
                   {payslips.map((payslip) => (
-                    <div key={payslip.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <p className="font-semibold">{payslip.period}</p>
-                          <p className="text-sm text-muted-foreground">
+                    <div key={payslip.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg gap-3 sm:gap-4">
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm sm:text-base truncate">{payslip.period}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
                             {payslip.startDate} - {payslip.endDate}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-semibold">
+                      <div className="flex items-center gap-2 sm:gap-4 justify-between sm:justify-end">
+                        <div className="text-left sm:text-right">
+                          <p className="font-semibold text-sm sm:text-base">
                             {formatAmount(payslip.netPay)}
                           </p>
-                          <p className="text-sm text-muted-foreground">Net Pay</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Net Pay</p>
                         </div>
-                        <div>{getStatusBadge(payslip.status)}</div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDownloadPayslip(payslip)}
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <div>{getStatusBadge(payslip.status)}</div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="min-h-[36px] px-2 sm:px-3"
+                            onClick={() => handleDownloadPayslip(payslip)}
+                          >
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -561,60 +580,60 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
 
         <TabsContent value="allowances" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                 Allowances Breakdown
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Detailed breakdown of your allowances
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Housing Allowance</p>
-                      <p className="text-sm text-muted-foreground">Accommodation support</p>
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Housing Allowance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Accommodation support</p>
                     </div>
-                    <span className="font-semibold text-green-600">
+                    <span className="font-semibold text-green-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.allowances.housing)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Transport Allowance</p>
-                      <p className="text-sm text-muted-foreground">Commuting expenses</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Transport Allowance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Commuting expenses</p>
                     </div>
-                    <span className="font-semibold text-green-600">
+                    <span className="font-semibold text-green-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.allowances.transport)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Medical Allowance</p>
-                      <p className="text-sm text-muted-foreground">Healthcare support</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Medical Allowance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Healthcare support</p>
                     </div>
-                    <span className="font-semibold text-green-600">
+                    <span className="font-semibold text-green-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.allowances.medical)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Meal Allowance</p>
-                      <p className="text-sm text-muted-foreground">Food expenses</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Meal Allowance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Food expenses</p>
                     </div>
-                    <span className="font-semibold text-green-600">
+                    <span className="font-semibold text-green-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.allowances.meal)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Other Allowance</p>
-                      <p className="text-sm text-muted-foreground">Additional benefits</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Other Allowance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Additional benefits</p>
                     </div>
-                    <span className="font-semibold text-green-600">
+                    <span className="font-semibold text-green-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.allowances.other)}
                     </span>
                   </div>
@@ -634,60 +653,60 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
 
         <TabsContent value="deductions" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="w-5 h-5" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
                 Deductions Breakdown
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Detailed breakdown of your deductions
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Tax</p>
-                      <p className="text-sm text-muted-foreground">Income tax</p>
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Tax</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Income tax</p>
                     </div>
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-red-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.deductions.tax)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Social Security</p>
-                      <p className="text-sm text-muted-foreground">Social security contributions</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Social Security</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Social security contributions</p>
                     </div>
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-red-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.deductions.socialSecurity)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Pension</p>
-                      <p className="text-sm text-muted-foreground">Pension contributions</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Pension</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Pension contributions</p>
                     </div>
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-red-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.deductions.pension)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Insurance</p>
-                      <p className="text-sm text-muted-foreground">Insurance premiums</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Insurance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Insurance premiums</p>
                     </div>
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-red-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.deductions.insurance)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Other Deductions</p>
-                      <p className="text-sm text-muted-foreground">Additional deductions</p>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="font-semibold text-sm sm:text-base truncate">Other Deductions</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Additional deductions</p>
                     </div>
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-red-600 text-sm sm:text-base flex-shrink-0">
                       {formatAmount(payrollEmployee.deductions.other)}
                     </span>
                   </div>
@@ -707,4 +726,4 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
       </Tabs>
     </div>
   );
-} 
+}

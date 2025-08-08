@@ -75,7 +75,7 @@ interface FinancialPermissions {
 }
 
 export function useFinancialPermissions(): FinancialPermissions {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const [permissions, setPermissions] = useState<FinancialPermissions>({
     // Initialize all permissions as false
@@ -143,7 +143,84 @@ export function useFinancialPermissions(): FinancialPermissions {
     try {
       setPermissions(prev => ({ ...prev, loading: true, error: null }));
 
-      // Get user permissions for the current workspace
+      // Check if user is owner - owners have full access to all financial features
+      const isOwner = userProfile?.role === 'owner';
+      
+      if (isOwner) {
+        // Owners have full access to all financial features
+        setPermissions({
+          // Overview Permissions
+          canViewOverview: true,
+          canViewAllFinancialData: true,
+          canViewDepartmentFinancialData: true,
+          
+          // Expense Permissions
+          canViewExpenses: true,
+          canViewAllExpenses: true,
+          canViewDepartmentExpenses: true,
+          canViewOwnExpenses: true,
+          canCreateExpenses: true,
+          canEditExpenses: true,
+          canEditOwnExpenses: true,
+          canDeleteExpenses: true,
+          canDeleteOwnExpenses: true,
+          canApproveExpenses: true,
+          canApproveDepartmentExpenses: true,
+          canRejectExpenses: true,
+          canExportExpenses: true,
+          canViewExpenseAnalytics: true,
+          canManageExpenseCategories: true,
+          
+          // Budget Permissions
+          canViewBudgets: true,
+          canCreateBudgets: true,
+          canEditBudgets: true,
+          canDeleteBudgets: true,
+          canAssignBudgets: true,
+          canViewBudgetAnalytics: true,
+          canExportBudgets: true,
+          canManageBudgetTypes: true,
+          
+          // Invoice Permissions
+          canViewInvoices: true,
+          canViewAllInvoices: true,
+          canViewOwnInvoices: true,
+          canCreateInvoices: true,
+          canEditInvoices: true,
+          canEditOwnInvoices: true,
+          canDeleteInvoices: true,
+          canDeleteOwnInvoices: true,
+          canSendInvoices: true,
+          canExportInvoices: true,
+          canViewInvoiceAnalytics: true,
+          
+          // Cost Center Permissions
+          canViewCostCenters: true,
+          canCreateCostCenters: true,
+          canEditCostCenters: true,
+          canDeleteCostCenters: true,
+          canAssignCostCenters: true,
+          canViewCostCenterAnalytics: true,
+          canExportCostCenters: true,
+          
+          // Financial Reports & Analytics
+          canViewFinancialReports: true,
+          canGenerateFinancialReports: true,
+          canExportFinancialReports: true,
+          canDeleteFinancialReports: true,
+          canViewFinancialAnalytics: true,
+          
+          // Financial Settings
+          canManageFinancialSettings: true,
+          canManageCurrencySettings: true,
+          
+          loading: false,
+          error: null
+        });
+        return;
+      }
+
+      // Get user permissions for the current workspace (for non-owners)
       const userPermissions = await PermissionsService.getUserPermissions(
         user.uid,
         currentWorkspace.id
@@ -246,7 +323,7 @@ export function useFinancialPermissions(): FinancialPermissions {
         error: 'Failed to load permissions'
       }));
     }
-  }, [user?.uid, currentWorkspace?.id]);
+  }, [user?.uid, currentWorkspace?.id, userProfile?.role]);
 
   useEffect(() => {
     checkPermissions();
@@ -257,7 +334,7 @@ export function useFinancialPermissions(): FinancialPermissions {
 
 // Helper hook for checking specific financial permissions
 export function useFinancialPermission(permissionId: string): boolean {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const [hasPermission, setHasPermission] = useState(false);
 
@@ -265,6 +342,12 @@ export function useFinancialPermission(permissionId: string): boolean {
     const checkPermission = async () => {
       if (!user?.uid || !currentWorkspace?.id) {
         setHasPermission(false);
+        return;
+      }
+
+      // Check if user is owner - owners have full access
+      if (userProfile?.role === 'owner') {
+        setHasPermission(true);
         return;
       }
 
@@ -306,7 +389,7 @@ export function useFinancialPermission(permissionId: string): boolean {
     };
 
     checkPermission();
-  }, [user?.uid, currentWorkspace?.id, permissionId]);
+  }, [user?.uid, currentWorkspace?.id, permissionId, userProfile?.role]);
 
   return hasPermission;
 }

@@ -173,7 +173,7 @@ export function CostCenterList({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Filters */}
       <CostCenterFilters
         searchTerm={searchTerm}
@@ -187,24 +187,24 @@ export function CostCenterList({
       {/* Cost Centers List */}
       {filteredCostCenters.length === 0 ? (
         <Card className="card-enhanced">
-          <CardContent className="text-center py-12">
-            <Building className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Cost Centers Found</h3>
-            <p className="text-muted-foreground mb-4">
+          <CardContent className="text-center py-8 sm:py-12 px-4 sm:px-6">
+            <Building className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2">No Cost Centers Found</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
               {searchTerm || statusFilter !== 'all' || periodFilter !== 'all'
                 ? 'No cost centers match your current filters.'
                 : 'Get started by creating your first cost center.'}
             </p>
             {canCreate && (
-              <Button onClick={onCreateClick}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Cost Center
+              <Button onClick={onCreateClick} className="h-9 sm:h-10">
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <span className="text-xs sm:text-sm">Create Cost Center</span>
               </Button>
             )}
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {filteredCostCenters.map((center) => (
             <CostCenterCard
               key={center.id}

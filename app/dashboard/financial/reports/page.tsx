@@ -349,22 +349,26 @@ export default function FinancialReportsPage() {
   // Show error state
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Financial Reports</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Financial Reports</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Generate comprehensive financial reports and analytics
             </p>
           </div>
         </div>
         
         <Card className="card-enhanced">
-          <CardContent className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2 text-red-600">Error Loading Reports</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => loadData(true)} variant="outline">
+          <CardContent className="text-center py-8 sm:py-12 px-4">
+            <AlertTriangle className="w-10 h-10 sm:w-12 sm:h-12 text-red-500 mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2 text-red-600">Error Loading Reports</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">{error}</p>
+            <Button 
+              onClick={() => loadData(true)} 
+              variant="outline"
+              className="min-h-[40px] sm:min-h-[36px] w-full sm:w-auto"
+            >
               Try Again
             </Button>
           </CardContent>
@@ -374,42 +378,48 @@ export default function FinancialReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Financial Reports</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Financial Reports</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Generate comprehensive financial reports and analytics
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
             onClick={handleRefreshData}
             disabled={refreshing}
+            className="min-h-[40px] sm:min-h-[36px] w-full sm:w-auto justify-center sm:justify-start"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Refreshing...' : 'Refresh Data'}
+            <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh Data'}</span>
+            <span className="sm:hidden">Refresh</span>
           </Button>
-          <Button onClick={() => setActiveTab('templates')}>
+          <Button 
+            onClick={() => setActiveTab('templates')}
+            className="min-h-[40px] sm:min-h-[36px] w-full sm:w-auto justify-center sm:justify-start"
+          >
             <FileText className="w-4 h-4 mr-2" />
-            Generate Report
+            <span className="hidden sm:inline">Generate Report</span>
+            <span className="sm:hidden">Generate</span>
           </Button>
         </div>
       </div>
 
       {/* Quick Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {insightsWithIcons.map((insight, index) => {
           const IconComponent = insight.IconComponent;
           return (
             <Card key={index} className="stats-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{insight.title}</CardTitle>
-                <IconComponent className={`h-4 w-4 ${insight.color}`} />
+                <CardTitle className="text-xs sm:text-sm font-medium">{insight.title}</CardTitle>
+                <IconComponent className={`h-3 w-3 sm:h-4 sm:w-4 ${insight.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{insight.value}</div>
+                <div className="text-lg sm:text-2xl font-bold">{insight.value}</div>
                 <p className="text-xs text-muted-foreground">
                   <span className={insight.color}>{insight.change}</span> {insight.description}
                 </p>
@@ -419,32 +429,32 @@ export default function FinancialReportsPage() {
         })}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4">
+        <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3">Overview</TabsTrigger>
+          <TabsTrigger value="templates" className="text-xs sm:text-sm px-2 sm:px-3">Templates</TabsTrigger>
+          <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3">History</TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 sm:px-3">Analytics</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-3 sm:space-y-4">
           {/* Global Filters */}
           <Card className="card-enhanced">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Filter className="w-5 h-5 text-primary" />
+              <CardTitle className="text-base sm:text-lg flex items-center gap-1.5 sm:gap-2">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 Report Filters
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Configure global settings for all financial reports
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="period">Reporting Period</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="period" className="text-sm">Reporting Period</Label>
                   <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 sm:h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -458,10 +468,10 @@ export default function FinancialReportsPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="department" className="text-sm">Department</Label>
                   <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 sm:h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -475,10 +485,10 @@ export default function FinancialReportsPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="currency" className="text-sm">Currency</Label>
                   <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 sm:h-10">
                       <SelectValue placeholder={defaultCurrency ? `${defaultCurrency.symbol} ${defaultCurrency.code}` : 'Select currency'} />
                     </SelectTrigger>
                     <SelectContent>
@@ -495,10 +505,10 @@ export default function FinancialReportsPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="format">Export Format</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="format" className="text-sm">Export Format</Label>
                   <Select value={selectedFormat} onValueChange={(value) => setSelectedFormat(value as 'pdf' | 'excel' | 'csv')}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 sm:h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -555,44 +565,47 @@ export default function FinancialReportsPage() {
         <TabsContent value="analytics">
           <Card className="card-enhanced">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
+              <CardTitle className="text-base sm:text-lg flex items-center gap-1.5 sm:gap-2">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 Financial Analytics
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Advanced financial analytics and trend analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 space-y-6">
-                <div className="flex justify-center gap-6">
-                  <div className="p-4 rounded-full bg-blue-100">
-                    <LineChart className="w-8 h-8 text-blue-600" />
+              <div className="text-center py-8 sm:py-12 space-y-4 sm:space-y-6">
+                <div className="flex justify-center gap-4 sm:gap-6">
+                  <div className="p-3 sm:p-4 rounded-full bg-blue-100">
+                    <LineChart className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                   </div>
-                  <div className="p-4 rounded-full bg-green-100">
-                    <BarChart3 className="w-8 h-8 text-green-600" />
+                  <div className="p-3 sm:p-4 rounded-full bg-green-100">
+                    <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
                   </div>
-                  <div className="p-4 rounded-full bg-purple-100">
-                    <PieChart className="w-8 h-8 text-purple-600" />
+                  <div className="p-3 sm:p-4 rounded-full bg-purple-100">
+                    <PieChart className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
                   </div>
                 </div>
-                <div className="max-w-md mx-auto">
-                  <h3 className="text-xl font-semibold mb-3">Advanced Analytics Coming Soon</h3>
-                  <p className="text-muted-foreground mb-6">
+                <div className="max-w-sm sm:max-w-md mx-auto px-4">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Advanced Analytics Coming Soon</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                     Interactive charts, trend analysis, and advanced financial analytics will be available here. 
                     Get real-time insights into your financial performance.
                   </p>
                   <div className="space-y-2">
-                    <div className="text-sm text-muted-foreground">Features in development:</div>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      <Badge variant="outline">Interactive Charts</Badge>
-                      <Badge variant="outline">Trend Analysis</Badge>
-                      <Badge variant="outline">Forecasting</Badge>
-                      <Badge variant="outline">Benchmarking</Badge>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Features in development:</div>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
+                      <Badge variant="outline" className="text-xs">Interactive Charts</Badge>
+                      <Badge variant="outline" className="text-xs">Trend Analysis</Badge>
+                      <Badge variant="outline" className="text-xs">Forecasting</Badge>
+                      <Badge variant="outline" className="text-xs">Benchmarking</Badge>
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" className="bg-primary/5 hover:bg-primary/10">
+                <Button 
+                  variant="outline" 
+                  className="bg-primary/5 hover:bg-primary/10 min-h-[40px] sm:min-h-[36px] w-full sm:w-auto"
+                >
                   <Settings className="w-4 h-4 mr-2" />
                   Configure Analytics
                 </Button>

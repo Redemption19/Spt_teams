@@ -24,21 +24,21 @@ export function CostCenterFilters({
 }: CostCenterFiltersProps) {
   return (
     <Card className="card-enhanced">
-      <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3 h-3 sm:w-4 sm:h-4" />
               <Input
                 placeholder="Search cost centers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-8 sm:pl-10 h-9 sm:h-10 text-xs sm:text-sm"
               />
             </div>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40">
+            <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 text-xs sm:text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -48,7 +48,7 @@ export function CostCenterFilters({
             </SelectContent>
           </Select>
           <Select value={periodFilter} onValueChange={setPeriodFilter}>
-            <SelectTrigger className="w-full sm:w-40">
+            <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 text-xs sm:text-sm">
               <SelectValue placeholder="Period" />
             </SelectTrigger>
             <SelectContent>
@@ -62,4 +62,4 @@ export function CostCenterFilters({
       </CardContent>
     </Card>
   );
-} 
+}

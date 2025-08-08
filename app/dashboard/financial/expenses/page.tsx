@@ -512,78 +512,94 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Expense Management</h1>
-          <p className="text-muted-foreground">
-            Track and manage your business expenses
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {/* Cross-workspace toggle for owners */}
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="space-y-1 sm:space-y-2">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Expense Management</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Track and manage your business expenses
+            </p>
+          </div>
+          
+          {/* Cross-workspace toggle for owners - Mobile optimized */}
           {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-            <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-              <button
-                onClick={() => handleWorkspaceViewToggle(!showAllWorkspaces)}
-                className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
-                  showAllWorkspaces 
-                    ? 'text-green-700 dark:text-green-400' 
-                    : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
-                }`}
-              >
-                <span className="text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
-                <span>
-                  {showAllWorkspaces 
-                    ? `All Workspaces (${accessibleWorkspaces.length})` 
-                    : 'Current Workspace'
-                  }
-                </span>
-              </button>
+            <div className="flex items-center justify-center sm:justify-start">
+              <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50 min-h-[40px]">
+                <button
+                  onClick={() => handleWorkspaceViewToggle(!showAllWorkspaces)}
+                  className={`flex items-center space-x-2 text-xs sm:text-sm font-medium transition-colors ${
+                    showAllWorkspaces 
+                      ? 'text-green-700 dark:text-green-400' 
+                      : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
+                  }`}
+                >
+                  <span className="text-sm sm:text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
+                  <span className="truncate">
+                    {showAllWorkspaces 
+                      ? `All Workspaces (${accessibleWorkspaces.length})` 
+                      : 'Current Workspace'
+                    }
+                  </span>
+                </button>
+              </div>
             </div>
           )}
-          
-          <Button 
-            onClick={() => router.push('/dashboard/financial/expenses/categories')} 
-            variant="outline" 
-            size="sm"
-            className="shrink-0"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Categories
-          </Button>
-          <Button 
-            onClick={() => router.push('/dashboard/financial/expenses/analytics')} 
-            variant="outline" 
-            className="shrink-0"
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Analytics
-          </Button>
-          {userPermissions && (userPermissions.canEdit || userPermissions.canEditOwn) && (
-            <>
-              <Button 
-                onClick={() => setShowBulkImport(true)} 
-                variant="outline" 
-                className="shrink-0"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Bulk Import
-              </Button>
-              <Button onClick={handleNewExpense} className="shrink-0">
-                <Plus className="w-4 h-4 mr-2" />
-                New Expense
-              </Button>
-            </>
-          )}
+        </div>
+        
+        {/* Action buttons - Mobile-first responsive grid */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 flex-1">
+            <Button 
+              onClick={() => router.push('/dashboard/financial/expenses/categories')} 
+              variant="outline" 
+              size="sm"
+              className="min-h-[40px] text-xs sm:text-sm"
+            >
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Categories</span>
+              <span className="sm:hidden">Cat.</span>
+            </Button>
+            <Button 
+              onClick={() => router.push('/dashboard/financial/expenses/analytics')} 
+              variant="outline"
+              size="sm" 
+              className="min-h-[40px] text-xs sm:text-sm"
+            >
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
+            </Button>
+            {userPermissions && (userPermissions.canEdit || userPermissions.canEditOwn) && (
+              <>
+                <Button 
+                  onClick={() => setShowBulkImport(true)} 
+                  variant="outline"
+                  size="sm" 
+                  className="min-h-[40px] text-xs sm:text-sm col-span-2 sm:col-span-1"
+                >
+                  <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Bulk Import</span>
+                  <span className="sm:hidden">Import</span>
+                </Button>
+                <Button 
+                  onClick={handleNewExpense} 
+                  className="min-h-[40px] text-xs sm:text-sm col-span-2 sm:col-span-1"
+                >
+                  <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">New Expense</span>
+                  <span className="sm:hidden">New</span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Cross-workspace scope banner for owners */}
       {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-          <p className="text-sm text-green-700 dark:text-green-400">
+        <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+          <p className="text-xs sm:text-sm text-green-700 dark:text-green-400 leading-relaxed">
             🌐 <strong>Cross-Workspace Expenses:</strong> Displaying expenses across all {accessibleWorkspaces.length} accessible workspaces. Expenses, analytics, and management features from all workspaces are aggregated for centralized oversight.
           </p>
         </div>
@@ -592,42 +608,42 @@ export default function ExpensesPage() {
       {/* Summary Cards */}
       {showAllWorkspaces && workspaceSummary ? (
         /* Cross-workspace summary for owners */
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Across All Workspaces</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <Card className="card-enhanced">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Across All Workspaces</CardTitle>
+                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{getCurrencySymbol()}{formatNumber(workspaceSummary.totalAmount || 0)}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold break-all">{getCurrencySymbol()}{formatNumber(workspaceSummary.totalAmount || 0)}</div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {workspaceSummary.totalExpenses || 0} expenses from {workspaceSummary.workspaceCount || 0} workspaces
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Approved Total</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+            <Card className="card-enhanced">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">Approved Total</CardTitle>
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{getCurrencySymbol()}{formatNumber(workspaceSummary.approvedAmount || 0)}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 break-all">{getCurrencySymbol()}{formatNumber(workspaceSummary.approvedAmount || 0)}</div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Approved and paid expenses
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Total</CardTitle>
-                <Clock className="h-4 w-4 text-yellow-500" />
+            <Card className="card-enhanced sm:col-span-2 lg:col-span-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">Pending Total</CardTitle>
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">{getCurrencySymbol()}{formatNumber(workspaceSummary.pendingAmount || 0)}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600 break-all">{getCurrencySymbol()}{formatNumber(workspaceSummary.pendingAmount || 0)}</div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {workspaceSummary.pendingCount || 0} pending expenses
                 </p>
               </CardContent>
@@ -636,28 +652,28 @@ export default function ExpensesPage() {
           
           {/* Workspace breakdown */}
           <Card className="border-green-200 dark:border-green-800/50">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <span className="text-base mr-2">🏢</span>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg flex items-center">
+                <span className="text-sm sm:text-base mr-2">🏢</span>
                 Workspace Breakdown
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="pt-0">
+              <div className="space-y-3 sm:space-y-4">
                 {workspaceSummary.workspaces && workspaceSummary.workspaces.length > 0 ? (
                   workspaceSummary.workspaces.map((ws: any, index: number) => (
                     <div 
                       key={ws.id} 
-                      className={`flex justify-between items-center p-4 rounded-lg border transition-colors ${
+                      className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border transition-colors ${
                         ws.type === 'main' 
                           ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800/50' 
                           : 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800/50'
                       }`}
                     >
-                      <div className="flex flex-col">
+                      <div className="flex flex-col space-y-1 sm:space-y-2 flex-1 min-w-0">
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm">{ws.type === 'main' ? '🏛️' : '🏢'}</span>
-                          <span className={`font-medium ${
+                          <span className="text-xs sm:text-sm flex-shrink-0">{ws.type === 'main' ? '🏛️' : '🏢'}</span>
+                          <span className={`font-medium text-sm sm:text-base truncate ${
                             ws.type === 'main' 
                               ? 'text-blue-700 dark:text-blue-300' 
                               : 'text-green-700 dark:text-green-300'
@@ -665,14 +681,14 @@ export default function ExpensesPage() {
                             {ws.name}
                           </span>
                           {ws.type === 'main' && (
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                            <Badge variant="outline" className="text-xs px-1.5 sm:px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 flex-shrink-0">
                               Main
                             </Badge>
                           )}
                         </div>
                         {ws.expenseCount > 0 && (
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className="text-xs text-muted-foreground">
+                          <div className="flex items-center space-x-4">
+                            <span className="text-xs sm:text-sm text-muted-foreground">
                               {ws.pendingCount > 0 && (
                                 <span className="text-yellow-600 dark:text-yellow-400">
                                   {ws.pendingCount} pending
@@ -682,24 +698,24 @@ export default function ExpensesPage() {
                           </div>
                         )}
                       </div>
-                      <div className="text-right">
-                        <div className={`text-lg font-bold ${
+                      <div className="text-left sm:text-right flex-shrink-0">
+                        <div className={`text-base sm:text-lg font-bold break-all ${
                           ws.type === 'main' 
                             ? 'text-blue-700 dark:text-blue-300' 
                             : 'text-green-700 dark:text-green-300'
                         }`}>
                           {getCurrencySymbol()}{formatNumber(ws.totalAmount)}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs sm:text-sm text-muted-foreground">
                           {ws.expenseCount} expense{ws.expenseCount !== 1 ? 's' : ''}
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-2">📊</div>
-                    <p className="text-sm text-muted-foreground">No workspace data available</p>
+                  <div className="text-center py-6 sm:py-8">
+                    <div className="text-2xl sm:text-4xl mb-2">📊</div>
+                    <p className="text-xs sm:text-sm text-muted-foreground">No workspace data available</p>
                   </div>
                 )}
               </div>
@@ -708,41 +724,41 @@ export default function ExpensesPage() {
         </div>
       ) : (
         /* Regular workspace summary */
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <Card className="card-enhanced">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Expenses</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{getCurrencySymbol()}{formatNumber(expenseStats.totalAmount)}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="pt-0">
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold break-all">{getCurrencySymbol()}{formatNumber(expenseStats.totalAmount)}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 {(filteredExpenses || []).length} expenses
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+          <Card className="card-enhanced">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Approved</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{getCurrencySymbol()}{formatNumber(expenseStats.approvedAmount)}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="pt-0">
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 break-all">{getCurrencySymbol()}{formatNumber(expenseStats.approvedAmount)}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 {(filteredExpenses || []).filter(e => e?.status === 'approved').length} approved
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-500" />
+          <Card className="card-enhanced sm:col-span-2 lg:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Pending</CardTitle>
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{getCurrencySymbol()}{formatNumber(expenseStats.pendingAmount)}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="pt-0">
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600 break-all">{getCurrencySymbol()}{formatNumber(expenseStats.pendingAmount)}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 {(filteredExpenses || []).filter(e => e?.status === 'submitted').length} pending
               </p>
             </CardContent>
@@ -753,30 +769,32 @@ export default function ExpensesPage() {
       {/* Access Info */}
       <ExpenseAccessInfo />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="list">Expense List</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="list" className="text-xs sm:text-sm">Expense List</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="list" className="space-y-4">
+        <TabsContent value="list" className="space-y-4 sm:space-y-6">
           {/* Filters */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Filters</CardTitle>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Filters</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+                <div className="sm:col-span-2 lg:col-span-1">
                   <Input
                     placeholder="Search expenses..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
+                    className="w-full min-h-[40px] text-sm"
                   />
                 </div>
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[40px] text-sm">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -790,7 +808,7 @@ export default function ExpensesPage() {
                 </Select>
 
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[40px] text-sm">
                     <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -803,7 +821,7 @@ export default function ExpensesPage() {
                 </Select>
 
                 <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[40px] text-sm">
                     <SelectValue placeholder="Filter by department" />
                   </SelectTrigger>
                   <SelectContent>
@@ -816,8 +834,8 @@ export default function ExpensesPage() {
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline" className="w-full">
-                  <Download className="w-4 h-4 mr-2" />
+                <Button variant="outline" className="w-full min-h-[40px] text-xs sm:text-sm sm:col-span-2 lg:col-span-1">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Export
                 </Button>
               </div>
@@ -826,47 +844,47 @@ export default function ExpensesPage() {
 
           {/* Expense List */}
           <Card>
-            <CardHeader>
-              <CardTitle>Expenses</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Expenses</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 {loading ? 'Loading...' : `${(expenseTableDataWithPermissions || []).length} expenses found`}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <span className="ml-2">Loading expenses...</span>
+                <div className="flex items-center justify-center py-6 sm:py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2 text-xs sm:text-sm">Loading expenses...</span>
                 </div>
               ) : error ? (
-                <div className="text-center py-8">
-                  <p className="text-red-600 mb-4">{error}</p>
-                  <Button onClick={loadAllData} variant="outline">
+                <div className="text-center py-6 sm:py-8 px-4">
+                  <p className="text-red-600 mb-4 text-xs sm:text-sm break-words">{error}</p>
+                  <Button onClick={loadAllData} variant="outline" className="min-h-[40px] text-xs sm:text-sm">
                     Try Again
                   </Button>
                 </div>
               ) : (
-                <DataTable
-                  columns={columns}
-                  data={expenseTableDataWithPermissions}
-                  searchKey="title"
-                  searchPlaceholder="Search expenses by title..."
-                  showColumnToggle={true}
-                  showPagination={true}
-                  pageSize={10}
-                />
+                <div className="overflow-x-auto">
+                  <DataTable
+                    columns={columns}
+                    data={expenseTableDataWithPermissions}
+                    searchKey="title"
+                    searchPlaceholder="Search expenses by title..."
+                  />
+                </div>
               )}
               
               {(expenseTableDataWithPermissions || []).length === 0 && !loading && !error && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No expenses found matching your filters.</p>
+                <div className="text-center py-6 sm:py-8 px-4">
+                  <div className="text-2xl sm:text-4xl mb-2">📝</div>
+                  <p className="text-muted-foreground text-xs sm:text-sm mb-4">No expenses found matching your filters.</p>
                   {userPermissions && (userPermissions.canEdit || userPermissions.canEditOwn) && (
                     <Button 
                       variant="outline" 
-                      className="mt-4" 
+                      className="mt-4 min-h-[40px] text-xs sm:text-sm" 
                       onClick={() => router.push('/dashboard/financial/expenses/new')}
                     >
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Create First Expense
                     </Button>
                   )}

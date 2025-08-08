@@ -50,6 +50,7 @@ export default function InterviewVideoCallPage() {
       workspaceId: workspaceId,
       candidateId: candidateId,
       jobPostingId: 'mock-job-id',
+      title: 'Video Interview',
       type: 'video',
       date: new Date(),
       time: '10:00',
@@ -62,26 +63,28 @@ export default function InterviewVideoCallPage() {
       rating: 0,
       createdBy: user.uid,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      updatedBy: user.uid
     };
 
     const mockCandidate: Candidate = {
       id: candidateId,
       workspaceId: workspaceId,
-      jobPostingId: 'mock-job-id',
+      jobId: 'mock-job-id',
       name: candidateName || 'Interview Candidate',
       email: 'candidate@example.com',
       phone: '+1234567890',
       experience: 3,
       education: "Bachelor's Degree",
       location: 'Remote',
-      status: 'interview',
+      status: 'interview-scheduled',
       appliedDate: new Date(),
       notes: '',
       tags: [],
       createdBy: user.uid,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      updatedBy: user.uid
     };
 
     setInterview(mockInterview);

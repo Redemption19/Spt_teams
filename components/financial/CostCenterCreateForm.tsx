@@ -202,32 +202,32 @@ export function CostCenterCreateForm({
   };
 
   return (
-    <Card className="card-enhanced">
-      <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Building className="w-5 h-5 text-primary" />
+    <Card className="card-enhanced w-full">
+      <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b border-border p-3 sm:p-6">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 sm:w-10 h-8 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Building className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
           </div>
-          <div>
-            <CardTitle className="text-xl">Create New Cost Center</CardTitle>
-            <CardDescription>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-lg sm:text-xl truncate">Create New Cost Center</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Set up a new cost center to track budgets and expenses across your organization
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="p-3 sm:p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Workspace Selection */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Globe className="w-4 h-4 text-primary" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-foreground">
+              <Globe className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
               Workspace Selection
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="workspace" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="workspace" className="text-xs sm:text-sm font-medium">
                 Target Workspace <span className="text-destructive">*</span>
               </Label>
               <Select
@@ -235,16 +235,16 @@ export function CostCenterCreateForm({
                 onValueChange={(value) => setFormData({ ...formData, workspaceId: value, projectId: '' })}
                 disabled={loadingWorkspaces}
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm touch-manipulation">
                   <SelectValue placeholder={loadingWorkspaces ? "Loading workspaces..." : "Select workspace"} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableWorkspaces.map((workspace) => (
                     <SelectItem key={workspace.id} value={workspace.id}>
                       <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4" />
+                        <Building className="w-3 sm:w-4 h-3 sm:h-4" />
                         <div className="flex flex-col">
-                          <span>{workspace.name}</span>
+                          <span className="text-xs sm:text-sm">{workspace.name}</span>
                           {workspace.workspaceType === 'sub' && (
                             <span className="text-xs text-muted-foreground">Sub-workspace</span>
                           )}
@@ -258,15 +258,15 @@ export function CostCenterCreateForm({
           </div>
 
           {/* Basic Information */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Building className="w-4 h-4 text-primary" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-foreground">
+              <Building className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
               Basic Information
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="name" className="text-xs sm:text-sm font-medium">
                   Cost Center Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -274,13 +274,13 @@ export function CostCenterCreateForm({
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Marketing Department"
-                  className="h-10"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                   required
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="code" className="text-sm font-medium">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="code" className="text-xs sm:text-sm font-medium">
                   Cost Center Code <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -288,37 +288,37 @@ export function CostCenterCreateForm({
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                   placeholder="e.g., MKT-001"
-                  className="h-10"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                   required
                 />
               </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="description" className="text-xs sm:text-sm font-medium">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Brief description of the cost center purpose and responsibilities..."
                 rows={3}
-                className="resize-none"
+                className="resize-none text-xs sm:text-sm"
               />
             </div>
           </div>
 
           {/* Budget Information */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <DollarSign className="w-4 h-4 text-primary" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-foreground">
+              <DollarSign className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
               Budget Information
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="budget" className="text-sm font-medium">Budget Amount</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="budget" className="text-xs sm:text-sm font-medium">Budget Amount</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">₵</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-xs sm:text-sm">₵</span>
                   <Input
                     id="budget"
                     type="number"
@@ -327,38 +327,38 @@ export function CostCenterCreateForm({
                     value={formData.budget}
                     onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                     placeholder="50000"
-                    className="h-10 pl-8"
+                    className="h-9 sm:h-10 pl-8 text-xs sm:text-sm"
                   />
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="budgetPeriod" className="text-sm font-medium">Budget Period</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="budgetPeriod" className="text-xs sm:text-sm font-medium">Budget Period</Label>
                 <Select
                   value={formData.budgetPeriod}
                   onValueChange={(value: 'monthly' | 'quarterly' | 'yearly') => 
                     setFormData({ ...formData, budgetPeriod: value })
                   }
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm touch-manipulation">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="monthly">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3 sm:w-4 h-3 sm:h-4" />
                         Monthly
                       </div>
                     </SelectItem>
                     <SelectItem value="quarterly">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3 sm:w-4 h-3 sm:h-4" />
                         Quarterly
                       </div>
                     </SelectItem>
                     <SelectItem value="yearly">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3 sm:w-4 h-3 sm:h-4" />
                         Yearly
                       </div>
                     </SelectItem>
@@ -369,20 +369,20 @@ export function CostCenterCreateForm({
           </div>
 
           {/* Assignment Information */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <User className="w-4 h-4 text-primary" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-foreground">
+              <User className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
               Assignment
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="department" className="text-sm font-medium">Department</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="department" className="text-xs sm:text-sm font-medium">Department</Label>
                 <Select
                   value={formData.departmentId}
                   onValueChange={(value) => setFormData({ ...formData, departmentId: value })}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm touch-manipulation">
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
@@ -390,7 +390,7 @@ export function CostCenterCreateForm({
                     {departments.map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         <div className="flex items-center gap-2">
-                          <Briefcase className="w-4 h-4" />
+                          <Briefcase className="w-3 sm:w-4 h-3 sm:h-4" />
                           {dept.name}
                         </div>
                       </SelectItem>
@@ -399,13 +399,13 @@ export function CostCenterCreateForm({
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="manager" className="text-sm font-medium">Manager</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="manager" className="text-xs sm:text-sm font-medium">Manager</Label>
                 <Select
                   value={formData.managerId}
                   onValueChange={(value) => setFormData({ ...formData, managerId: value })}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm touch-manipulation">
                     <SelectValue placeholder="Select manager" />
                   </SelectTrigger>
                   <SelectContent>
@@ -413,7 +413,7 @@ export function CostCenterCreateForm({
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         <div className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
+                          <User className="w-3 sm:w-4 h-3 sm:h-4" />
                           {user.name || user.email}
                         </div>
                       </SelectItem>
@@ -423,9 +423,9 @@ export function CostCenterCreateForm({
               </div>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="project" className="text-sm font-medium">Project (Optional)</Label>
+                <Label htmlFor="project" className="text-xs sm:text-sm font-medium">Project (Optional)</Label>
                 {formData.workspaceId && (
                   <Button
                     type="button"
@@ -436,7 +436,8 @@ export function CostCenterCreateForm({
                     disabled={loadingProjects}
                   >
                     <Plus className="w-3 h-3 mr-1" />
-                    New Project
+                    <span className="hidden sm:inline">New Project</span>
+                    <span className="sm:hidden">New</span>
                   </Button>
                 )}
               </div>
@@ -445,7 +446,7 @@ export function CostCenterCreateForm({
                 onValueChange={(value) => setFormData({ ...formData, projectId: value })}
                 disabled={loadingProjects || !formData.workspaceId}
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm touch-manipulation">
                   <SelectValue 
                     placeholder={
                       !formData.workspaceId 
@@ -461,9 +462,9 @@ export function CostCenterCreateForm({
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       <div className="flex items-center gap-2">
-                        <FolderOpen className="w-4 h-4" />
+                        <FolderOpen className="w-3 sm:w-4 h-3 sm:h-4" />
                         <div className="flex flex-col">
-                          <span>{project.name}</span>
+                          <span className="text-xs sm:text-sm">{project.name}</span>
                           <span className="text-xs text-muted-foreground capitalize">
                             {project.status} • {project.priority} priority
                           </span>
@@ -482,30 +483,32 @@ export function CostCenterCreateForm({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-border">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-border">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onCancel}
               disabled={isSubmitting}
-              className="min-w-[100px]"
+              className="w-full sm:w-auto min-w-[100px] h-9 sm:h-10 text-xs sm:text-sm"
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting || !formData.name.trim() || !formData.code.trim()}
-              className="min-w-[140px] bg-primary hover:bg-primary/90"
+              className="w-full sm:w-auto min-w-[140px] h-9 sm:h-10 text-xs sm:text-sm bg-primary hover:bg-primary/90"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating...
+                  <div className="w-3 sm:w-4 h-3 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="hidden sm:inline">Creating...</span>
+                  <span className="sm:hidden">Creating</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Building className="w-4 h-4" />
-                  Create Cost Center
+                  <Building className="w-3 sm:w-4 h-3 sm:h-4" />
+                  <span className="hidden sm:inline">Create Cost Center</span>
+                  <span className="sm:hidden">Create</span>
                 </div>
               )}
             </Button>

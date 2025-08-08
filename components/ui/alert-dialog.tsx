@@ -36,7 +36,12 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
+        'fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-3 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
+        // Mobile-first responsive sizing and spacing
+        'mx-4 my-8 max-h-[calc(100vh-4rem)] overflow-auto p-4',
+        'sm:mx-auto sm:my-8 sm:max-w-lg sm:rounded-lg sm:p-6',
+        'md:max-w-2xl md:p-8',
+        'lg:max-w-4xl',
         className
       )}
       {...props}
@@ -52,6 +57,8 @@ const AlertDialogHeader = ({
   <div
     className={cn(
       'flex flex-col space-y-2 text-center sm:text-left',
+      // Mobile-first responsive spacing
+      'pb-2 sm:pb-4',
       className
     )}
     {...props}
@@ -65,7 +72,10 @@ const AlertDialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
+      'flex flex-col-reverse gap-3 pt-4',
+      'sm:flex-row sm:justify-end sm:gap-2 sm:space-x-2 sm:pt-6',
+      // Touch-friendly button spacing on mobile
+      '[&>*]:min-h-[44px] sm:[&>*]:min-h-[36px]',
       className
     )}
     {...props}

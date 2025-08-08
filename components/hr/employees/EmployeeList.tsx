@@ -208,13 +208,13 @@ export function EmployeeList({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
+      {/* Header - responsive layout */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
             {shouldShowCrossWorkspace ? 'All Employees (Cross-Workspace)' : 'Employee Management'}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {shouldShowCrossWorkspace 
               ? 'Manage employees across all your workspaces'
               : 'Manage employee profiles and information'
@@ -222,7 +222,7 @@ export function EmployeeList({
           </p>
         </div>
         {canCreate && (
-          <Button onClick={handleCreateEmployee}>
+          <Button onClick={handleCreateEmployee} className="w-full sm:w-auto touch-target">
             <Plus className="w-4 h-4 mr-2" />
             Add Employee
           </Button>
@@ -239,26 +239,27 @@ export function EmployeeList({
         </Alert>
       )}
 
-      {/* Filters */}
+      {/* Filters - mobile-first responsive design */}
       <Card className="card-enhanced">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4">
-            {/* First row of filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search employees..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+        <CardContent className="p-4 sm:p-6">
+          <div className="space-y-4">
+            {/* Search input - full width on mobile */}
+            <div className="w-full">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search employees..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-11 touch-target"
+                />
               </div>
-              
+            </div>
+            
+            {/* Filter selects - stack on mobile, row on larger screens */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="h-11 touch-target">
                   <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
@@ -270,7 +271,7 @@ export function EmployeeList({
               </Select>
               
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="h-11 touch-target">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,7 +285,7 @@ export function EmployeeList({
               </Select>
               
               <Select value={employmentTypeFilter} onValueChange={setEmploymentTypeFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="h-11 touch-target">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -295,13 +296,11 @@ export function EmployeeList({
                   <SelectItem value="intern">Intern</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Workspace filter for cross-workspace view */}
-            {shouldShowCrossWorkspace && workspaces.length > 1 && (
-              <div className="flex justify-start">
+              
+              {/* Workspace filter for cross-workspace view */}
+              {shouldShowCrossWorkspace && workspaces.length > 1 && (
                 <Select value={workspaceFilter} onValueChange={setWorkspaceFilter}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="h-11 touch-target">
                     <SelectValue placeholder="Workspace" />
                   </SelectTrigger>
                   <SelectContent>
@@ -313,8 +312,8 @@ export function EmployeeList({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -387,4 +386,4 @@ export function EmployeeList({
       />
     </div>
   );
-} 
+}

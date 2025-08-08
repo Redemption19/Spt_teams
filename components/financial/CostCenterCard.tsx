@@ -58,100 +58,100 @@ export function CostCenterCard({
 
   return (
     <Card className="card-enhanced card-interactive">
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">{center.name}</h3>
+      <CardContent className="p-4 sm:p-6">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+            <div className="space-y-1 flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <h3 className="text-base sm:text-lg font-semibold">{center.name}</h3>
                 <Badge 
                   variant={center.isActive ? 'default' : 'secondary'}
-                  className={center.isActive ? 'bg-green-100 text-green-800' : ''}
+                  className={`${center.isActive ? 'bg-green-100 text-green-800' : ''} text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 sm:py-1`}
                 >
                   {center.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">{center.code}</p>
-              <p className="text-sm">{center.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{center.code}</p>
+              <p className="text-xs sm:text-sm">{center.description}</p>
             </div>
             
-            <div className="flex items-start gap-2">
-              <div className="text-right space-y-1">
-                <div className="text-2xl font-bold">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+              <div className="text-left sm:text-right space-y-1">
+                <div className="text-lg sm:text-2xl font-bold">
                   {formatCurrency(center.budget || 0, defaultCurrency?.code || 'USD')}
                 </div>
-                <Badge className={getBudgetStatusColor(budgetStatus)}>
+                <Badge className={`${getBudgetStatusColor(budgetStatus)} text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 sm:py-1`}>
                   {budgetStatus.replace('-', ' ')}
                 </Badge>
               </div>
               
               {/* Action Buttons */}
               {(canEdit || canDelete) && (
-                              <div className="flex items-center gap-1">
-                <Link href={`/dashboard/financial/cost-centers/${center.id}`} passHref>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-muted"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </Link>
-                {canEdit && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(center)}
-                    className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                )}
-                {canDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(center)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+                <div className="flex items-center gap-1">
+                  <Link href={`/dashboard/financial/cost-centers/${center.id}`} passHref>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-muted"
+                    >
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </Link>
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(center)}
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(center)}
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </div>
           
           {center.budget && (
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span>Budget Usage</span>
                 <span>{budgetPercentage.toFixed(1)}%</span>
               </div>
               <Progress value={budgetPercentage} className="h-2" />
-              <div className="flex justify-between text-xs text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0 text-xs text-muted-foreground">
                 <span>Spent: {formatCurrency(center.currentSpent || 0, defaultCurrency?.code || 'USD')}</span>
                 <span>Remaining: {formatCurrency((center.budget || 0) - (center.currentSpent || 0), defaultCurrency?.code || 'USD')}</span>
               </div>
             </div>
           )}
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t">
             <div className="text-center">
-              <div className="text-sm text-muted-foreground">Department</div>
-              <div className="font-medium">{center.departmentName || 'N/A'}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Department</div>
+              <div className="font-medium text-xs sm:text-sm">{center.departmentName || 'N/A'}</div>
             </div>
             <div className="text-center">
-              <div className="text-sm text-muted-foreground">Manager</div>
-              <div className="font-medium">{center.managerName || 'N/A'}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Manager</div>
+              <div className="font-medium text-xs sm:text-sm">{center.managerName || 'N/A'}</div>
             </div>
             <div className="text-center">
-              <div className="text-sm text-muted-foreground">Employees</div>
-              <div className="font-medium">{center.employees || 0}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Employees</div>
+              <div className="font-medium text-xs sm:text-sm">{center.employees || 0}</div>
             </div>
             <div className="text-center">
-              <div className="text-sm text-muted-foreground">Projects</div>
-              <div className="font-medium">{center.projects || 0}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Projects</div>
+              <div className="font-medium text-xs sm:text-sm">{center.projects || 0}</div>
             </div>
           </div>
         </div>

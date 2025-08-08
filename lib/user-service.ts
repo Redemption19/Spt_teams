@@ -113,7 +113,7 @@ export class UserService {
   }
 
   /**
-   * Create a new user with proper role assignment
+   * Create a new user with proper role assignment (for admin-created users)
    */
   static async createUserSecurely(userData: {
     id?: string;
@@ -296,6 +296,100 @@ export class UserService {
     }
     
     // Note: Invitation acceptance is handled by the invitation page after user authentication
+    return user;
+  }
+
+  /**
+   * Create a new user for Google authentication with proper role assignment
+   * This method is specifically for self-registering Google users
+   */
+  static async createGoogleUser(userData: {
+    id: string;
+    email: string;
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    workspaceId: string;
+    photoURL?: string;
+    isEmailVerified?: boolean;
+  }): Promise<User> {
+    
+    // Securely determine the role (same logic as createUserSecurely)
+    const role = await this.determineUserRole(
+      userData.workspaceId,
+      undefined, // No invite token for Google users
+      undefined  // No pre-assigned role for Google users
+    );
+
+    // Create user document
+    const user: User = {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: role,
+      status: 'active',
+      workspaceId: userData.workspaceId,
+      teamIds: [],
+      createdAt: new Date(),
+      lastActive: new Date(),
+      // Google users don't need password change
+      requiresPasswordChange: false,
+      firstLogin: true,
+    };
+
+    // Filter out undefined values to prevent Firestore errors
+    const cleanUserData = Object.fromEntries(
+      Object.entries(user).filter(([_, value]) => value !== undefined)
+    );
+
+    // Save user document to Firestore
+    await setDoc(doc(db, 'users', userData.id), cleanUserData);
+    console.log('Created Google user document in Firestore:', userData.id);
+
+    // Create UserWorkspace relationship
+    try {
+      console.log(`Creating UserWorkspace relationship for Google user ${userData.id} in workspace ${userData.workspaceId} with role ${role}`);
+      console.log(`Google user self-registration: userId=${userData.id}, workspaceId=${userData.workspaceId}, role=${role}`);
+      
+      // Import WorkspaceService here to avoid circular dependency
+      const { WorkspaceService } = await import('./workspace-service');
+      
+      // For Google users, we use the user's own ID as the creator since they're self-registering
+      await WorkspaceService.addUserToWorkspace(
+        userData.id,
+        userData.workspaceId,
+        role,
+        userData.id // Google users are self-registering
+      );
+      
+      console.log(`Successfully created UserWorkspace relationship for Google user ${userData.id} with role ${role}`);
+    } catch (error: any) {
+      console.error('Error creating UserWorkspace relationship for Google user:', error);
+      throw new Error(`Failed to create workspace relationship for Google user: ${error.message}`);
+    }
+
+    // Log activity
+    try {
+      await ActivityService.logActivity(
+        'user_created',
+        'user',
+        userData.id,
+        { 
+          targetName: user.name,
+          email: user.email,
+          role: user.role,
+          loginMethod: 'google',
+          isNewUser: true
+        },
+        user.workspaceId,
+        userData.id // Google user is the creator
+      );
+    } catch (error) {
+      console.warn('Warning: Could not log Google user creation activity:', error);
+    }
+    
     return user;
   }
 
@@ -575,6 +669,29 @@ export class UserService {
       );
     } catch (error) {
       console.warn('Warning: Could not log role update activity:', error);
+    }
+    
+    // Create notification for user about role change
+    try {
+      const user = await this.getUserById(userId);
+      const updaterUser = await this.getUserById(updatedBy);
+      const updaterName = updaterUser?.name || 'System';
+      
+      if (user) {
+        const { NotificationService } = await import('./notification-service');
+        await NotificationService.notifyRoleChanged(
+          updatedBy,
+          user.workspaceId,
+          userId,
+          user.name || user.email || 'User',
+          user.role || 'member',
+          newRole,
+          updaterName
+        );
+      }
+    } catch (error) {
+      console.error('Error creating role change notification:', error);
+      // Don't throw error as this is not critical to the main operation
     }
   }
 

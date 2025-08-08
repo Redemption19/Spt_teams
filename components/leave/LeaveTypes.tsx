@@ -21,7 +21,8 @@ import {
   Settings,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LeaveService, LeaveType, CreateLeaveTypeData } from '@/lib/leave-service';
@@ -655,30 +656,53 @@ export default function LeaveTypes({
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deletingType} onOpenChange={() => setDeletingType(null)}>
-        <DialogContent>
+        <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4 max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Delete Leave Type</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{deletingType?.name}"? This action cannot be undone.
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive flex-shrink-0" />
+              Delete Leave Type
+            </DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
+              Are you sure you want to delete "<span className="font-medium break-words">{deletingType?.name}</span>"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-3">
+          
+          {deletingType && (
+            <div className="bg-muted/50 p-3 sm:p-4 rounded-lg space-y-2">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="font-medium text-sm">Leave Type:</span>
+                <span className="text-sm break-words">{deletingType.name}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="font-medium text-sm">Maximum Days:</span>
+                <span className="text-sm">{deletingType.maxDays} days</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="font-medium text-sm">Carry Forward:</span>
+                <span className="text-sm">{deletingType.carryForward ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-2">
             <Button 
               variant="outline" 
               onClick={() => setDeletingType(null)}
-              className="border-border/50 hover:bg-accent hover:text-accent-foreground"
+              className="w-full sm:w-auto h-11 sm:h-10 border-border/50 hover:bg-accent hover:text-accent-foreground touch-manipulation"
             >
               Cancel
             </Button>
             <Button 
               variant="destructive" 
               onClick={handleDeleteType}
+              className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
             >
-              Delete
+              <Trash2 className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Delete Leave Type</span>
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
-} 
+}

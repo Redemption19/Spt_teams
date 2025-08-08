@@ -45,72 +45,77 @@ export function EditManagerDialog({
         setManagerForm(INITIAL_MANAGER_FORM);
       }
     }}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-4 max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Manager</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg break-words">Edit Manager</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-manager-name">Full Name *</Label>
+              <Label htmlFor="edit-manager-name" className="text-sm font-medium">Full Name *</Label>
               <Input
                 id="edit-manager-name"
                 value={managerForm.name}
                 onChange={(e) => setManagerForm(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter full name"
+                className="h-11 sm:h-10 touch-manipulation"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-manager-email">Email *</Label>
+              <Label htmlFor="edit-manager-email" className="text-sm font-medium">Email *</Label>
               <Input
                 id="edit-manager-email"
                 type="email"
                 value={managerForm.email}
                 onChange={(e) => setManagerForm(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="Enter email address"
+                className="h-11 sm:h-10 touch-manipulation"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-manager-phone">Phone</Label>
+              <Label htmlFor="edit-manager-phone" className="text-sm font-medium">Phone</Label>
               <Input
                 id="edit-manager-phone"
                 value={managerForm.phone}
                 onChange={(e) => setManagerForm(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="Enter phone number"
+                className="h-11 sm:h-10 touch-manipulation"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-manager-jobTitle">Job Title</Label>
+              <Label htmlFor="edit-manager-jobTitle" className="text-sm font-medium">Job Title</Label>
               <Input
                 id="edit-manager-jobTitle"
                 value={managerForm.jobTitle}
                 onChange={(e) => setManagerForm(prev => ({ ...prev, jobTitle: e.target.value }))}
                 placeholder="e.g., Branch Manager"
+                className="h-11 sm:h-10 touch-manipulation"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-manager-department">Department</Label>
+            <Label htmlFor="edit-manager-department" className="text-sm font-medium">Department</Label>
             <Input
               id="edit-manager-department"
               value={managerForm.department}
               onChange={(e) => setManagerForm(prev => ({ ...prev, department: e.target.value }))}
               placeholder="e.g., Operations, Sales"
+              className="h-11 sm:h-10 touch-manipulation"
             />
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-2 pt-4">
             <Button variant="outline" onClick={() => {
               setIsOpen(false);
               setEditingManager(null);
               setManagerForm(INITIAL_MANAGER_FORM);
-            }}>
+            }} className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation">
               Cancel
             </Button>
-            <Button onClick={handleEditManager} disabled={submitting}>
+            <Button onClick={handleEditManager} disabled={submitting} className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Manager
+              <span className="truncate">Update Manager</span>
             </Button>
           </div>
         </div>

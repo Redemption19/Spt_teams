@@ -45,48 +45,50 @@ export default function DeleteLeaveRequestDialog({
   });
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent className="w-full max-w-sm sm:max-w-md mx-4">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg break-words">
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 flex-shrink-0" />
             Delete Leave Request
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-sm sm:text-base">
             Are you sure you want to delete this leave request? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         
-        <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-          <div className="flex justify-between">
-            <span className="font-medium">Employee:</span>
-            <span>{employeeName || 'Unknown'}</span>
+        <div className="bg-muted/50 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+            <span className="font-medium text-sm">Employee:</span>
+            <span className="text-sm break-words">{employeeName || 'Unknown'}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="font-medium">Status:</span>
-            <span className="capitalize">{status || 'Unknown'}</span>
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+            <span className="font-medium text-sm">Status:</span>
+            <span className="capitalize text-sm">{status || 'Unknown'}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="font-medium">Request ID:</span>
-            <span className="text-xs font-mono">{requestId || 'Unknown'}</span>
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+            <span className="font-medium text-sm">Request ID:</span>
+            <span className="text-xs font-mono break-all">{requestId || 'Unknown'}</span>
           </div>
         </div>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+        <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+          <AlertDialogCancel disabled={loading} className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation">
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="w-full sm:w-auto h-11 sm:h-10 bg-red-600 hover:bg-red-700 text-white touch-manipulation"
           >
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Deleting...
+                <span className="truncate">Deleting...</span>
               </>
             ) : (
               <>
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Request
+                <span className="truncate">Delete Request</span>
               </>
             )}
           </AlertDialogAction>
@@ -94,4 +96,4 @@ export default function DeleteLeaveRequestDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-} 
+}

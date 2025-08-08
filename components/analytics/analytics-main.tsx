@@ -310,16 +310,15 @@ export default function AnalyticsMain() {
 
   // Member-specific simplified analytics
   if (userRole === 'member') {
-
-  return (
-    <div className="space-y-6">
+    return (
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               My Analytics
             </h1>
-            <p className="text-muted-foreground mt-1">Your personal performance metrics and insights</p>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Your personal performance metrics and insights</p>
           </div>
           <div className="flex items-center space-x-3">
             <Button
@@ -327,34 +326,36 @@ export default function AnalyticsMain() {
               size="sm"
               onClick={handleRefresh}
               disabled={refreshing}
+              className="h-9 sm:h-10 text-xs sm:text-sm"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">↻</span>
             </Button>
           </div>
         </div>
 
         {/* Member banner */}
-        <div className="p-3 rounded-lg border bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800/50">
-          <div className="flex items-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <p className="text-sm text-yellow-700 dark:text-yellow-400">
+        <div className="p-3 sm:p-4 rounded-lg border bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800/50">
+          <div className="flex items-start sm:items-center space-x-2">
+            <Shield className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 sm:mt-0 flex-shrink-0" />
+            <p className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-400">
               👤 <strong>Member Analytics:</strong> View your personal performance metrics, task completion rates, and project participation insights.
             </p>
           </div>
         </div>
 
         {/* Simplified Stats for Members */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="card-enhanced">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">My Tasks</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">My Tasks</CardTitle>
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">
                 {memberStats.loading ? (
-                  <div className="h-8 w-12 bg-muted animate-pulse rounded"></div>
+                  <div className="h-6 sm:h-8 w-10 sm:w-12 bg-muted animate-pulse rounded"></div>
                 ) : (
                   memberStats.totalTasks
                 )}
@@ -368,14 +369,14 @@ export default function AnalyticsMain() {
           </Card>
 
           <Card className="card-enhanced">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Completion Rate</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold text-green-600">
                 {memberStats.loading ? (
-                  <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
+                  <div className="h-6 sm:h-8 w-12 sm:w-16 bg-muted animate-pulse rounded"></div>
                 ) : (
                   `${memberStats.completionRate}%`
                 )}
@@ -389,14 +390,14 @@ export default function AnalyticsMain() {
           </Card>
 
           <Card className="card-enhanced">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Active Projects</CardTitle>
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">
                 {memberStats.loading ? (
-                  <div className="h-8 w-12 bg-muted animate-pulse rounded"></div>
+                  <div className="h-6 sm:h-8 w-10 sm:w-12 bg-muted animate-pulse rounded"></div>
                 ) : (
                   memberStats.activeProjects
                 )}
@@ -408,13 +409,13 @@ export default function AnalyticsMain() {
           </Card>
 
           <Card className="card-enhanced">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Your Role</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Your Role</CardTitle>
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
-                <Badge variant="outline">👤 Member</Badge>
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-sm sm:text-lg font-bold">
+                <Badge variant="outline" className="text-xs sm:text-sm">👤 Member</Badge>
               </div>
               <p className="text-xs text-muted-foreground">
                 Analytics scope
@@ -424,23 +425,23 @@ export default function AnalyticsMain() {
         </div>
 
         {/* Member-specific content */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
           {/* Personal Performance */}
           <Card className="card-enhanced">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5" />
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>My Performance</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-6">
               <div className="space-y-4">
                 <div className="text-center py-8">
-                  <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4">
-                    <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Personal Metrics</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Personal Metrics</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                     Track your task completion and productivity
                   </p>
                   <div className="space-y-2">
@@ -480,17 +481,17 @@ export default function AnalyticsMain() {
                 {!memberStats.loading && (
                   <div className="space-y-3 pt-4 border-t">
                     <h4 className="font-medium text-sm">Task Breakdown</h4>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-2 border rounded">
-                        <div className="text-lg font-bold text-green-600">{memberStats.completedTasks}</div>
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
+                      <div className="p-1.5 sm:p-2 border rounded">
+                        <div className="text-sm sm:text-lg font-bold text-green-600">{memberStats.completedTasks}</div>
                         <div className="text-xs text-muted-foreground">Completed</div>
                       </div>
-                      <div className="p-2 border rounded">
-                        <div className="text-lg font-bold text-blue-600">{memberStats.inProgressTasks}</div>
+                      <div className="p-1.5 sm:p-2 border rounded">
+                        <div className="text-sm sm:text-lg font-bold text-blue-600">{memberStats.inProgressTasks}</div>
                         <div className="text-xs text-muted-foreground">In Progress</div>
                       </div>
-                      <div className="p-2 border rounded">
-                        <div className="text-lg font-bold text-red-600">{memberStats.overdueTasks}</div>
+                      <div className="p-1.5 sm:p-2 border rounded">
+                        <div className="text-sm sm:text-lg font-bold text-red-600">{memberStats.overdueTasks}</div>
                         <div className="text-xs text-muted-foreground">Overdue</div>
                       </div>
                     </div>
@@ -502,35 +503,35 @@ export default function AnalyticsMain() {
 
           {/* Quick Actions */}
           <Card className="card-enhanced">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-6">
               <Button 
                 variant="outline" 
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10 sm:h-12 text-sm sm:text-base"
                 onClick={() => router.push('/dashboard/tasks')}
               >
-                <Target className="h-4 w-4 mr-3" />
-                Manage My Tasks ({memberStats.loading ? '...' : memberStats.totalTasks})
+                <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3" />
+                <span className="truncate">Manage My Tasks ({memberStats.loading ? '...' : memberStats.totalTasks})</span>
               </Button>
               
               <Button 
                 variant="outline" 
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10 sm:h-12 text-sm sm:text-base"
                 onClick={() => router.push('/dashboard/teams')}
               >
-                <Users className="h-4 w-4 mr-3" />
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3" />
                 View My Teams
               </Button>
 
               <Button 
                 variant="outline" 
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10 sm:h-12 text-sm sm:text-base"
                 onClick={handleRefresh}
                 disabled={refreshing}
               >
-                <RefreshCw className={`h-4 w-4 mr-3 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh Data
               </Button>
 
@@ -558,45 +559,54 @@ export default function AnalyticsMain() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Header and Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
-            Analytics
-            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
-          </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed max-w-3xl">
-            Workspace performance, productivity, and trends
-            {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ` across ${accessibleWorkspaces.length} workspaces`}
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 w-full sm:w-auto">
-          {/* Cross-workspace toggle for owners */}
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="space-y-1 sm:space-y-0">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+              Analytics Dashboard
+              {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ' 🌐'}
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {userRole === 'member' 
+                ? 'Track your personal productivity and task completion metrics'
+                : 'Comprehensive insights into workspace performance and productivity'
+              }
+              {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && ` across ${accessibleWorkspaces.length} workspaces`}
+            </p>
+          </div>
+
+          {/* Owner workspace toggle */}
           {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-            <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-              <button
-                onClick={() => setShowAllWorkspaces(!showAllWorkspaces)}
-                className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
-                  showAllWorkspaces 
-                    ? 'text-green-700 dark:text-green-400' 
-                    : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
-                }`}
+            <div className="flex items-center space-x-1 sm:space-x-2 w-full sm:w-auto">
+              <Button
+                variant={showAllWorkspaces ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowAllWorkspaces(false)}
+                className="text-xs sm:text-sm flex-1 sm:flex-none h-8 sm:h-9"
               >
-                <span className="text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
-                <span>
-                  {showAllWorkspaces 
-                    ? `All Workspaces (${accessibleWorkspaces.length})` 
-                    : 'Current Workspace'
-                  }
-                </span>
-              </button>
+                <span className="hidden sm:inline">Current Workspace</span>
+                <span className="sm:hidden">Current</span>
+              </Button>
+              <Button
+                variant={showAllWorkspaces ? "outline" : "default"}
+                size="sm"
+                onClick={() => setShowAllWorkspaces(true)}
+                className="text-xs sm:text-sm flex-1 sm:flex-none h-8 sm:h-9"
+              >
+                <span className="hidden sm:inline">All Workspaces</span>
+                <span className="sm:hidden">All</span>
+              </Button>
             </div>
           )}
-          
-          <Select value={selectedPreset} onValueChange={(value) => setSelectedPreset(value as any)}>
-            <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/50 touch-manipulation">
-              <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <Select value={selectedPreset} onValueChange={(value) => setSelectedPreset(value as 'last-7-days' | 'last-30-days' | 'last-3-months' | 'last-year')}>
+            <SelectTrigger className="w-full sm:w-[200px] h-10 sm:h-9">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -607,25 +617,27 @@ export default function AnalyticsMain() {
             </SelectContent>
           </Select>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2">
             <Button 
               variant="outline" 
               onClick={handleRefresh}
               disabled={refreshing}
-              className="h-11 sm:h-10 touch-manipulation"
+              className="h-10 sm:h-9 touch-manipulation text-sm px-2 sm:px-3"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">↻</span>
             </Button>
             
             {canExportAnalytics && (
               <Button 
                 variant="outline" 
                 onClick={handleExport}
-                className="h-11 sm:h-10 touch-manipulation"
+                className="h-10 sm:h-9 touch-manipulation text-sm px-2 sm:px-3"
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Export</span>
+                <span className="sm:hidden">⬇</span>
               </Button>
             )}
           </div>
@@ -634,16 +646,16 @@ export default function AnalyticsMain() {
 
       {/* Cross-workspace scope banner for owners */}
       {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-          <p className="text-sm text-green-700 dark:text-green-400">
+        <div className="p-2 sm:p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+          <p className="text-xs sm:text-sm text-green-700 dark:text-green-400">
             🌐 <strong>Cross-Workspace Analytics:</strong> Viewing analytics, performance metrics, and trends across all {accessibleWorkspaces.length} accessible workspaces. All data from accessible workspaces is aggregated for comprehensive analysis.
           </p>
         </div>
       )}
 
       {/* Analytics Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-11 sm:h-10">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-10 sm:h-9">
           <TabsTrigger value="overview" className="flex items-center gap-2 text-xs sm:text-sm">
             <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Overview</span>
@@ -671,7 +683,7 @@ export default function AnalyticsMain() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
           {/* Stats Cards */}
           <StatsCards 
             workspaceId={getEffectiveWorkspaceId()}
@@ -684,7 +696,7 @@ export default function AnalyticsMain() {
           />
 
           {/* Charts Grid */}
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             <PerformanceChart 
               workspaceId={getEffectiveWorkspaceId()}
               userId={user?.uid || ''}
@@ -706,7 +718,7 @@ export default function AnalyticsMain() {
           </div>
 
           {/* Additional Charts */}
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             <TeamDistributionChart 
               workspaceId={getEffectiveWorkspaceId()}
               userId={user?.uid || ''}

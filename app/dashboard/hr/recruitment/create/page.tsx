@@ -125,6 +125,7 @@ export default function CreateJobPostingPage() {
         department: formData.department,
         location: formData.location,
         type: formData.type,
+        level: 'mid' as const, // Default level
         salaryRange: { 
           min: parseInt(formData.salaryMin) || 0, 
           max: parseInt(formData.salaryMax) || 0,
@@ -135,10 +136,8 @@ export default function CreateJobPostingPage() {
         responsibilities: responsibilities,
         benefits: benefits,
         status: formData.status,
-        postedDate: new Date(),
-        applications: 0,
-        views: 0,
-        createdBy: user?.uid || ''
+        createdBy: user?.uid || '',
+        updatedBy: user?.uid || ''
       };
 
       await RecruitmentService.createJobPosting(jobData);
@@ -179,6 +178,7 @@ export default function CreateJobPostingPage() {
         department: formData.department || 'General',
         location: formData.location,
         type: formData.type,
+        level: 'mid' as const, // Default level
         salaryRange: { 
           min: parseInt(formData.salaryMin) || 0, 
           max: parseInt(formData.salaryMax) || 0,
@@ -189,10 +189,8 @@ export default function CreateJobPostingPage() {
         responsibilities: responsibilities,
         benefits: benefits,
         status: 'draft' as const, // Always save as draft when using Save Draft button
-        postedDate: new Date(),
-        applications: 0,
-        views: 0,
-        createdBy: user?.uid || ''
+        createdBy: user?.uid || '',
+        updatedBy: user?.uid || ''
       };
 
       await RecruitmentService.createJobPosting(jobData);

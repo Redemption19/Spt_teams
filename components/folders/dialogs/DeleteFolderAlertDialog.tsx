@@ -59,46 +59,46 @@ export default function DeleteFolderAlertDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4 max-h-[95vh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+          <AlertDialogTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
+            <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
             </div>
             <span>Delete Folder</span>
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-4 sm:space-y-6">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Are you sure you want to delete this folder? This action cannot be undone.
               </p>
 
               {/* Folder Info */}
-              <div className="p-3 bg-muted rounded-lg">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <FolderOpen className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-foreground">{folder.name}</span>
+              <div className="p-3 sm:p-4 bg-muted rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                      <FolderOpen className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="font-medium text-foreground break-words">{folder.name}</span>
                       <Badge className={getTypeColor()}>
                         {folder.type}
                       </Badge>
                     </div>
                     
                     {folder.description && (
-                      <p className="text-xs text-muted-foreground mb-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 break-words">
                         {folder.description}
                       </p>
                     )}
 
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                      <div className="flex items-center space-x-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
                         {getVisibilityIcon()}
                         <span className="capitalize">{folder.visibility}</span>
                       </div>
                       
-                      <div className="flex items-center space-x-1">
-                        <FolderOpen className="h-3 w-3" />
+                      <div className="flex items-center gap-1">
+                        <FolderOpen className="h-3 w-3 flex-shrink-0" />
                         <span>{folder.fileCount} files</span>
                       </div>
                     </div>
@@ -108,12 +108,12 @@ export default function DeleteFolderAlertDialog({
 
               {/* Warning Messages */}
               {folder.isSystemFolder && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
-                  <div className="flex items-center space-x-2 text-red-700 dark:text-red-400">
-                    <Shield className="h-4 w-4" />
-                    <span className="font-medium text-sm">System Folder Warning</span>
+                <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                    <Shield className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium text-sm sm:text-base">System Folder Warning</span>
                   </div>
-                  <p className="text-xs text-red-600 dark:text-red-300 mt-1">
+                  <p className="text-xs sm:text-sm text-red-600 dark:text-red-300 mt-1 break-words">
                     This is a system folder. Deleting it may affect project functionality and member access.
                   </p>
                 </div>
@@ -159,25 +159,29 @@ export default function DeleteFolderAlertDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>
+        <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+          <AlertDialogCancel 
+            disabled={submitting}
+            className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
+          >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={submitting || !canDelete}
-            className={isDangerous 
-              ? "bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700" 
-              : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-            }
+            className={`w-full sm:w-auto h-11 sm:h-10 touch-manipulation ${
+              isDangerous 
+                ? "bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700" 
+                : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+            }`}
           >
             {submitting ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Deleting...
+                <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
+                <span className="truncate">Deleting...</span>
               </>
             ) : (
-              'Delete Folder'
+              <span className="truncate">Delete Folder</span>
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

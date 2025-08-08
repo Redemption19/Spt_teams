@@ -69,20 +69,25 @@ export default function HiringPipelineManagement({
   });
 
   const defaultStages: PipelineStage[] = [
-    { id: 'applied', name: 'Applied', order: 1, color: '#3B82F6', description: 'Candidates who have applied' },
-    { id: 'screening', name: 'Screening', order: 2, color: '#F59E0B', description: 'Initial screening phase' },
-    { id: 'interview', name: 'Interview', order: 3, color: '#8B5CF6', description: 'Interview process' },
-    { id: 'offer', name: 'Offer', order: 4, color: '#10B981', description: 'Offer extended' },
-    { id: 'hired', name: 'Hired', order: 5, color: '#059669', description: 'Successfully hired' },
-    { id: 'rejected', name: 'Rejected', order: 6, color: '#EF4444', description: 'Not selected' }
+    { id: 'applied', name: 'Applied', order: 1, color: '#3B82F6', description: 'Candidates who have applied', isRequired: true },
+    { id: 'screening', name: 'Screening', order: 2, color: '#F59E0B', description: 'Initial screening phase', isRequired: false },
+    { id: 'interview', name: 'Interview', order: 3, color: '#8B5CF6', description: 'Interview process', isRequired: false },
+    { id: 'offer', name: 'Offer', order: 4, color: '#10B981', description: 'Offer extended', isRequired: false },
+    { id: 'hired', name: 'Hired', order: 5, color: '#059669', description: 'Successfully hired', isRequired: true },
+    { id: 'rejected', name: 'Rejected', order: 6, color: '#DC2626', description: 'Application rejected', isRequired: true }
   ];
 
   const getStatusBadge = (status: Candidate['status']) => {
     const statusConfig = {
       'applied': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: FileText, label: 'Applied' },
+      'new': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: FileText, label: 'New' },
+      'in-review': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock, label: 'In Review' },
       'screening': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock, label: 'Screening' },
       'interview': { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Users, label: 'Interview' },
+      'interview-scheduled': { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Calendar, label: 'Interview Scheduled' },
+      'interviewed': { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Users, label: 'Interviewed' },
       'offer': { color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle, label: 'Offer' },
+      'offered': { color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle, label: 'Offered' },
       'hired': { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: UserPlus, label: 'Hired' },
       'rejected': { color: 'bg-red-100 text-red-800 border-red-200', icon: AlertCircle, label: 'Rejected' },
       'withdrawn': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: AlertCircle, label: 'Withdrawn' }
@@ -202,7 +207,7 @@ export default function HiringPipelineManagement({
   };
 
   const filteredCandidates = candidates.filter(candidate => {
-    const jobPosting = jobPostings.find(j => j.id === candidate.jobPostingId);
+    const jobPosting = jobPostings.find(j => j.id === candidate.jobId);
     return (
       candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -309,7 +314,7 @@ export default function HiringPipelineManagement({
         {pipelineStages.map((stage) => {
           const stageCandidates = getCandidatesByStatus(stage.id);
           const filteredStageCandidates = stageCandidates.filter(candidate => {
-            const jobPosting = jobPostings.find(j => j.id === candidate.jobPostingId);
+            const jobPosting = jobPostings.find(j => j.id === candidate.jobId);
             return (
               candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
               candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -347,7 +352,7 @@ export default function HiringPipelineManagement({
                     </div>
                   ) : (
                     filteredStageCandidates.map((candidate) => {
-                      const jobPosting = jobPostings.find(j => j.id === candidate.jobPostingId);
+                      const jobPosting = jobPostings.find(j => j.id === candidate.jobId);
                       const nextStage = pipelineStages.find(s => s.order === stage.order + 1);
                       
                       return (
@@ -520,4 +525,4 @@ export default function HiringPipelineManagement({
       </Dialog>
     </div>
   );
-} 
+}

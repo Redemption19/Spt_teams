@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/lib/auth-context';
+import { useWorkspace } from '@/lib/workspace-context';
 import { useIsAdminOrOwner } from '@/lib/rbac-hooks';
 import {
   LayoutDashboard,
@@ -46,6 +48,8 @@ import {
   CreditCard,
   Clock,
   UserPlus,
+  Video,
+  Phone,
 } from 'lucide-react';
 import { useNotifications } from '@/lib/notification-context';
 
@@ -352,15 +356,58 @@ const navigationGroups = [
       },
     ],
   },
-  
   {
-    type: 'single',
-    name: 'Team Members',
-    href: '/dashboard/colleagues',
-    icon: Users,
-    memberOnly: true,
-  },
-  {
+    type: 'dropdown',
+    name: 'Video Calls',
+    icon: Video,
+    items: [
+      {
+        name: 'Start Meeting',
+        href: '/dashboard/video-call/start',
+        icon: Video,
+        description: 'Start instant video meeting'
+      },
+      {
+        name: 'Join Meeting',
+        href: '/dashboard/video-call/join',
+        icon: Phone,
+        description: 'Join existing meeting'
+      },
+      {
+        name: 'Schedule Meeting',
+        href: '/dashboard/video-call/schedule',
+        icon: Calendar,
+        description: 'Schedule future meetings'
+      },
+      {
+        name: 'Meeting History',
+        href: '/dashboard/video-call/history',
+        icon: Clock,
+        description: 'View past meetings and recordings'
+      },
+      {
+        name: 'Meeting Analytics',
+        href: '/dashboard/video-call/analytics',
+        icon: BarChart3,
+        description: 'Video call usage and quality metrics',
+        adminOnly: true
+      },
+      {
+        name: 'Settings',
+        href: '/dashboard/video-call/settings',
+        icon: Settings,
+        description: 'Configure video call preferences'
+      }
+     ]
+   },
+   {
+     type: 'single',
+     name: 'Team Members',
+     href: '/dashboard/colleagues',
+     icon: Users,
+     memberOnly: true,
+   },
+   {
     type: 'single',
     name: 'AI Assistant',
     href: '/dashboard/ai',
@@ -411,6 +458,79 @@ const getWorkspaceNavLabel = (role: string | undefined) => {
   return 'My Workspace';
 };
 
+const getBreadcrumbInfo = (pathname: string) => {
+  const pathSegments = pathname.split('/').filter(Boolean);
+  
+  if (pathSegments.length === 1 && pathSegments[0] === 'dashboard') {
+    return { title: 'Dashboard', group: null };
+  }
+  
+  // Common page mappings
+  const pageMap: Record<string, { title: string; group?: string }> = {
+    '/dashboard/tasks': { title: 'Projects & Tasks', group: 'Workspace' },
+    '/dashboard/folders': { title: 'Folders', group: 'Workspace' },
+    '/dashboard/reports': { title: 'Reports', group: 'Workspace' },
+    '/dashboard/analytics': { title: 'Analytics', group: 'Workspace' },
+    '/dashboard/workspaces': { title: 'Manage Workspaces', group: 'Workspace' },
+    '/dashboard/departments': { title: 'Departments', group: 'Organization' },
+    '/dashboard/branches': { title: 'Branches', group: 'Organization' },
+    '/dashboard/regions': { title: 'Regions', group: 'Organization' },
+    '/dashboard/teams': { title: 'Teams', group: 'Organization' },
+    '/dashboard/financial/overview': { title: 'Financial Dashboard', group: 'Financial Management' },
+    '/dashboard/financial/expenses': { title: 'Expense Management', group: 'Financial Management' },
+    '/dashboard/financial/budgets': { title: 'Budget Tracking', group: 'Financial Management' },
+    '/dashboard/financial/invoices': { title: 'Invoice Management', group: 'Financial Management' },
+    '/dashboard/financial/cost-centers': { title: 'Cost Centers', group: 'Financial Management' },
+    '/dashboard/financial/currency': { title: 'Currency Settings', group: 'Financial Management' },
+    '/dashboard/financial/reports': { title: 'Financial Reports', group: 'Financial Management' },
+    '/dashboard/financial/billing': { title: 'Billing & Subscriptions', group: 'Financial Management' },
+    '/dashboard/hr': { title: 'HR Overview', group: 'HR Management' },
+    '/dashboard/hr/employees': { title: 'Employee Management', group: 'HR Management' },
+    '/dashboard/hr/attendance': { title: 'Attendance Management', group: 'HR Management' },
+    '/dashboard/hr/leaves': { title: 'Leave Management', group: 'HR Management' },
+    '/dashboard/hr/payroll': { title: 'Payroll Management', group: 'HR Management' },
+    '/dashboard/hr/recruitment': { title: 'Recruitment', group: 'HR Management' },
+    '/dashboard/users': { title: 'User Management', group: 'Users' },
+    '/dashboard/permissions': { title: 'Permissions & Privileges', group: 'Users' },
+    '/dashboard/invite': { title: 'Invitations', group: 'Users' },
+    '/dashboard/migration': { title: 'Migration & Testing', group: 'Users' },
+    '/dashboard/user-fix': { title: 'User Relationship Fix', group: 'Users' },
+    '/dashboard/user-transfer': { title: 'User Transfer', group: 'Users' },
+    '/dashboard/video-call/start': { title: 'Start Meeting', group: 'Video Calls' },
+    '/dashboard/video-call/join': { title: 'Join Meeting', group: 'Video Calls' },
+    '/dashboard/video-call/schedule': { title: 'Schedule Meeting', group: 'Video Calls' },
+    '/dashboard/video-call/history': { title: 'Meeting History', group: 'Video Calls' },
+    '/dashboard/video-call/analytics': { title: 'Meeting Analytics', group: 'Video Calls' },
+    '/dashboard/video-call/settings': { title: 'Settings', group: 'Video Calls' },
+    '/dashboard/colleagues': { title: 'Team Members' },
+    '/dashboard/ai': { title: 'AI Assistant' },
+    '/dashboard/support': { title: 'Support/Help' },
+    '/dashboard/calendar': { title: 'Calendar' },
+    '/dashboard/notifications': { title: 'Notifications' },
+    '/dashboard/activity': { title: 'Activity Log' },
+    '/dashboard/databases': { title: 'Database Management' },
+  };
+  
+  // Check for exact match first
+  if (pageMap[pathname]) {
+    return pageMap[pathname];
+  }
+  
+  // Check for partial matches (for nested routes)
+  for (const [path, info] of Object.entries(pageMap)) {
+    if (pathname.startsWith(path + '/')) {
+      return { ...info, title: `${info.title} - ${pathSegments[pathSegments.length - 1]}` };
+    }
+  }
+  
+  // Fallback: use the last segment of the path
+  const lastSegment = pathSegments[pathSegments.length - 1];
+  return { 
+    title: lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' '),
+    group: pathSegments.length > 2 ? pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1) : null
+  };
+};
+
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>(['Workspace', 'Organization']);
@@ -419,6 +539,7 @@ export function Sidebar({ className }: SidebarProps) {
   const searchParams = useSearchParams();
   const currentView = searchParams.get('view');
   const { userProfile } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   const isAdminOrOwner = useIsAdminOrOwner();
   const { unreadCount } = useNotifications();
 
@@ -508,23 +629,34 @@ export function Sidebar({ className }: SidebarProps) {
               <Button
                 variant={isActive ? "secondary" : "ghost"}
                 className={cn(
-                  "w-full justify-start h-9 transition-colors text-sm",
+                  "w-full justify-start h-10 transition-all duration-200 text-sm",
                   collapsed ? "px-2" : "px-6",
                   isActive 
-                    ? "bg-primary/10 text-primary border border-primary/20 dark:bg-primary/20 dark:text-primary-foreground" 
-                    : "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                    ? "bg-primary/10 text-primary border border-primary/20 shadow-sm dark:bg-primary/20 dark:text-primary-foreground" 
+                    : "hover:bg-muted hover:shadow-sm hover:text-foreground dark:hover:bg-gray-800 dark:hover:text-gray-100",
+                  "active:scale-95"
                 )}
                 onClick={(e) => collapsed && e.preventDefault()}
               >
-                <item.icon className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
+                <item.icon className={cn("h-4 w-4 flex-shrink-0", collapsed ? "mr-0" : "mr-3")} />
                 {!collapsed && (
                   <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {isNestedOpen ? (
-                      <ChevronUp className="h-3 w-3" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3" />
-                    )}
+                    <div className="flex-1 min-w-0 text-left">
+                      <span className="block truncate">{item.name}</span>
+                      {isActive && (
+                        <span className="text-xs text-primary/70 block text-left">Section active</span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {isActive && (
+                        <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                      )}
+                      {isNestedOpen ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
+                    </div>
                   </>
                 )}
               </Button>
@@ -555,26 +687,37 @@ export function Sidebar({ className }: SidebarProps) {
         <Button
           variant={isActive ? "secondary" : "ghost"}
           className={cn(
-            "w-full justify-start transition-colors text-sm",
-            collapsed ? "px-2 h-9" : isNestedItem ? "px-9 h-8" : isSubItem ? "px-6 h-9" : "px-3 h-9",
+            "w-full justify-start transition-all duration-200 text-sm",
+            collapsed ? "px-2 h-9" : isNestedItem ? "px-9 h-8" : isSubItem ? "px-6 h-9" : "px-3 h-10",
             isActive 
-              ? "bg-primary/10 text-primary border border-primary/20 dark:bg-primary/20 dark:text-primary-foreground" 
-              : "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+              ? "bg-primary/10 text-primary border border-primary/20 shadow-sm dark:bg-primary/20 dark:text-primary-foreground" 
+              : "hover:bg-muted hover:shadow-sm hover:text-foreground dark:hover:bg-gray-800 dark:hover:text-gray-100",
+            "active:scale-95"
           )}
           title={collapsed ? item.name : item.description}
         >
-          <item.icon className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
+          <item.icon className={cn("h-4 w-4 flex-shrink-0", collapsed ? "mr-0" : "mr-3")} />
           {!collapsed && (
             <>
-              <span className={cn(item.optional && "opacity-70", "text-left")}>
-                {item.name}
-                {item.optional && <span className="text-xs ml-1">(optional)</span>}
-              </span>
-              {item.showUnreadBadge && unreadCount > 0 && (
-                <span className="ml-2 bg-red-500 text-white rounded-full px-2 text-xs">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+              <div className="flex-1 min-w-0">
+                <span className={cn(item.optional && "opacity-70", "text-left block truncate")}>
+                  {item.name}
+                  {item.optional && <span className="text-xs ml-1">(optional)</span>}
                 </span>
-              )}
+                {isActive && (
+                  <span className="text-xs text-primary/70 block text-left">Currently viewing</span>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                {item.showUnreadBadge && unreadCount > 0 && (
+                  <Badge variant="destructive" className="text-xs h-5 px-1.5">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
+                {isActive && (
+                  <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                )}
+              </div>
             </>
           )}
         </Button>
@@ -648,23 +791,34 @@ export function Sidebar({ className }: SidebarProps) {
                   <Button
                     variant={isGroupActive ? "secondary" : "ghost"}
                     className={cn(
-                      "w-full justify-start h-10 transition-colors",
+                      "w-full justify-start h-11 transition-all duration-200",
                       collapsed ? "px-2" : "px-3",
                       isGroupActive 
-                        ? "bg-primary/5 text-primary border border-primary/10 dark:bg-primary/10" 
-                        : "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                        ? "bg-primary/10 text-primary border border-primary/20 shadow-sm dark:bg-primary/10" 
+                        : "hover:bg-muted hover:shadow-sm hover:text-foreground dark:hover:bg-gray-800 dark:hover:text-gray-100",
+                      "active:scale-95"
                     )}
                     onClick={(e) => collapsed && e.preventDefault()}
                   >
-                    <group.icon className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-3")} />
+                    <group.icon className={cn("h-4 w-4 flex-shrink-0", collapsed ? "mr-0" : "mr-3")} />
                     {!collapsed && (
                       <>
-                        <span className="flex-1 text-left">{group.name}</span>
-                        {isOpen ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        <div className="flex-1 min-w-0 text-left">
+                          <span className="block truncate">{group.name}</span>
+                          {isGroupActive && (
+                            <span className="text-xs text-primary/70 block text-left">Section active</span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {isGroupActive && (
+                            <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                          )}
+                          {isOpen ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </div>
                       </>
                     )}
                   </Button>

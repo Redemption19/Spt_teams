@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   Settings,
 } from 'lucide-react';
+import TeamVideoCallIntegration from '@/components/teams/team-video-call-integration';
 
 interface TeamMemberWithDetails {
   id: string;
@@ -302,6 +303,9 @@ export default function TeamMembersPage() {
         </div>
       </div>
 
+      {/* Team Video Call Integration */}
+      {team && <TeamVideoCallIntegration team={team} variant="compact" />}
+
       {/* Add New Member Section */}
       {canManageMembers && (
         <Card className="rounded-xl border-border/50 bg-gradient-to-br from-card to-card/50">
@@ -536,4 +540,4 @@ export default function TeamMembersPage() {
       )}
     </div>
   );
-} 
+}

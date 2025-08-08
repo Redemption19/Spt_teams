@@ -173,12 +173,13 @@ export default function JobDetailPage() {
         experience: applicationForm.experience,
         education: applicationForm.education,
         location: applicationForm.location,
-        status: 'applied' as const,
+        status: 'new' as const,
         appliedDate: new Date(),
         notes: applicationForm.coverLetter,
         resumeFileName: applicationForm.resume?.name || '',
         tags: [],
-        createdBy: 'public-application'
+        createdBy: 'public-application',
+        updatedBy: 'public-application'
       };
 
       await RecruitmentService.createCandidate(candidateData);
@@ -308,11 +309,11 @@ export default function JobDetailPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                <span>Posted {format(jobPosting.postedDate, 'MMM dd, yyyy')}</span>
+                <span>Posted {jobPosting.postedDate ? format(jobPosting.postedDate, 'MMM dd, yyyy') : format(jobPosting.createdAt, 'MMM dd, yyyy')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
-                <span>{jobPosting.applications} applications</span>
+                <span>{jobPosting.applications?.length || 0} applications</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Eye className="w-4 h-4" />
@@ -445,11 +446,11 @@ export default function JobDetailPage() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Posted Date</Label>
-                  <p className="text-sm">{format(jobPosting.postedDate, 'MMMM dd, yyyy')}</p>
+                  <p className="text-sm">{jobPosting.postedDate ? format(jobPosting.postedDate, 'MMMM dd, yyyy') : format(jobPosting.createdAt, 'MMMM dd, yyyy')}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Applications</Label>
-                  <p className="text-sm">{jobPosting.applications} received</p>
+                  <p className="text-sm">{jobPosting.applications?.length || 0} received</p>
                 </div>
               </div>
             </div>
@@ -666,4 +667,4 @@ export default function JobDetailPage() {
       </Dialog>
     </div>
   );
-} 
+}

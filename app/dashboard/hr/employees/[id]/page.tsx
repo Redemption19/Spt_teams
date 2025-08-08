@@ -29,6 +29,7 @@ import {
   Download,
   Upload
 } from 'lucide-react';
+import { RESPONSIVE_PATTERNS } from '@/lib/responsive-utils';
 import { Employee, EmployeeDocument, EmployeeService } from '@/lib/employee-service';
 import { EmployeeDetailSkeleton } from '@/components/hr/employees/EmployeeLoadingSkeleton';
 import { EmployeeDocumentUploadDialog } from '@/components/hr/employees/EmployeeDocumentUploadDialog';
@@ -146,24 +147,30 @@ export default function EmployeeDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="space-y-4">
+        {/* Back Button */}
+        <div className="flex items-center">
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard/hr/employees">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Link>
           </Button>
+        </div>
+        
+        {/* Employee Info and Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Employee Info */}
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
+            <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`} alt={fullName} />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="text-sm sm:text-lg">
                 {employee.personalInfo.firstName[0]}{employee.personalInfo.lastName[0]}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-2xl font-bold">{fullName}</h1>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold truncate">{fullName}</h1>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 {getStatusBadge(employee.status)}
                 <Badge variant="outline" className="text-xs">
                   {employee.employeeId}
@@ -171,60 +178,62 @@ export default function EmployeeDetailPage() {
               </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" asChild>
-            <Link href={`/dashboard/hr/employees/edit/${employee.id}`}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Link>
-          </Button>
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto" asChild>
+              <Link href={`/dashboard/hr/employees/edit/${employee.id}`}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className={RESPONSIVE_PATTERNS.statsGrid}>
         <Card className="stats-card">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Role</span>
             </div>
-            <p className="font-semibold">{employee.employmentDetails.role}</p>
+            <p className="font-semibold text-sm sm:text-base truncate">{employee.employmentDetails.role}</p>
           </CardContent>
         </Card>
         
         <Card className="stats-card">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Building className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Department</span>
             </div>
-            <p className="font-semibold">{employee.employmentDetails.department}</p>
+            <p className="font-semibold text-sm sm:text-base truncate">{employee.employmentDetails.department}</p>
           </CardContent>
         </Card>
         
         <Card className="stats-card">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Tenure</span>
             </div>
-            <p className="font-semibold">{tenure} years</p>
+            <p className="font-semibold text-sm sm:text-base">{tenure} years</p>
           </CardContent>
         </Card>
         
         <Card className="stats-card">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Salary</span>
             </div>
-            <p className="font-semibold">
+            <p className="font-semibold text-sm sm:text-base">
               {new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: employee.compensation.currency
@@ -236,36 +245,48 @@ export default function EmployeeDetailPage() {
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="personal">Personal Info</TabsTrigger>
-          <TabsTrigger value="employment">Employment</TabsTrigger>
-          <TabsTrigger value="compensation">Compensation</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto">
+          <TabsList className="w-full sm:w-auto flex sm:inline-flex min-w-max">
+            <TabsTrigger value="overview" className="flex-1 sm:flex-none min-w-0 px-3 sm:px-4 py-2 text-sm whitespace-nowrap">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="flex-1 sm:flex-none min-w-0 px-3 sm:px-4 py-2 text-sm whitespace-nowrap">
+              Personal Info
+            </TabsTrigger>
+            <TabsTrigger value="employment" className="flex-1 sm:flex-none min-w-0 px-3 sm:px-4 py-2 text-sm whitespace-nowrap">
+              Employment
+            </TabsTrigger>
+            <TabsTrigger value="compensation" className="flex-1 sm:flex-none min-w-0 px-3 sm:px-4 py-2 text-sm whitespace-nowrap">
+              Compensation
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="flex-1 sm:flex-none min-w-0 px-3 sm:px-4 py-2 text-sm whitespace-nowrap">
+              Documents
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className={RESPONSIVE_PATTERNS.gridTwoCol}>
             {/* Contact Information */}
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   Contact Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Email</span>
-                  <span className="font-medium">{employee.personalInfo.email}</span>
+                  <span className="font-medium text-sm sm:text-base break-all">{employee.personalInfo.email}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Phone</span>
-                  <span className="font-medium">{employee.personalInfo.phone}</span>
+                  <span className="font-medium text-sm sm:text-base">{employee.personalInfo.phone}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Address</span>
-                  <span className="font-medium text-right">
+                  <span className="font-medium text-sm sm:text-base text-left sm:text-right">
                     {employee.personalInfo.address.street}, {employee.personalInfo.address.city}
                   </span>
                 </div>
@@ -275,32 +296,32 @@ export default function EmployeeDetailPage() {
             {/* Employment Summary */}
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
                   Employment Summary
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Hire Date</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm sm:text-base">
                     {format(new Date(employee.employmentDetails.hireDate), 'MMM dd, yyyy')}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Employment Type</span>
-                  <span className="font-medium capitalize">
+                  <span className="font-medium text-sm sm:text-base capitalize">
                     {employee.employmentDetails.employmentType.replace('-', ' ')}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Work Location</span>
-                  <span className="font-medium capitalize">{employee.employmentDetails.workLocation}</span>
+                  <span className="font-medium text-sm sm:text-base capitalize">{employee.employmentDetails.workLocation}</span>
                 </div>
                 {employee.employmentDetails.manager && (
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                     <span className="text-sm text-muted-foreground">Manager</span>
-                    <span className="font-medium">{employee.employmentDetails.manager}</span>
+                    <span className="font-medium text-sm sm:text-base">{employee.employmentDetails.manager}</span>
                   </div>
                 )}
               </CardContent>
@@ -309,26 +330,26 @@ export default function EmployeeDetailPage() {
         </TabsContent>
 
         <TabsContent value="personal" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className={RESPONSIVE_PATTERNS.gridTwoCol}>
             {/* Basic Information */}
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Full Name</span>
-                  <span className="font-medium">{fullName}</span>
+                  <span className="font-medium text-sm sm:text-base">{fullName}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Date of Birth</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm sm:text-base">
                     {format(new Date(employee.personalInfo.dateOfBirth), 'MMM dd, yyyy')}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Gender</span>
-                  <span className="font-medium capitalize">{employee.personalInfo.gender}</span>
+                  <span className="font-medium text-sm sm:text-base capitalize">{employee.personalInfo.gender}</span>
                 </div>
               </CardContent>
             </Card>
@@ -336,20 +357,20 @@ export default function EmployeeDetailPage() {
             {/* Emergency Contact */}
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle>Emergency Contact</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Emergency Contact</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Name</span>
-                  <span className="font-medium">{employee.personalInfo.emergencyContact.name}</span>
+                  <span className="font-medium text-sm sm:text-base">{employee.personalInfo.emergencyContact.name}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Relationship</span>
-                  <span className="font-medium">{employee.personalInfo.emergencyContact.relationship}</span>
+                  <span className="font-medium text-sm sm:text-base">{employee.personalInfo.emergencyContact.relationship}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Phone</span>
-                  <span className="font-medium">{employee.personalInfo.emergencyContact.phone}</span>
+                  <span className="font-medium text-sm sm:text-base">{employee.personalInfo.emergencyContact.phone}</span>
                 </div>
               </CardContent>
             </Card>
@@ -359,13 +380,13 @@ export default function EmployeeDetailPage() {
         <TabsContent value="employment" className="space-y-6">
           <Card className="card-enhanced">
             <CardHeader>
-              <CardTitle>Employment Details</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Employment Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Employee ID</label>
-                  <p className="font-medium">{employee.employeeId}</p>
+                  <p className="font-medium text-sm sm:text-base">{employee.employeeId}</p>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Status</label>
@@ -373,40 +394,40 @@ export default function EmployeeDetailPage() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Job Title</label>
-                  <p className="font-medium">{employee.employmentDetails.role}</p>
+                  <p className="font-medium text-sm sm:text-base">{employee.employmentDetails.role}</p>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Department</label>
-                  <p className="font-medium">{employee.employmentDetails.department}</p>
+                  <p className="font-medium text-sm sm:text-base">{employee.employmentDetails.department}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Employment Type</label>
-                  <p className="font-medium capitalize">
+                  <p className="font-medium text-sm sm:text-base capitalize">
                     {employee.employmentDetails.employmentType.replace('-', ' ')}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Work Location</label>
-                  <p className="font-medium capitalize">{employee.employmentDetails.workLocation}</p>
+                  <p className="font-medium text-sm sm:text-base capitalize">{employee.employmentDetails.workLocation}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Hire Date</label>
-                  <p className="font-medium">
+                  <p className="font-medium text-sm sm:text-base">
                     {format(new Date(employee.employmentDetails.hireDate), 'MMM dd, yyyy')}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Tenure</label>
-                  <p className="font-medium">{tenure} years</p>
+                  <p className="font-medium text-sm sm:text-base">{tenure} years</p>
                 </div>
               </div>
             </CardContent>
@@ -414,25 +435,25 @@ export default function EmployeeDetailPage() {
         </TabsContent>
 
         <TabsContent value="compensation" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className={RESPONSIVE_PATTERNS.gridTwoCol}>
             {/* Base Salary */}
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle>Base Compensation</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Base Compensation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Base Salary</span>
-                  <span className="font-medium text-lg">
+                  <span className="font-medium text-base sm:text-lg">
                     {new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: employee.compensation.currency
                     }).format(employee.compensation.baseSalary)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Pay Frequency</span>
-                  <span className="font-medium capitalize">{employee.compensation.payFrequency}</span>
+                  <span className="font-medium text-sm sm:text-base capitalize">{employee.compensation.payFrequency}</span>
                 </div>
               </CardContent>
             </Card>
@@ -440,30 +461,30 @@ export default function EmployeeDetailPage() {
             {/* Allowances */}
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle>Allowances</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Allowances</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Housing</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm sm:text-base">
                     {new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: employee.compensation.currency
                     }).format(employee.compensation.allowances.housing)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Transport</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm sm:text-base">
                     {new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: employee.compensation.currency
                     }).format(employee.compensation.allowances.transport)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="text-sm text-muted-foreground">Medical</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm sm:text-base">
                     {new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: employee.compensation.currency
@@ -478,12 +499,12 @@ export default function EmployeeDetailPage() {
           {employee.compensation.benefits.length > 0 && (
             <Card className="card-enhanced">
               <CardHeader>
-                <CardTitle>Benefits</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Benefits</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {employee.compensation.benefits.map((benefit, index) => (
-                    <Badge key={index} variant="outline">{benefit}</Badge>
+                    <Badge key={index} variant="outline" className="text-xs sm:text-sm">{benefit}</Badge>
                   ))}
                 </div>
               </CardContent>
@@ -494,9 +515,9 @@ export default function EmployeeDetailPage() {
         <TabsContent value="documents" className="space-y-6">
           <Card className="card-enhanced">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Documents</CardTitle>
-                <Button size="sm" onClick={() => setUploadDialogOpen(true)}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <CardTitle className="text-base sm:text-lg">Documents</CardTitle>
+                <Button size="sm" className="w-full sm:w-auto" onClick={() => setUploadDialogOpen(true)}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Document
                 </Button>

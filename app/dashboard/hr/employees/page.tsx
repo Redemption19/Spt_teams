@@ -140,28 +140,29 @@ export default function EmployeesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
             {shouldShowCrossWorkspace ? 'Employee Management (All Workspaces)' : 'Employee Management'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             {shouldShowCrossWorkspace
               ? 'Manage employee profiles across all your accessible workspaces'
               : 'Manage employee profiles, personal information, and employment details'
             }
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
+            className="w-full sm:w-auto h-11 touch-target"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto h-11 touch-target">
             <Link href="/dashboard/hr/employees/analytics">
               <Briefcase className="w-4 h-4 mr-2" />
               Analytics
@@ -182,14 +183,14 @@ export default function EmployeesPage() {
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
           <Card className="stats-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Employees</CardTitle>
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+              <div className="text-lg sm:text-2xl font-bold">{stats.totalEmployees}</div>
               <p className="text-xs text-muted-foreground">
                 {shouldShowCrossWorkspace ? 'Across all workspaces' : 'Active workforce'}
               </p>
@@ -198,11 +199,11 @@ export default function EmployeesPage() {
 
           <Card className="stats-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Employees</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Active Employees</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.activeEmployees}</div>
+              <div className="text-lg sm:text-2xl font-bold text-green-600">{stats.activeEmployees}</div>
               <p className="text-xs text-muted-foreground">
                 {stats.totalEmployees > 0 ? Math.round((stats.activeEmployees / stats.totalEmployees) * 100) : 0}% of total
               </p>
@@ -211,11 +212,11 @@ export default function EmployeesPage() {
 
           <Card className="stats-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">On Leave</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-500" />
+              <CardTitle className="text-xs sm:text-sm font-medium">On Leave</CardTitle>
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.onLeaveEmployees}</div>
+              <div className="text-lg sm:text-2xl font-bold text-yellow-600">{stats.onLeaveEmployees}</div>
               <p className="text-xs text-muted-foreground">
                 Currently on leave
               </p>
@@ -224,11 +225,11 @@ export default function EmployeesPage() {
 
           <Card className="stats-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Hires</CardTitle>
-              <Plus className="h-4 w-4 text-blue-500" />
+              <CardTitle className="text-xs sm:text-sm font-medium">New Hires</CardTitle>
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.newHiresThisMonth}</div>
+              <div className="text-lg sm:text-2xl font-bold text-blue-600">{stats.newHiresThisMonth}</div>
               <p className="text-xs text-muted-foreground">
                 This month
               </p>

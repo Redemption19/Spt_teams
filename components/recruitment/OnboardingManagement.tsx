@@ -375,7 +375,7 @@ export default function OnboardingManagement({
                   </SelectTrigger>
                   <SelectContent>
                     {candidates.filter(c => c.status === 'hired').map((candidate) => {
-                      const jobPosting = jobPostings.find(j => j.id === candidate.jobPostingId);
+                      const jobPosting = jobPostings.find(j => j.id === candidate.jobId);
                       return (
                         <SelectItem key={candidate.id} value={candidate.id}>
                           {candidate.name} - {jobPosting?.title || 'Unknown Position'}
@@ -449,4 +449,4 @@ export default function OnboardingManagement({
       </Dialog>
     </div>
   );
-} 
+}

@@ -329,6 +329,16 @@ service cloud.firestore {
       allow delete: if isAuthenticated();
     }
     
+    // ==================== JOB POSTINGS ====================
+    
+    match /jobPostings/{jobPostingId} {
+      // Read: PUBLIC ACCESS for active/published job postings (for careers page)
+      allow read: if resource.data.status == 'active' || resource.data.status == 'published';
+      
+      // Create/Update/Delete: Only authenticated users can manage job postings
+      allow create, update, delete: if isAuthenticated();
+    }
+    
     // ==================== CATCH-ALL for other collections ====================
     
     match /{document=**} {
@@ -336,4 +346,4 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
   }
-} 
+}

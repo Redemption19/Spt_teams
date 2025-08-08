@@ -119,7 +119,7 @@ export function EventDialogs({
 
       {/* View Event Dialog */}
       <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl" style={{ backgroundColor: '#1e1e1e' }}>
+        <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-4 max-h-[95vh] overflow-y-auto border-0 shadow-2xl" style={{ backgroundColor: '#1e1e1e' }}>
           <DialogHeader className="relative pb-6">
             {/* Close Button */}
             <Button
@@ -141,10 +141,10 @@ export function EventDialogs({
                     </div>
               </div>
                   <div className="space-y-2">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight break-words">
                       {selectedEvent?.title}
                     </h1>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {selectedEvent && (
                         <>
                           <Badge className={`${getEventColor(selectedEvent.type, selectedEvent.status)} border-0 font-medium px-3 py-1 text-xs`}>
@@ -168,12 +168,12 @@ export function EventDialogs({
           </DialogHeader>
           
           {selectedEvent && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Main Content - Left Column */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                 {/* Description Card */}
               {selectedEvent.description && (
-                  <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
+                  <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                     <div className="flex items-center space-x-2 mb-4">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                         <span className="text-white text-sm">📝</span>
@@ -185,7 +185,7 @@ export function EventDialogs({
               )}
 
                 {/* Date & Time Card */}
-                <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
+                <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                   <div className="flex items-center space-x-2 mb-4">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
                       <Clock className="h-4 w-4 text-white" />
@@ -214,7 +214,7 @@ export function EventDialogs({
 
                 {/* Location Card */}
                 {selectedEvent.location && (
-                  <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
+                  <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                     <div className="flex items-center space-x-2 mb-4">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
                         <MapPin className="h-4 w-4 text-white" />
@@ -227,7 +227,7 @@ export function EventDialogs({
 
                 {/* Notes Card */}
                 {selectedEvent.notes && (
-                  <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
+                  <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                     <div className="flex items-center space-x-2 mb-4">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
                         <span className="text-white text-sm">📄</span>
@@ -240,7 +240,7 @@ export function EventDialogs({
               </div>
 
               {/* Sidebar - Right Column */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Priority Card */}
                 <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                   <div className="flex items-center space-x-2 mb-4">
@@ -286,31 +286,31 @@ export function EventDialogs({
                 {/* Actions Card */}
                 <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-gray-700/30 shadow-xl">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Actions</h3>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
             <Button
               variant="outline"
               onClick={() => setIsViewEventOpen(false)}
-                      className="w-full border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                      className="w-full h-11 sm:h-10 touch-manipulation border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
             >
-                      <X className="h-4 w-4 mr-2" />
-              Close
+                      <X className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Close</span>
             </Button>
             {canEditEvents && selectedEvent && (
               <>
                 <Button
                   onClick={() => onEditEvent(selectedEvent)}
-                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg"
+                          className="w-full h-11 sm:h-10 touch-manipulation bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg"
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                          Edit Event
+                  <Edit className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">Edit Event</span>
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleDelete}
-                          className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20"
+                          className="w-full h-11 sm:h-10 touch-manipulation border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Event
+                  <Trash2 className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">Delete Event</span>
                 </Button>
               </>
             )}
@@ -324,11 +324,11 @@ export function EventDialogs({
 
       {/* Filters Drawer */}
       <Drawer open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-        <DrawerContent className="max-h-[85vh] max-w-lg mx-auto">
-          <DrawerHeader className="px-6 py-4">
-            <DrawerTitle className="text-lg font-semibold">Calendar Filters</DrawerTitle>
+        <DrawerContent className="w-full max-w-sm sm:max-w-md md:max-w-lg max-h-[95vh] mx-auto overflow-y-auto border-0 shadow-2xl" style={{ backgroundColor: '#1e1e1e' }}>
+          <DrawerHeader className="px-4 sm:px-6 py-3 sm:py-4">
+            <DrawerTitle className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent break-words">Calendar Filters</DrawerTitle>
           </DrawerHeader>
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6">
             <FilterComponent
               filters={filters}
               setFilters={setFilters}
@@ -341,4 +341,4 @@ export function EventDialogs({
       </Drawer>
     </>
   );
-} 
+}

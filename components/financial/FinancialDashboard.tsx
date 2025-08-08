@@ -597,231 +597,347 @@ export default function FinancialDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Financial Management</h1>
-          <p className="text-muted-foreground">
-            Track expenses, manage budgets, and monitor financial performance
-            {financialData.lastUpdated && (
-              <span className="ml-2">• Last updated: {financialData.lastUpdated.toLocaleTimeString()}</span>
-            )}
-          </p>
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold truncate">Financial Management</h1>
+              {workspaceIds.length > 1 && (
+                <Badge variant="outline" className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 whitespace-nowrap px-2 py-1 text-xs sm:px-3 sm:text-sm w-fit">
+                  <Building className="w-3 h-3 sm:w-4 sm:h-4" />
+                  {workspaceIds.length} Workspaces
+                </Badge>
+              )}
+            </div>
+            <div className="text-sm sm:text-base text-muted-foreground">
+              <p className="mb-1 sm:mb-0">Track expenses, manage budgets, and monitor financial performance</p>
+              {workspaceIds.length > 1 && (
+                <p className="text-xs sm:text-sm text-primary/80">
+                  • Viewing aggregated data from {workspaceIds.length} workspaces
+                </p>
+              )}
+              {financialData.lastUpdated && (
+                <p className="text-xs sm:text-sm text-muted-foreground/80">
+                  • Last updated: {financialData.lastUpdated.toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="flex gap-3">
-          {/* Refresh Button */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+        
+        {/* Action Buttons - Mobile Responsive */}
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Primary Actions Row */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            {/* Refresh Button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="min-h-[40px] sm:min-h-[36px] w-full sm:w-auto justify-center sm:justify-start"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            
+            <Button className="bg-primary hover:bg-primary/90 min-h-[40px] sm:min-h-[36px] w-full sm:w-auto justify-center sm:justify-start" asChild>
+              <Link href="/dashboard/financial/reports">
+                <FileText className="w-4 h-4 mr-2" />
+                Generate Report
+              </Link>
+            </Button>
+          </div>
           
-          {/* Quick Access Navigation */}
-          <div className="flex gap-2">
+          {/* Quick Access Navigation - Responsive Grid */}
+          <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
             {financialPermissions.canViewExpenses && (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
                 <Link href="/dashboard/financial/expenses">
-                  <Receipt className="w-4 h-4 mr-2" />
-                  Expenses
+                  <Receipt className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Expenses</span>
                 </Link>
               </Button>
             )}
             {financialPermissions.canViewInvoices && (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
                 <Link href="/dashboard/financial/invoices">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Invoices
+                  <FileText className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Invoices</span>
                 </Link>
               </Button>
             )}
             {financialPermissions.canViewBudgets && (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
                 <Link href="/dashboard/financial/budgets">
-                  <Target className="w-4 h-4 mr-2" />
-                  Budgets
+                  <Target className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Budgets</span>
                 </Link>
               </Button>
             )}
-          </div>
-          
-          {/* Settings Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Financial Settings</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {financialPermissions.canManageCurrencySettings && (
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/financial/currency">
-                    <Coins className="w-4 h-4 mr-2" />
-                    Currency Settings
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {financialPermissions.canViewCostCenters && (
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/financial/cost-centers">
-                    <Building className="w-4 h-4 mr-2" />
-                    Cost Centers
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {financialPermissions.canManageFinancialSettings && (
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/financial/billing">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Billing Management
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {financialPermissions.canViewFinancialReports && (
-                <>
-                  <DropdownMenuSeparator />
+            
+            {/* Settings Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
+                  <Settings className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Settings</span>
+                  <ChevronDown className="w-4 h-4 ml-0 sm:ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Financial Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {financialPermissions.canManageCurrencySettings && (
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/financial/reports">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Financial Reports
+                    <Link href="/dashboard/financial/currency">
+                      <Coins className="w-4 h-4 mr-2" />
+                      Currency Settings
                     </Link>
                   </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button className="bg-primary hover:bg-primary/90" asChild>
-            <Link href="/dashboard/financial/reports">
-              <FileText className="w-4 h-4 mr-2" />
-              Generate Report
-            </Link>
-          </Button>
+                )}
+                {financialPermissions.canViewCostCenters && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/financial/cost-centers">
+                      <Building className="w-4 h-4 mr-2" />
+                      Cost Centers
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {financialPermissions.canManageFinancialSettings && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/financial/billing">
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Billing Management
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {financialPermissions.canViewFinancialReports && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/financial/reports">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Financial Reports
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+      {/* Workspace Breakdown - Only show when viewing multiple workspaces */}
+      {workspaceIds.length > 1 && (
+        <Card className="card-enhanced">
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Building className="w-4 h-4 sm:w-5 sm:h-5" />
+              Workspace Breakdown
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Data aggregated from {workspaceIds.length} workspaces
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-0">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {accessibleWorkspaces
+                .filter(ws => workspaceIds.includes(ws.id))
+                .map((workspace) => (
+                  <div key={workspace.id} className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Building className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">{workspace.name}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                        {workspace.type || 'Workspace'}
+                      </p>
+                    </div>
+                    {workspace.id === currentWorkspace?.id && (
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
+                        Current
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Overview Cards */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="stats-card hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base font-medium truncate">Total Budget</CardTitle>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {workspaceIds.length > 1 && (
+                <Badge variant="outline" className="text-xs h-4 sm:h-5 px-1 sm:px-1.5 hidden sm:flex">
+                  {workspaceIds.length} WS
+                </Badge>
+              )}
+              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">
               {formatAmount(financialData.overview.totalBudget)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {financialData.overview.utilizationRate}% utilized
-            </p>
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <p className="truncate">{financialData.overview.utilizationRate}% utilized</p>
+              {workspaceIds.length > 1 && (
+                <p className="text-xs text-primary/70 truncate sm:hidden">Cross-workspace</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <div className="flex items-center gap-1">
+        <Card className="stats-card hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base font-medium truncate">Total Spent</CardTitle>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {workspaceIds.length > 1 && (
+                <Badge variant="outline" className="text-xs h-4 sm:h-5 px-1 sm:px-1.5 hidden sm:flex">
+                  {workspaceIds.length} WS
+                </Badge>
+              )}
               {getTrendIcon(financialData.overview.spendingTrend)}
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-0">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">
               {formatAmount(financialData.overview.totalSpent)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {formatTrend(financialData.overview.spendingTrend)} from last month
-            </p>
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <p className="truncate">{formatTrend(financialData.overview.spendingTrend)} from last month</p>
+              {workspaceIds.length > 1 && (
+                <p className="text-xs text-primary/70 truncate sm:hidden">Cross-workspace</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Remaining Budget</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+        <Card className="stats-card hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base font-medium truncate">Remaining Budget</CardTitle>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {workspaceIds.length > 1 && (
+                <Badge variant="outline" className="text-xs h-4 sm:h-5 px-1 sm:px-1.5 hidden sm:flex">
+                  {workspaceIds.length} WS
+                </Badge>
+              )}
+              <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-0">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">
               {formatAmount(financialData.overview.totalRemaining)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {financialData.overview.monthlyBurn > 0 
-                ? `${Math.round(financialData.overview.totalRemaining / financialData.overview.monthlyBurn)} months remaining`
-                : 'No spending this month'
-              }
-            </p>
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <p className="truncate">
+                {financialData.overview.monthlyBurn > 0 
+                  ? `${Math.round(financialData.overview.totalRemaining / financialData.overview.monthlyBurn)} months remaining`
+                  : 'No spending this month'
+                }
+              </p>
+              {workspaceIds.length > 1 && (
+                <p className="text-xs text-primary/70 truncate sm:hidden">Cross-workspace</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Expenses</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+        <Card className="stats-card hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base font-medium truncate">Pending Expenses</CardTitle>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {workspaceIds.length > 1 && (
+                <Badge variant="outline" className="text-xs h-4 sm:h-5 px-1 sm:px-1.5 hidden sm:flex">
+                  {workspaceIds.length} WS
+                </Badge>
+              )}
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{financialData.expenses.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              {formatAmount(financialData.expenses.totalAmount)} total this month
-            </p>
+          <CardContent className="pt-0">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{financialData.expenses.pending}</div>
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <p className="truncate">{formatAmount(financialData.expenses.totalAmount)} total this month</p>
+              {workspaceIds.length > 1 && (
+                <p className="text-xs text-primary/70 truncate sm:hidden">Cross-workspace</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          {financialPermissions.canViewBudgets && (
-            <TabsTrigger value="budgets">Budgets</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="overflow-x-auto">
+            <TabsList className="inline-flex h-10 sm:h-12 items-center justify-start sm:justify-center rounded-md bg-muted p-1 text-muted-foreground min-w-max">
+              <TabsTrigger value="overview" className="text-sm sm:text-base px-3 sm:px-4 py-2">Overview</TabsTrigger>
+              {financialPermissions.canViewBudgets && (
+                <TabsTrigger value="budgets" className="text-sm sm:text-base px-3 sm:px-4 py-2">Budgets</TabsTrigger>
+              )}
+              {financialPermissions.canViewExpenses && (
+                <TabsTrigger value="expenses" className="text-sm sm:text-base px-3 sm:px-4 py-2">Expenses</TabsTrigger>
+              )}
+              {financialPermissions.canViewInvoices && (
+                <TabsTrigger value="invoices" className="text-sm sm:text-base px-3 sm:px-4 py-2">Invoices</TabsTrigger>
+              )}
+              {financialPermissions.canViewFinancialAnalytics && (
+                <TabsTrigger value="analytics" className="text-sm sm:text-base px-3 sm:px-4 py-2">Analytics</TabsTrigger>
+              )}
+            </TabsList>
+          </div>
+          
+          {/* Cross-workspace indicator */}
+          {workspaceIds.length > 1 && (
+            <div className="flex items-center gap-2 justify-center sm:justify-end">
+              <Badge variant="secondary" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3 py-1">
+                <Building className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">{workspaceIds.length} Workspaces</span>
+                <span className="sm:hidden">{workspaceIds.length} WS</span>
+              </Badge>
+            </div>
           )}
-          {financialPermissions.canViewExpenses && (
-            <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          )}
-          {financialPermissions.canViewInvoices && (
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          )}
-          {financialPermissions.canViewFinancialAnalytics && (
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          )}
-        </TabsList>
+        </div>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             {/* Budget Utilization */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Budget Utilization
                 </CardTitle>
-                <CardDescription>Current spending across all budgets</CardDescription>
+                <CardDescription className="text-sm">Current spending across all budgets</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="pt-0">
+                <div className="space-y-4 sm:space-y-6">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Overall Progress</span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm sm:text-base font-medium">Overall Progress</span>
+                    <span className="text-sm sm:text-base text-muted-foreground font-medium">
                       {financialData.overview.utilizationRate}%
                     </span>
                   </div>
                   <Progress 
                     value={financialData.overview.utilizationRate} 
-                    className="h-3"
+                    className="h-3 sm:h-4"
                   />
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{formatAmount(financialData.overview.totalSpent)} spent</span>
-                    <span>{formatAmount(financialData.overview.totalRemaining)} remaining</span>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 text-sm sm:text-base text-muted-foreground">
+                    <span className="truncate">{formatAmount(financialData.overview.totalSpent)} spent</span>
+                    <span className="truncate">{formatAmount(financialData.overview.totalRemaining)} remaining</span>
                   </div>
                   {financialData.overview.projectedOverrun > 0 && (
-                    <div className="text-sm text-red-600 font-medium">
+                    <div className="text-sm sm:text-base text-red-600 font-medium p-3 bg-red-50 rounded-lg border border-red-200">
                       Over budget by {formatAmount(financialData.overview.projectedOverrun)}
                     </div>
                   )}
@@ -831,43 +947,44 @@ export default function FinancialDashboard() {
 
             {/* Top Expense Categories */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="w-5 h-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Top Expense Categories
                 </CardTitle>
-                <CardDescription>Spending breakdown by category this month</CardDescription>
+                <CardDescription className="text-sm">Spending breakdown by category this month</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-3 sm:space-y-4">
                   {financialData.expenses.topCategories.length > 0 ? (
                     financialData.expenses.topCategories.map((category, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                      <div key={index} className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+                        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                           <div 
-                            className="w-3 h-3 rounded-full" 
+                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0" 
                             style={{
                               backgroundColor: `hsl(${index * 60}, 70%, 50%)`
                             }} 
                           />
-                          <span className="text-sm font-medium">{category.name}</span>
-                          <Badge variant="outline" className="text-xs">
+                          <span className="text-sm sm:text-base font-medium truncate">{category.name}</span>
+                          <Badge variant="outline" className="text-xs flex-shrink-0">
                             {category.count}
                           </Badge>
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium">
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-sm sm:text-base font-medium">
                             {formatAmount(category.amount)}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs sm:text-sm text-muted-foreground">
                             {category.percentage.toFixed(1)}%
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center text-muted-foreground py-4">
-                      No expense data available for this month
+                    <div className="text-center text-muted-foreground py-8 sm:py-12">
+                      <PieChart className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-sm sm:text-base">No expense data available for this month</p>
                     </div>
                   )}
                 </div>
@@ -878,35 +995,40 @@ export default function FinancialDashboard() {
           {/* Financial Alerts */}
           {financialData.alerts.length > 0 && (
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Financial Alerts
-                  <Badge variant="destructive" className="ml-auto">
+                  <Badge variant="destructive" className="ml-auto text-xs sm:text-sm">
                     {financialData.alerts.length}
                   </Badge>
                 </CardTitle>
-                <CardDescription>Important notifications requiring attention</CardDescription>
+                <CardDescription className="text-sm">Important notifications requiring attention</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-3 sm:space-y-4">
                   {financialData.alerts.map((alert) => (
-                    <div key={alert.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/20 transition-colors">
-                      {getSeverityIcon(alert.severity)}
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{alert.message}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground">
-                            {alert.createdAt.toLocaleDateString()}
-                          </p>
-                          {alert.amount && (
-                            <Badge variant="outline" className="text-xs">
-                              {formatAmount(alert.amount)}
-                            </Badge>
-                          )}
+                    <div key={alert.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-muted/20 transition-colors">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {getSeverityIcon(alert.severity)}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm sm:text-base font-medium break-words">{alert.message}</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              {alert.createdAt.toLocaleDateString()}
+                            </p>
+                            {alert.amount && (
+                              <Badge variant="outline" className="text-xs self-start sm:self-auto">
+                                {formatAmount(alert.amount)}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
+                      <Badge 
+                        variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}
+                        className="self-start sm:self-auto flex-shrink-0"
+                      >
                         {alert.severity}
                       </Badge>
                     </div>
@@ -918,58 +1040,60 @@ export default function FinancialDashboard() {
         </TabsContent>
 
         {financialPermissions.canViewBudgets && (
-          <TabsContent value="budgets" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Budget Management</h2>
+          <TabsContent value="budgets" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl sm:text-2xl font-semibold">Budget Management</h2>
               {financialPermissions.canCreateBudgets && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link href="/dashboard/financial/budgets/new">
                     <DollarSign className="w-4 h-4 mr-2" />
-                    Create Budget
+                    <span className="sm:inline">Create Budget</span>
                   </Link>
                 </Button>
               )}
             </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             {financialData.budgets.length > 0 ? (
               financialData.budgets.map((budget) => (
                 <Card key={budget.id} className="card-enhanced">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{budget.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{budget.type}</Badge>
-                        <Badge variant={getStatusBadgeVariant(budget.status)}>
+                  <CardHeader className="pb-3 sm:pb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg sm:text-xl truncate">{budget.name}</CardTitle>
+                        {budget.entityName && (
+                          <CardDescription className="text-sm mt-1">{budget.entityName}</CardDescription>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-xs">{budget.type}</Badge>
+                        <Badge variant={getStatusBadgeVariant(budget.status)} className="text-xs">
                           {budget.status.replace('-', ' ')}
                         </Badge>
                       </div>
                     </div>
-                    {budget.entityName && (
-                      <CardDescription>{budget.entityName}</CardDescription>
-                    )}
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
+                  <CardContent className="pt-0">
+                    <div className="space-y-4 sm:space-y-6">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Budget Progress</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm sm:text-base font-medium">Budget Progress</span>
+                        <span className="text-sm sm:text-base text-muted-foreground font-medium">
                           {budget.utilizationRate}%
                         </span>
                       </div>
-                      <Progress value={Math.min(budget.utilizationRate, 100)} className="h-2" />
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Budget</p>
-                          <p className="text-sm font-medium">{formatAmount(budget.amount)}</p>
+                      <Progress value={Math.min(budget.utilizationRate, 100)} className="h-3 sm:h-4" />
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                        <div className="text-center p-3 sm:p-4 rounded-lg bg-muted/20">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Budget</p>
+                          <p className="text-sm sm:text-base font-medium">{formatAmount(budget.amount)}</p>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Spent</p>
-                          <p className="text-sm font-medium">{formatAmount(budget.spent)}</p>
+                        <div className="text-center p-3 sm:p-4 rounded-lg bg-muted/20">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Spent</p>
+                          <p className="text-sm sm:text-base font-medium">{formatAmount(budget.spent)}</p>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Remaining</p>
-                          <p className={`text-sm font-medium ${budget.remaining < 0 ? 'text-red-600' : ''}`}>
+                        <div className="text-center p-3 sm:p-4 rounded-lg bg-muted/20">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Remaining</p>
+                          <p className={`text-sm sm:text-base font-medium ${budget.remaining < 0 ? 'text-red-600' : ''}`}>
                             {formatAmount(budget.remaining)}
                           </p>
                         </div>
@@ -980,13 +1104,13 @@ export default function FinancialDashboard() {
               ))
             ) : (
               <Card className="card-enhanced">
-                <CardContent className="text-center py-12">
-                  <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Budgets Found</h3>
-                  <p className="text-muted-foreground mb-4">
+                <CardContent className="text-center py-12 sm:py-16">
+                  <Target className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">No Budgets Found</h3>
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base max-w-md mx-auto">
                     Create your first budget to start tracking expenses
                   </p>
-                  <Button asChild>
+                  <Button asChild className="w-full sm:w-auto">
                     <Link href="/dashboard/financial/budgets/new">
                       <DollarSign className="w-4 h-4 mr-2" />
                       Create Budget
@@ -1000,68 +1124,68 @@ export default function FinancialDashboard() {
         )}
 
         {financialPermissions.canViewExpenses && (
-          <TabsContent value="expenses" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Expense Management</h2>
+          <TabsContent value="expenses" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl sm:text-2xl font-semibold">Expense Management</h2>
               {financialPermissions.canCreateExpenses && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link href="/dashboard/financial/expenses/new">
                     <FileText className="w-4 h-4 mr-2" />
-                    Add Expense
+                    <span className="sm:inline">Add Expense</span>
                   </Link>
                 </Button>
               )}
             </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <Clock className="w-4 h-4 text-yellow-600" />
                   Pending
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{financialData.expenses.pending}</div>
+                <div className="text-xl sm:text-2xl font-bold">{financialData.expenses.pending}</div>
               </CardContent>
             </Card>
             
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   Approved
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{financialData.expenses.approved}</div>
+                <div className="text-xl sm:text-2xl font-bold">{financialData.expenses.approved}</div>
               </CardContent>
             </Card>
             
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <XCircle className="w-4 h-4 text-red-600" />
                   Rejected
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{financialData.expenses.rejected}</div>
+                <div className="text-xl sm:text-2xl font-bold">{financialData.expenses.rejected}</div>
               </CardContent>
             </Card>
             
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-blue-600" />
                   Total Amount
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold break-all">
                   {formatAmount(financialData.expenses.totalAmount)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {formatTrend(financialData.expenses.changePercentage)} vs last month
                 </p>
               </CardContent>
@@ -1071,65 +1195,65 @@ export default function FinancialDashboard() {
         )}
 
         {financialPermissions.canViewInvoices && (
-          <TabsContent value="invoices" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Invoice Management</h2>
+          <TabsContent value="invoices" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl sm:text-2xl font-semibold">Invoice Management</h2>
               {financialPermissions.canCreateInvoices && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link href="/dashboard/financial/invoices/create">
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Create Invoice
+                    <span className="sm:inline">Create Invoice</span>
                   </Link>
                 </Button>
               )}
             </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <FileText className="w-4 h-4 text-gray-600" />
                   Draft
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{financialData.invoices.draft}</div>
+                <div className="text-xl sm:text-2xl font-bold">{financialData.invoices.draft}</div>
               </CardContent>
             </Card>
             
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-blue-600" />
                   Sent
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{financialData.invoices.sent}</div>
+                <div className="text-xl sm:text-2xl font-bold">{financialData.invoices.sent}</div>
               </CardContent>
             </Card>
             
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   Paid
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{financialData.invoices.paid}</div>
+                <div className="text-xl sm:text-2xl font-bold">{financialData.invoices.paid}</div>
               </CardContent>
             </Card>
             
             <Card className="stats-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-red-600" />
                   Overdue
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="text-xl sm:text-2xl font-bold text-red-600">
                   {financialData.invoices.overdue}
                 </div>
               </CardContent>
@@ -1138,21 +1262,21 @@ export default function FinancialDashboard() {
 
           {financialData.invoices.totalAmount > 0 && (
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle>Invoice Summary</CardTitle>
-                <CardDescription>Current month invoice performance</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-lg sm:text-xl">Invoice Summary</CardTitle>
+                <CardDescription className="text-sm">Current month invoice performance</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Amount</p>
-                    <p className="text-2xl font-bold">{formatAmount(financialData.invoices.totalAmount)}</p>
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="p-4 rounded-lg bg-muted/20">
+                    <p className="text-sm sm:text-base text-muted-foreground mb-2">Total Amount</p>
+                    <p className="text-xl sm:text-2xl font-bold break-all">{formatAmount(financialData.invoices.totalAmount)}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Change from Last Month</p>
+                  <div className="p-4 rounded-lg bg-muted/20">
+                    <p className="text-sm sm:text-base text-muted-foreground mb-2">Change from Last Month</p>
                     <div className="flex items-center gap-2">
                       {getTrendIcon(financialData.invoices.changePercentage)}
-                      <span className="text-lg font-semibold">
+                      <span className="text-lg sm:text-xl font-semibold">
                         {formatTrend(financialData.invoices.changePercentage)}
                       </span>
                     </div>
@@ -1165,50 +1289,50 @@ export default function FinancialDashboard() {
         )}
 
         {financialPermissions.canViewFinancialAnalytics && (
-          <TabsContent value="analytics" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Financial Analytics</h2>
-            <div className="flex gap-2">
-              <Button variant="outline" asChild>
+          <TabsContent value="analytics" className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h2 className="text-xl sm:text-2xl font-semibold">Financial Analytics</h2>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/financial/reports">
                   <PieChart className="w-4 h-4 mr-2" />
-                  View Reports
+                  <span className="sm:inline">View Reports</span>
                 </Link>
               </Button>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/financial/budgets/analytics">
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Budget Analytics
+                  <span className="sm:inline">Budget Analytics</span>
                 </Link>
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {/* Spending Trend */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Monthly Spending Trend
                 </CardTitle>
-                <CardDescription>Current vs previous month comparison</CardDescription>
+                <CardDescription className="text-sm">Current vs previous month comparison</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Current Month</span>
-                    <span className="font-semibold">{formatAmount(financialData.expenses.totalAmount)}</span>
+              <CardContent className="pt-0">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 rounded-lg bg-muted/20">
+                    <span className="text-sm sm:text-base text-muted-foreground">Current Month</span>
+                    <span className="font-semibold text-sm sm:text-base break-all">{formatAmount(financialData.expenses.totalAmount)}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Previous Month</span>
-                    <span className="font-semibold">{formatAmount(financialData.expenses.previousMonthAmount)}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 rounded-lg bg-muted/20">
+                    <span className="text-sm sm:text-base text-muted-foreground">Previous Month</span>
+                    <span className="font-semibold text-sm sm:text-base break-all">{formatAmount(financialData.expenses.previousMonthAmount)}</span>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span className="text-sm font-medium">Change</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 pt-4 border-t p-3 rounded-lg bg-primary/5">
+                    <span className="text-sm sm:text-base font-medium">Change</span>
                     <div className="flex items-center gap-2">
                       {getTrendIcon(financialData.expenses.changePercentage)}
-                      <span className={`font-semibold ${
+                      <span className={`font-semibold text-sm sm:text-base ${
                         financialData.expenses.changePercentage > 0 ? 'text-red-600' : 'text-green-600'
                       }`}>
                         {formatTrend(financialData.expenses.changePercentage)}
@@ -1221,15 +1345,15 @@ export default function FinancialDashboard() {
 
             {/* Budget Health */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Budget Health
                 </CardTitle>
-                <CardDescription>Budget status distribution</CardDescription>
+                <CardDescription className="text-sm">Budget status distribution</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-3 sm:space-y-4">
                   {['on-track', 'warning', 'critical', 'over-budget'].map(status => {
                     const count = financialData.budgets.filter(b => b.status === status).length;
                     const percentage = financialData.budgets.length > 0 
@@ -1237,14 +1361,14 @@ export default function FinancialDashboard() {
                       : 0;
                     
                     return (
-                      <div key={status} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${getStatusColor(status)}`} />
-                          <span className="text-sm capitalize">{status.replace('-', ' ')}</span>
+                      <div key={status} className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                          <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0 ${getStatusColor(status)}`} />
+                          <span className="text-sm sm:text-base capitalize truncate">{status.replace('-', ' ')}</span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-sm font-medium">{count}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
+                        <div className="text-right flex-shrink-0">
+                          <span className="text-sm sm:text-base font-medium">{count}</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground ml-2">
                             ({percentage.toFixed(0)}%)
                           </span>
                         </div>
@@ -1257,22 +1381,22 @@ export default function FinancialDashboard() {
 
             {/* Cash Flow Projection */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Cash Flow Projection
                 </CardTitle>
-                <CardDescription>Based on current spending rate</CardDescription>
+                <CardDescription className="text-sm">Based on current spending rate</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Monthly Burn Rate</p>
-                    <p className="text-xl font-bold">{formatAmount(financialData.overview.monthlyBurn)}</p>
+              <CardContent className="pt-0">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="p-3 sm:p-4 rounded-lg bg-muted/20">
+                    <p className="text-sm sm:text-base text-muted-foreground mb-2">Monthly Burn Rate</p>
+                    <p className="text-xl sm:text-2xl font-bold break-all">{formatAmount(financialData.overview.monthlyBurn)}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Projected Runway</p>
-                    <p className="text-xl font-bold">
+                  <div className="p-3 sm:p-4 rounded-lg bg-muted/20">
+                    <p className="text-sm sm:text-base text-muted-foreground mb-2">Projected Runway</p>
+                    <p className="text-xl sm:text-2xl font-bold">
                       {financialData.overview.monthlyBurn > 0 
                         ? `${Math.round(financialData.overview.totalRemaining / financialData.overview.monthlyBurn)} months`
                         : 'N/A'
@@ -1280,8 +1404,8 @@ export default function FinancialDashboard() {
                     </p>
                   </div>
                   {financialData.overview.projectedOverrun > 0 && (
-                    <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                      <p className="text-sm text-red-800 font-medium">
+                    <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200">
+                      <p className="text-sm sm:text-base text-red-800 font-medium break-words">
                         Budget overrun: {formatAmount(financialData.overview.projectedOverrun)}
                       </p>
                     </div>

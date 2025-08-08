@@ -239,6 +239,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
+      // Add custom parameters for better UX
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
       const result = await signInWithPopup(auth, provider);
       
       // Check if this is a new user
@@ -246,7 +251,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const existingProfile = await UserService.getUserById(result.user.uid);
       
       if (!existingProfile) {
+        // Use the new Google user creation method that handles self-registration
+        await UserService.createGoogleUser({
+          id: result.user.uid,
+          email: result.user.email!,
+          name: result.user.displayName || 'Google User',
+          firstName: result.user.displayName?.split(' ')[0] || '',
+          lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+          workspaceId: 'workspace-1', // Default workspace, will be updated if user becomes owner
+          photoURL: result.user.photoURL || '',
+          isEmailVerified: result.user.emailVerified,
+        });
+        
+        console.log('Created new user profile for Google sign-in with secure role determination');
+        
+        // Set new user flag for onboarding
         setIsNewUser(true);
+        
+        // Log the Google sign-up activity
+        try {
+          const { ActivityService } = await import('./activity-service');
+          await ActivityService.logActivity(
+            'user_created',
+            'user',
+            result.user.uid,
+            { 
+              targetName: result.user.displayName || 'Google User',
+              email: result.user.email!,
+              loginMethod: 'google',
+              isNewUser: true
+            },
+            'workspace-1', // Default workspace
+            result.user.uid
+          );
+        } catch (error) {
+          console.warn('Warning: Could not log Google signup activity:', error);
+        }
       } else {
         // Log login activity for existing users
         try {
@@ -361,6 +401,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearNewUserFlag = () => {
     setIsNewUser(false);
   };
+
+  // Handle redirection for new users
+  useEffect(() => {
+    if (user && isNewUser && !loading) {
+      // Use window.location for redirection to avoid hook issues
+      console.log('New user detected, redirecting to onboarding');
+      window.location.href = '/onboarding';
+    }
+  }, [user, isNewUser, loading]);
 
   const refreshUserProfile = async () => {
     if (user && !isGuest) {

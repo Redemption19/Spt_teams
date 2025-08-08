@@ -290,95 +290,110 @@ export default function LeaveList({
     <div className="space-y-4">
       {/* Filters */}
       <Card className="card-enhanced">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+        <CardContent className="p-4 sm:p-6">
+          <div className="space-y-4">
+            {/* Search - Full width on mobile */}
+            <div className="w-full">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search leave requests..."
+                  placeholder="Search by employee name or reason..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-border/50 focus:border-primary"
+                  className="pl-10 h-11 border-border/50 focus:border-primary touch-manipulation"
                 />
               </div>
             </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px] border-border/50 focus:border-primary">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
 
-            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="w-[180px] border-border/50 focus:border-primary">
-                <SelectValue placeholder="Employee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{user.firstName || user.name} {user.lastName || ''}</span>
-                      {shouldShowCrossWorkspace && user.workspaceName && (
-                        <Badge variant="outline" className="text-xs">
-                          {user.workspaceName}
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Filter Controls Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {/* Status Filter */}
+              <div className="w-full">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-11 border-border/50 focus:border-primary touch-manipulation">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
-              <SelectTrigger className="w-[140px] border-border/50 focus:border-primary">
-                <SelectValue placeholder="Date Range" />
-              </SelectTrigger>
-              <SelectContent>
-                {dateRangeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {/* Employee Filter */}
+              <div className="w-full">
+                <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+                  <SelectTrigger className="h-11 border-border/50 focus:border-primary touch-manipulation">
+                    <SelectValue placeholder="Filter by employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Employees</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        <div className="flex items-center space-x-2 w-full">
+                          <span className="truncate flex-1">{user.firstName || user.name} {user.lastName || ''}</span>
+                          {shouldShowCrossWorkspace && user.workspaceName && (
+                            <Badge variant="outline" className="text-xs flex-shrink-0">
+                              {user.workspaceName}
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="border-border/50 hover:bg-accent hover:text-accent-foreground"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+              {/* Date Range Filter */}
+              <div className="w-full">
+                <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+                  <SelectTrigger className="h-11 border-border/50 focus:border-primary touch-manipulation">
+                    <SelectValue placeholder="Filter by date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dateRangeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Refresh Button */}
+              <div className="w-full">
+                <Button 
+                  variant="outline" 
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="w-full h-11 border-border/50 hover:bg-accent hover:text-accent-foreground touch-manipulation"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Results count */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {filteredRequests.length} leave request{filteredRequests.length !== 1 ? 's' : ''} found
-        </p>
+      {/* Results Count and Cross-Workspace Badge */}
+      <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="text-sm text-muted-foreground font-medium">
+          Showing <span className="text-foreground font-semibold">{filteredRequests.length}</span> of <span className="text-foreground font-semibold">{leaveRequests.length}</span> leave requests
+        </div>
         {shouldShowCrossWorkspace && (
-          <Badge variant="outline" className="text-xs">
-            <Building className="w-3 h-3 mr-1" />
-            Cross-Workspace View
+          <Badge variant="outline" className="self-start sm:self-center px-3 py-1">
+            <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span className="text-xs">Cross-Workspace View</span>
           </Badge>
         )}
       </div>
 
       {/* Leave Requests List */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filteredRequests.length > 0 ? (
           filteredRequests.map((request) => (
             <LeaveRequestCard
@@ -393,28 +408,35 @@ export default function LeaveList({
           ))
         ) : (
           <Card className="card-enhanced">
-            <CardContent className="p-12 text-center">
-              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Leave Requests Found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm || statusFilter !== 'all' || employeeFilter !== 'all' || dateRangeFilter !== 'all-time'
-                  ? 'Try adjusting your filters or search terms.'
-                  : 'No leave requests have been submitted yet.'
-                }
-              </p>
-              {searchTerm || statusFilter !== 'all' || employeeFilter !== 'all' || dateRangeFilter !== 'all-time' && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('all');
-                    setEmployeeFilter('all');
-                    setDateRangeFilter('all-time');
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              )}
+            <CardContent className="p-6 sm:p-8 text-center">
+              <div className="flex flex-col items-center space-y-4 max-w-md mx-auto">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Calendar className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-foreground">No Leave Requests Found</h3>
+                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                    {searchTerm || statusFilter !== 'all' || employeeFilter !== 'all' || dateRangeFilter !== 'all-time'
+                      ? 'No leave requests match your current filters. Try adjusting your search criteria.'
+                      : 'No leave requests have been submitted yet. New requests will appear here once submitted.'
+                    }
+                  </p>
+                </div>
+                {(searchTerm || statusFilter !== 'all' || employeeFilter !== 'all' || dateRangeFilter !== 'all-time') && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSearchTerm('');
+                      setStatusFilter('all');
+                      setEmployeeFilter('all');
+                      setDateRangeFilter('all-time');
+                    }}
+                    className="mt-4 h-11 px-6 touch-manipulation"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -445,4 +467,4 @@ export default function LeaveList({
       )}
     </div>
   );
-} 
+}

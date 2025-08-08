@@ -19,7 +19,7 @@ export interface Notification {
   id: string;
   userId: string;
   workspaceId: string;
-  type: 'user_created' | 'user_invited' | 'role_changed' | 'workspace_created' | 'team_created' | 'user_deactivated' | 'user_reactivated' | 'password_reset' | 'user_deleted' | 'team_updated' | 'workspace_updated' | 'system_alert' | 'leave_approved' | 'leave_rejected' | 'leave_requested' | 'payslip_sent' | 'payslip_acknowledged';
+  type: 'user_created' | 'user_invited' | 'role_changed' | 'workspace_created' | 'team_created' | 'user_deactivated' | 'user_reactivated' | 'password_reset' | 'user_deleted' | 'team_updated' | 'workspace_updated' | 'system_alert' | 'leave_approved' | 'leave_rejected' | 'leave_requested' | 'payslip_sent' | 'payslip_acknowledged' | 'expense_approved' | 'expense_rejected' | 'report_approved' | 'report_rejected';
   title: string;
   message: string;
   icon: string;
@@ -670,7 +670,11 @@ export class NotificationService {
       leave_rejected: '❌',
       leave_requested: '📋',
       payslip_sent: '💰',
-      payslip_acknowledged: '✅'
+      payslip_acknowledged: '✅',
+      expense_approved: '💳',
+      expense_rejected: '❌',
+      report_approved: '📋',
+      report_rejected: '❌'
     };
     return iconMap[type] || '🔔';
   }
@@ -702,4 +706,4 @@ export async function sendNotification({
 
 export async function markNotificationRead(notificationId: string) {
   await updateDoc(doc(db, 'notifications', notificationId), { read: true });
-} 
+}

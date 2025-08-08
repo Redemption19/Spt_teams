@@ -20,9 +20,11 @@ import { WorkspaceSelector } from '@/components/layout/workspace-selector';
 import { Bell, Search, User, LogOut, ChevronDown, FileText, Users, FolderOpen, CheckSquare, Building2, MapPin, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Region, Branch, Team, User as UserType } from '@/lib/types';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { NotificationPanel } from './notification-panel';
+import { MobileNavigation } from './mobile-navigation';
+import { EnhancedMobileNavigation } from './enhanced-mobile-navigation';
 import { useNotifications } from '@/lib/notification-context';
 
 interface SearchResult {
@@ -33,6 +35,79 @@ interface SearchResult {
   path: string;
   icon: React.ReactNode;
 }
+
+const getBreadcrumbInfo = (pathname: string) => {
+  const pathSegments = pathname.split('/').filter(Boolean);
+  
+  if (pathSegments.length === 1 && pathSegments[0] === 'dashboard') {
+    return { title: 'Dashboard', group: null };
+  }
+  
+  // Common page mappings
+  const pageMap: Record<string, { title: string; group?: string }> = {
+    '/dashboard/tasks': { title: 'Projects & Tasks', group: 'Workspace' },
+    '/dashboard/folders': { title: 'Folders', group: 'Workspace' },
+    '/dashboard/reports': { title: 'Reports', group: 'Workspace' },
+    '/dashboard/analytics': { title: 'Analytics', group: 'Workspace' },
+    '/dashboard/workspaces': { title: 'Manage Workspaces', group: 'Workspace' },
+    '/dashboard/departments': { title: 'Departments', group: 'Organization' },
+    '/dashboard/branches': { title: 'Branches', group: 'Organization' },
+    '/dashboard/regions': { title: 'Regions', group: 'Organization' },
+    '/dashboard/teams': { title: 'Teams', group: 'Organization' },
+    '/dashboard/financial/overview': { title: 'Financial Dashboard', group: 'Financial Management' },
+    '/dashboard/financial/expenses': { title: 'Expense Management', group: 'Financial Management' },
+    '/dashboard/financial/budgets': { title: 'Budget Tracking', group: 'Financial Management' },
+    '/dashboard/financial/invoices': { title: 'Invoice Management', group: 'Financial Management' },
+    '/dashboard/financial/cost-centers': { title: 'Cost Centers', group: 'Financial Management' },
+    '/dashboard/financial/currency': { title: 'Currency Settings', group: 'Financial Management' },
+    '/dashboard/financial/reports': { title: 'Financial Reports', group: 'Financial Management' },
+    '/dashboard/financial/billing': { title: 'Billing & Subscriptions', group: 'Financial Management' },
+    '/dashboard/hr': { title: 'HR Overview', group: 'HR Management' },
+    '/dashboard/hr/employees': { title: 'Employee Management', group: 'HR Management' },
+    '/dashboard/hr/attendance': { title: 'Attendance Management', group: 'HR Management' },
+    '/dashboard/hr/leaves': { title: 'Leave Management', group: 'HR Management' },
+    '/dashboard/hr/payroll': { title: 'Payroll Management', group: 'HR Management' },
+    '/dashboard/hr/recruitment': { title: 'Recruitment', group: 'HR Management' },
+    '/dashboard/users': { title: 'User Management', group: 'Users' },
+    '/dashboard/permissions': { title: 'Permissions & Privileges', group: 'Users' },
+    '/dashboard/invite': { title: 'Invitations', group: 'Users' },
+    '/dashboard/migration': { title: 'Migration & Testing', group: 'Users' },
+    '/dashboard/user-fix': { title: 'User Relationship Fix', group: 'Users' },
+    '/dashboard/user-transfer': { title: 'User Transfer', group: 'Users' },
+    '/dashboard/video-call/start': { title: 'Start Meeting', group: 'Video Calls' },
+    '/dashboard/video-call/join': { title: 'Join Meeting', group: 'Video Calls' },
+    '/dashboard/video-call/schedule': { title: 'Schedule Meeting', group: 'Video Calls' },
+    '/dashboard/video-call/history': { title: 'Meeting History', group: 'Video Calls' },
+    '/dashboard/video-call/analytics': { title: 'Meeting Analytics', group: 'Video Calls' },
+    '/dashboard/video-call/settings': { title: 'Settings', group: 'Video Calls' },
+    '/dashboard/colleagues': { title: 'Team Members' },
+    '/dashboard/ai': { title: 'AI Assistant' },
+    '/dashboard/support': { title: 'Support/Help' },
+    '/dashboard/calendar': { title: 'Calendar' },
+    '/dashboard/notifications': { title: 'Notifications' },
+    '/dashboard/activity': { title: 'Activity Log' },
+    '/dashboard/databases': { title: 'Database Management' },
+  };
+  
+  // Check for exact match first
+  if (pageMap[pathname]) {
+    return pageMap[pathname];
+  }
+  
+  // Check for partial matches (for nested routes)
+  for (const [path, info] of Object.entries(pageMap)) {
+    if (pathname.startsWith(path + '/')) {
+      return { ...info, title: `${info.title} - ${pathSegments[pathSegments.length - 1]}` };
+    }
+  }
+  
+  // Fallback: use the last segment of the path
+  const lastSegment = pathSegments[pathSegments.length - 1];
+  return { 
+    title: lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' '),
+    group: pathSegments.length > 2 ? pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1) : null
+  };
+};
 
 export function Header() {
   const { userProfile, logout } = useAuth();
@@ -48,6 +123,7 @@ export function Header() {
   // Mobile/responsive state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const pathname = usePathname();
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState('');
@@ -432,7 +508,12 @@ export function Header() {
           {/* Mobile Menu Button */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="lg:hidden p-1.5 sm:p-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="lg:hidden p-1.5 sm:p-2 hover:bg-primary/10" 
+                data-mobile-menu-trigger
+              >
                 <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -445,103 +526,137 @@ export function Header() {
                 </div>
 
                 {/* Mobile Content */}
-                <div className="flex-1 p-4 space-y-6">
-                  {/* Workspace Selector Mobile */}
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">Current Workspace</h3>
-                    <WorkspaceSelector />
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-4 space-y-6">
+                    {/* Workspace Selector Mobile */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-muted-foreground">Current Workspace</h3>
+                      <WorkspaceSelector />
+                    </div>
+
+                    {/* Region/Branch Mobile */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-medium text-muted-foreground">
+                        {currentWorkspace?.workspaceType === 'sub' ? 'Bound Location' : 'Location'}
+                      </h3>
+                      {loading ? (
+                        <div className="space-y-2">
+                          <div className="h-10 bg-muted rounded-lg animate-pulse" />
+                          <div className="h-10 bg-muted rounded-lg animate-pulse" />
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Select 
+                            value={currentRegion?.id || "none"} 
+                            onValueChange={handleRegionChange}
+                            disabled={currentWorkspace?.workspaceType === 'sub'}
+                          >
+                            <SelectTrigger className={`w-full h-10 rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
+                              <SelectValue placeholder="Select Region">
+                                {currentRegion?.name || "No Region"}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent className="rounded-lg">
+                              <SelectItem value="none">No Region</SelectItem>
+                              {regions.map((region) => (
+                                <SelectItem key={region.id} value={region.id} className="rounded-lg">
+                                  {region.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          
+                          <Select 
+                            value={currentBranch?.id || "none"} 
+                            onValueChange={handleBranchChange}
+                            disabled={currentWorkspace?.workspaceType === 'sub'}
+                          >
+                            <SelectTrigger className={`w-full h-10 rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
+                              <SelectValue placeholder="Select Branch">
+                                {currentBranch?.name || "No Branch"}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent className="rounded-lg">
+                              <SelectItem value="none">No Branch</SelectItem>
+                              {getCurrentRegionBranches().map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
+                                  {branch.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Region/Branch Mobile */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      {currentWorkspace?.workspaceType === 'sub' ? 'Bound Location' : 'Location'}
-                    </h3>
-                    {loading ? (
-                      <div className="space-y-2">
-                        <div className="h-10 bg-muted rounded-lg animate-pulse" />
-                        <div className="h-10 bg-muted rounded-lg animate-pulse" />
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Select 
-                          value={currentRegion?.id || "none"} 
-                          onValueChange={handleRegionChange}
-                          disabled={currentWorkspace?.workspaceType === 'sub'}
-                        >
-                          <SelectTrigger className={`w-full h-10 rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
-                            <SelectValue placeholder="Select Region">
-                              {currentRegion?.name || "No Region"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="rounded-lg">
-                            <SelectItem value="none">No Region</SelectItem>
-                            {regions.map((region) => (
-                              <SelectItem key={region.id} value={region.id} className="rounded-lg">
-                                {region.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        
-                        <Select 
-                          value={currentBranch?.id || "none"} 
-                          onValueChange={handleBranchChange}
-                          disabled={currentWorkspace?.workspaceType === 'sub'}
-                        >
-                          <SelectTrigger className={`w-full h-10 rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
-                            <SelectValue placeholder="Select Branch">
-                              {currentBranch?.name || "No Branch"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="rounded-lg">
-                            <SelectItem value="none">No Branch</SelectItem>
-                            {getCurrentRegionBranches().map((branch) => (
-                              <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
-                                {branch.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                  {/* Current Page Info */}
+                  <div className="border-t p-4">
+                    <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
+                      <Link href="/dashboard" className="hover:text-primary transition-colors">
+                        Dashboard
+                      </Link>
+                      {pathname !== '/dashboard' && (
+                        <>
+                          <span>/</span>
+                          <span className="text-foreground font-medium truncate">
+                            {getBreadcrumbInfo(pathname).group && (
+                              <>
+                                {getBreadcrumbInfo(pathname).group} / 
+                              </>
+                            )}
+                            {getBreadcrumbInfo(pathname).title}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Main Navigation Mobile */}
+                  <div className="border-t">
+                    <div className="p-4">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Navigation</h3>
+                      <EnhancedMobileNavigation onNavigate={() => setIsMobileMenuOpen(false)} />
+                    </div>
                   </div>
 
                   {/* User Info Mobile */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
-                          {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{userProfile?.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{userProfile?.email}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{userProfile?.role}</p>
+                  <div className="border-t p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                            {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{userProfile?.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{userProfile?.email}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{userProfile?.role}</p>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex flex-col space-y-2">
-                      <Button 
-                        variant="outline" 
-                        asChild 
-                        className="w-full justify-start rounded-lg"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Link href="/dashboard/profile">
-                          <User className="mr-2 h-4 w-4" />
-                          Profile
-                        </Link>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={handleLogout}
-                        className="w-full justify-start rounded-lg text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Log out
-                      </Button>
+                      
+                      <div className="flex flex-col space-y-2">
+                        <Button 
+                          variant="outline" 
+                          asChild 
+                          className="w-full justify-start rounded-lg"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Link href="/dashboard/profile">
+                            <User className="mr-2 h-4 w-4" />
+                            Profile
+                          </Link>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={handleLogout}
+                          className="w-full justify-start rounded-lg text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Log out
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -81,9 +81,9 @@ export default function CreateEditTaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-4 max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg">{isEdit ? 'Edit Task' : 'Create New Task'}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg break-words">{isEdit ? 'Edit Task' : 'Create New Task'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 sm:space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -94,7 +94,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.title}
                 onChange={(e) => setTaskForm(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter task title"
-                className="text-sm"
+                className="text-sm h-11 sm:h-10 touch-manipulation"
               />
             </div>
             <div className="space-y-2">
@@ -105,7 +105,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.projectId || "unassigned"}
                 onValueChange={(value) => setTaskForm(prev => ({ ...prev, projectId: value === "unassigned" ? "" : value }))}
               >
-                <SelectTrigger className="text-sm">
+                <SelectTrigger className="text-sm h-11 sm:h-10 touch-manipulation">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
@@ -138,7 +138,7 @@ export default function CreateEditTaskDialog({
               onChange={(e) => setTaskForm(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Describe the task..."
               rows={3}
-              className="text-sm resize-none"
+              className="text-sm resize-none min-h-[88px] sm:min-h-[80px] touch-manipulation"
             />
           </div>
 
@@ -149,7 +149,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.assigneeId || "unassigned"}
                 onValueChange={(value) => setTaskForm(prev => ({ ...prev, assigneeId: value === "unassigned" ? undefined : value }))}
               >
-                <SelectTrigger className="text-sm">
+                <SelectTrigger className="text-sm h-11 sm:h-10 touch-manipulation">
                   <SelectValue placeholder="Select assignee" />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,7 +168,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.priority}
                 onValueChange={(value: Task['priority']) => setTaskForm(prev => ({ ...prev, priority: value }))}
               >
-                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-sm h-11 sm:h-10 touch-manipulation"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -200,7 +200,7 @@ export default function CreateEditTaskDialog({
                 value={taskForm.estimatedHours}
                 onChange={(e) => setTaskForm(prev => ({ ...prev, estimatedHours: e.target.value }))}
                 placeholder="0"
-                className="text-sm"
+                className="text-sm h-11 sm:h-10 touch-manipulation"
               />
             </div>
           </div>
@@ -225,10 +225,10 @@ export default function CreateEditTaskDialog({
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4 mt-4 border-t">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-2 pt-4 mt-4 border-t">
             <Button
               variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
               onClick={() => setIsOpen(false)}
             >
               Cancel
@@ -236,10 +236,10 @@ export default function CreateEditTaskDialog({
             <Button
               onClick={onSubmit}
               disabled={submitting || !taskForm.title || !taskForm.projectId}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
             >
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEdit ? 'Update Task' : 'Create Task'}
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />}
+              <span className="truncate">{isEdit ? 'Update Task' : 'Create Task'}</span>
             </Button>
           </div>
         </div>

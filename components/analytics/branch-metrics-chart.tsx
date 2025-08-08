@@ -312,14 +312,14 @@ export default function BranchMetricsChart({
   if (loading) {
     return (
       <Card className="card-enhanced border border-border/30">
-        <CardHeader>
-          <CardTitle>Branch Performance Metrics</CardTitle>
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Branch Performance Metrics</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-96">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex items-center justify-center h-64 sm:h-96">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading branch data...</p>
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary mx-auto mb-2" />
+              <p className="text-xs sm:text-sm text-muted-foreground">Loading branch data...</p>
             </div>
           </div>
         </CardContent>
@@ -330,15 +330,15 @@ export default function BranchMetricsChart({
   if (data.length === 0) {
   return (
     <Card className="card-enhanced border border-border/30">
-      <CardHeader>
-        <CardTitle>Branch Performance Metrics</CardTitle>
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="text-base sm:text-lg">Branch Performance Metrics</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Branch Data</h3>
-              <p className="text-sm text-muted-foreground">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex items-center justify-center h-64 sm:h-96">
+            <div className="text-center px-4">
+              <Building className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-muted-foreground mb-2">No Branch Data</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {userRole === 'member' 
                   ? 'No branch data available for your tasks in the selected period.'
                   : showAllWorkspaces
@@ -359,10 +359,10 @@ export default function BranchMetricsChart({
 
   return (
     <Card className="card-enhanced border border-border/30 hover:border-primary/20 transition-colors">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Branch Performance Metrics
-          <div className="text-sm text-muted-foreground">
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <span className="text-base sm:text-lg">Branch Performance Metrics</span>
+          <div className="text-xs sm:text-sm text-muted-foreground">
             {showAllWorkspaces && (
               <span className="mr-2">🌐 All Workspaces ({accessibleWorkspaces?.length || 1})</span>
             )}
@@ -374,77 +374,78 @@ export default function BranchMetricsChart({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <CardContent className="p-3 sm:p-6">
+        <ResponsiveContainer width="100%" height={300} className="sm:h-[400px]">
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis 
               dataKey="branch" 
               className="stroke-muted-foreground"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 10 }}
               angle={-45}
               textAnchor="end"
-              height={60}
+              height={50}
+              interval={0}
             />
-            <YAxis className="stroke-muted-foreground" tick={{ fontSize: 12 }} />
+            <YAxis className="stroke-muted-foreground" tick={{ fontSize: 10 }} />
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="tasks" 
               fill="hsl(var(--chart-3))" 
-              radius={[4, 4, 0, 0]} 
+              radius={[2, 2, 0, 0]} 
               name="Total Tasks" 
             />
             <Bar 
               dataKey="completed" 
               fill="hsl(var(--primary))" 
-              radius={[4, 4, 0, 0]} 
+              radius={[2, 2, 0, 0]} 
               name="Completed Tasks" 
             />
           </BarChart>
         </ResponsiveContainer>
         
         {/* Branch summary */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-          <div className="text-center">
+        <div className="mt-3 sm:mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 pt-3 sm:pt-4 border-t">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Total Branches</p>
-            <p className="text-lg font-semibold">{data.length}</p>
+            <p className="text-sm sm:text-lg font-semibold">{data.length}</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Total Tasks</p>
-            <p className="text-lg font-semibold">{totalTasks}</p>
+            <p className="text-sm sm:text-lg font-semibold">{totalTasks}</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Total Completed</p>
-            <p className="text-lg font-semibold">{totalCompleted}</p>
+            <p className="text-sm sm:text-lg font-semibold">{totalCompleted}</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Avg Efficiency</p>
-            <p className="text-lg font-semibold">{avgEfficiency}%</p>
+            <p className="text-sm sm:text-lg font-semibold">{avgEfficiency}%</p>
           </div>
         </div>
         
         {/* Top performing branch */}
         {data.length > 0 && (
-          <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-            <div className="flex items-center justify-between">
+          <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-muted/30 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <p className="text-sm font-medium">Most Efficient Branch</p>
+                <p className="text-xs sm:text-sm font-medium">Most Efficient Branch</p>
                 <p className="text-xs text-muted-foreground">Highest completion rate</p>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 {(() => {
                   const topBranch = data.reduce((prev, current) => 
                     prev.efficiency > current.efficiency ? prev : current
                   );
                   return (
                     <div>
-                      <p className="font-semibold">{topBranch.branch}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm sm:text-base font-semibold">{topBranch.branch}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {topBranch.efficiency}% efficiency
                       </p>
                     </div>
                   );
-                })()}
+                })()} 
               </div>
             </div>
           </div>

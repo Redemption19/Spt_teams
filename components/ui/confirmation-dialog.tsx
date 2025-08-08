@@ -72,22 +72,29 @@ export function ConfirmationDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-md">
+      <AlertDialogContent className="w-full max-w-md sm:max-w-lg">
         <AlertDialogHeader>
-          <div className="flex items-center gap-3">
-            {getIcon()}
-            <AlertDialogTitle className="text-lg font-semibold">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="flex-shrink-0">
+              {getIcon()}
+            </div>
+            <AlertDialogTitle className="text-base sm:text-lg font-semibold break-words min-w-0">
               {title}
             </AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="text-base text-muted-foreground mt-2">
+          <AlertDialogDescription className="text-sm sm:text-base text-muted-foreground mt-2 break-words">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         
-        <AlertDialogFooter className="gap-3 sm:gap-3">
+        <AlertDialogFooter>
           <AlertDialogCancel asChild>
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isLoading}
+              className="w-full sm:w-auto min-h-[44px] sm:min-h-[36px]"
+            >
               {cancelText}
             </Button>
           </AlertDialogCancel>
@@ -97,12 +104,13 @@ export function ConfirmationDialog({
               variant={getButtonVariant()}
               onClick={onConfirm}
               disabled={isLoading}
-              className={getButtonClasses()}
+              className={`w-full sm:w-auto min-h-[44px] sm:min-h-[36px] ${getButtonClasses()}`}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing...
+                  <span className="hidden sm:inline">Processing...</span>
+                  <span className="sm:hidden">...</span>
                 </div>
               ) : (
                 confirmText
@@ -113,4 +121,4 @@ export function ConfirmationDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-} 
+}

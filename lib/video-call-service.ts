@@ -7,6 +7,9 @@ type IAgoraRTCRemoteUser = any;
 type ICameraVideoTrack = any;
 type IMicrophoneAudioTrack = any;
 
+// Import validation utilities
+import { validateChannelName, sanitizeChannelName } from './video-call-utils';
+
 // Initialize Agora SDK only on client-side
 async function initializeAgoraSDK() {
   if (typeof window !== 'undefined' && !AgoraRTC) {
@@ -105,6 +108,12 @@ export class VideoCallService {
       // Check if already joined or connecting to prevent duplicate attempts
       if (this.isJoined || client.connectionState === 'CONNECTING' || client.connectionState === 'CONNECTED') {
         return;
+      }
+      
+      // Validate channel name
+      const validation = validateChannelName(config.channel);
+      if (!validation.isValid) {
+        throw new Error(`Invalid channel name: ${validation.errors.join(', ')}`);
       }
       
       // Generate token using App Certificate

@@ -16,6 +16,7 @@ import { sortByDateDesc } from './firestore-utils';
 import { BranchService } from './branch-service';
 import { WorkspaceService } from './workspace-service';
 import { ActivityService } from './activity-service';
+import { NotificationService } from './notification-service';
 import { auth } from './firebase';
 
 export class TeamService {
@@ -132,6 +133,24 @@ export class TeamService {
       // If team has a branchId, update the branch's teamIds array
       if (team.branchId) {
         await BranchService.assignTeamToBranch(teamId, team.branchId);
+      }
+      
+      // Create notification for team creation
+      try {
+        const { UserService } = await import('./user-service');
+        const creatorUser = await UserService.getUser(createdBy);
+        const creatorName = creatorUser?.name || 'Unknown User';
+        
+        await NotificationService.notifyTeamCreated(
+          createdBy,
+          team.workspaceId,
+          team.name,
+          [], // Initial team has no members yet
+          creatorName
+        );
+      } catch (error) {
+        console.error('Error creating team notification:', error);
+        // Don't throw error as this is not critical to the main operation
       }
       
       return teamId;
@@ -368,6 +387,34 @@ export class TeamService {
           });
         }
       }
+      
+      // Create notification for user being added to team
+      try {
+        const { UserService } = await import('./user-service');
+        const assignerUser = assignedBy ? await UserService.getUser(assignedBy) : null;
+        const assignerName = assignerUser?.name || 'System';
+        
+        await NotificationService.createNotification({
+          userId: userId,
+          workspaceId: team.workspaceId,
+          type: 'team_created',
+          title: 'Added to Team',
+          message: `You've been added to the team "${team.name}" as ${role === 'lead' ? 'team lead' : 'member'} by ${assignerName}`,
+          priority: 'medium',
+          actionUrl: '/dashboard/teams',
+          actionLabel: 'View Teams',
+          metadata: {
+            targetName: team.name,
+            role: role,
+            actorId: assignedBy,
+            actorName: assignerName,
+            isPersonalNotification: true
+          }
+        });
+      } catch (error) {
+        console.error('Error creating team member notification:', error);
+        // Don't throw error as this is not critical to the main operation
+      }
     } catch (error) {
       console.error('Error adding user to team:', error);
       throw error;
@@ -412,6 +459,54 @@ export class TeamService {
         await updateDoc(doc(db, 'teams', teamId), {
           leadId: null
         });
+      }
+      
+      // Log activity for team role update
+      try {
+        await ActivityService.logActivity(
+          'team_updated',
+          'team',
+          teamId,
+          { 
+            targetName: team.name,
+            userId: userId,
+            newRole: newRole,
+            updatedBy: updatedBy,
+            action: 'role_updated'
+          },
+          team.workspaceId,
+          updatedBy
+        );
+      } catch (error) {
+        console.warn('Warning: Could not log team role update activity:', error);
+      }
+      
+      // Create notification for user about team role change
+      try {
+        const { UserService } = await import('./user-service');
+        const updaterUser = await UserService.getUser(updatedBy);
+        const updaterName = updaterUser?.name || 'System';
+        
+        await NotificationService.createNotification({
+          userId: userId,
+          workspaceId: team.workspaceId,
+          type: 'team_updated',
+          title: 'Team Role Updated',
+          message: `Your role in team "${team.name}" has been updated to ${newRole === 'lead' ? 'team lead' : 'member'} by ${updaterName}`,
+          priority: 'medium',
+          actionUrl: '/dashboard/teams',
+          actionLabel: 'View Teams',
+          metadata: {
+            targetName: team.name,
+            newRole: newRole,
+            actorId: updatedBy,
+            actorName: updaterName,
+            isPersonalNotification: true
+          }
+        });
+      } catch (error) {
+        console.error('Error creating team role update notification:', error);
+        // Don't throw error as this is not critical to the main operation
       }
     } catch (error) {
       console.error('Error updating team user role:', error);

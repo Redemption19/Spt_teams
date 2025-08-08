@@ -23,7 +23,11 @@ import {
   Settings,
   Globe,
   Lock,
+  Video,
 } from 'lucide-react';
+import { TeamCollaborationService } from '@/lib/team-collaboration-service';
+import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 interface TeamCardGridProps {
   filteredTeams: (Team | SystemWideTeam)[];
@@ -67,9 +71,13 @@ export default function TeamCardGrid({
   selectedWorkspace = 'all',
 }: TeamCardGridProps) {
   const router = useRouter();
+  const { user: authUser } = useAuth();
+  const { toast } = useToast();
 
   // Member management navigation
   const [memberManagementLoading, setMemberManagementLoading] = useState<string | null>(null);
+  // Video call state
+  const [startingCall, setStartingCall] = useState<string | null>(null);
 
   // Handle member management navigation
   const handleManageMembers = async (team: Team) => {
@@ -87,6 +95,41 @@ export default function TeamCardGrid({
       console.error('Error checking team management permissions:', error);
     } finally {
       setMemberManagementLoading(null);
+    }
+  };
+
+  // Handle starting team video call
+  const handleStartTeamCall = async (team: Team) => {
+    if (!authUser) return;
+
+    setStartingCall(team.id);
+    try {
+      const { meeting, channelName } = await TeamCollaborationService.startInstantTeamMeeting(
+        team.id,
+        authUser.uid,
+        `${team.name} Team Meeting`,
+        'Instant team meeting'
+      );
+
+      if (channelName) {
+        // Navigate to the video call room using the channel name
+        router.push(`/dashboard/video-call/${channelName}`);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create video call room",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error starting team call:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start team meeting",
+        variant: "destructive",
+      });
+    } finally {
+      setStartingCall(null);
     }
   };
 
@@ -203,6 +246,24 @@ export default function TeamCardGrid({
                     {/* Management Buttons Row */}
                     {(canManageThisTeam && (permissions.canEditTeams || permissions.canDeleteTeams)) && (
                       <div className="flex flex-wrap gap-3 sm:gap-4">
+                        {/* Video Call Button - Available for team members */}
+                        {isInTeam && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStartTeamCall(team)}
+                            disabled={startingCall === team.id}
+                            className="text-xs h-8 px-3 touch-manipulation flex-1 sm:flex-none rounded-lg border-border/50 hover:bg-gradient-to-r hover:from-green-500/10 hover:to-blue-500/10"
+                          >
+                            {startingCall === team.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Video className="h-3 w-3 mr-1" />
+                            )}
+                            Call
+                          </Button>
+                        )}
+
                         {/* Member Management Button - Now navigates to sub-page */}
                         {canManageThisTeam && (
                           <Button

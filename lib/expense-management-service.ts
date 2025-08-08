@@ -538,6 +538,27 @@ export class ExpenseManagementService {
       
       // Record activity
       await this.recordExpenseActivity(expenseId, 'approved', `Approved by ${approverId}`, approverId);
+      
+      // Create notification for expense submitter
+      try {
+        const { NotificationService } = await import('./notification-service');
+        await NotificationService.createNotification({
+          userId: expense.submittedBy,
+          workspaceId: expense.workspaceId,
+          type: 'expense_approved',
+          title: 'Expense Approved',
+          message: `Your expense "${expense.description}" has been approved${comments ? ` with comment: ${comments}` : ''}.`,
+          metadata: {
+            expenseId,
+            amount: expense.amount,
+            description: expense.description,
+            approvedBy: approverId,
+            comments
+          }
+        });
+      } catch (error) {
+        console.error('Error creating expense approval notification:', error);
+      }
     } catch (error) {
       console.error('Error approving expense:', error);
       throw error;
@@ -578,6 +599,27 @@ export class ExpenseManagementService {
       
       // Record activity
       await this.recordExpenseActivity(expenseId, 'rejected', `Rejected by ${approverId}: ${comments}`, approverId);
+      
+      // Create notification for expense submitter
+      try {
+        const { NotificationService } = await import('./notification-service');
+        await NotificationService.createNotification({
+          userId: expense.submittedBy,
+          workspaceId: expense.workspaceId,
+          type: 'expense_rejected',
+          title: 'Expense Rejected',
+          message: `Your expense "${expense.description}" has been rejected. Reason: ${comments}`,
+          metadata: {
+            expenseId,
+            amount: expense.amount,
+            description: expense.description,
+            rejectedBy: approverId,
+            reason: comments
+          }
+        });
+      } catch (error) {
+        console.error('Error creating expense rejection notification:', error);
+      }
     } catch (error) {
       console.error('Error rejecting expense:', error);
       throw error;

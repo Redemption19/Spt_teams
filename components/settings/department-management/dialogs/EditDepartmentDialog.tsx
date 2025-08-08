@@ -35,45 +35,47 @@ export function EditDepartmentDialog({
 }: EditDepartmentDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4">
         <DialogHeader>
-          <DialogTitle>Edit Department</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg break-words">Edit Department</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 max-h-[60vh] overflow-y-auto">
           <div className="space-y-2">
-            <Label htmlFor="edit-dept-name">Department Name *</Label>
+            <Label htmlFor="edit-dept-name" className="text-sm font-medium">Department Name *</Label>
             <Input
               id="edit-dept-name"
               value={departmentForm.name}
               onChange={(e) => setDepartmentForm({ ...departmentForm, name: e.target.value })}
               placeholder="e.g., Finance, HR, Marketing"
+              className="h-11 sm:h-10 touch-manipulation rounded-lg border-border/50 focus:border-primary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-dept-description">Description</Label>
+            <Label htmlFor="edit-dept-description" className="text-sm font-medium">Description</Label>
             <Textarea
               id="edit-dept-description"
               value={departmentForm.description}
               onChange={(e) => setDepartmentForm({ ...departmentForm, description: e.target.value })}
               placeholder="Brief description of this department's role"
               rows={3}
+              className="touch-manipulation resize-none rounded-lg border-border/50 focus:border-primary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-dept-head">Department Head</Label>
+            <Label htmlFor="edit-dept-head" className="text-sm font-medium">Department Head</Label>
             <Select
               value={departmentForm.headId}
               onValueChange={(value) => setDepartmentForm({ ...departmentForm, headId: value })}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select department head (optional)" />
+              <SelectTrigger className="h-11 sm:h-10 touch-manipulation rounded-lg border-border/50 focus:border-primary">
+                <SelectValue placeholder="Select department head (optional)" className="truncate" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="none">No department head</SelectItem>
                 {users.map(user => (
-                  <SelectItem key={user.id} value={user.id}>
+                  <SelectItem key={user.id} value={user.id} className="truncate">
                     {user.name} ({user.email})
                   </SelectItem>
                 ))}
@@ -82,53 +84,55 @@ export function EditDepartmentDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-dept-color">Color</Label>
-            <div className="flex items-center gap-2">
+            <Label htmlFor="edit-dept-color" className="text-sm font-medium">Color</Label>
+            <div className="flex items-center gap-3">
               <input
                 type="color"
                 value={departmentForm.color}
                 onChange={(e) => setDepartmentForm({ ...departmentForm, color: e.target.value })}
-                className="w-12 h-8 rounded border"
+                className="w-12 h-10 sm:w-14 sm:h-8 rounded-lg border border-border/50 touch-manipulation"
               />
-              <span className="text-sm text-muted-foreground">{departmentForm.color}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground font-mono">{departmentForm.color}</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-dept-status">Status</Label>
+            <Label htmlFor="edit-dept-status" className="text-sm font-medium">Status</Label>
             <Select
               value={departmentForm.status}
               onValueChange={(value: 'active' | 'inactive') => setDepartmentForm({ ...departmentForm, status: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 sm:h-10 touch-manipulation rounded-lg border-border/50 focus:border-primary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col-reverse sm:flex-row gap-3 sm:gap-2 p-4 sm:p-6">
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
             disabled={submitting}
+            className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
           >
             Cancel
           </Button>
           <Button
             onClick={handleUpdateDepartment}
             disabled={submitting}
+            className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
           >
             {submitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Updating...
+                <span className="truncate">Updating...</span>
               </>
             ) : (
-              'Update Department'
+              <span className="truncate">Update Department</span>
             )}
           </Button>
         </DialogFooter>

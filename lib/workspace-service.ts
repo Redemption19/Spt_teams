@@ -664,8 +664,13 @@ export class WorkspaceService {
     try {
       // console.log(`DEBUG: WorkspaceService.addUserToWorkspace called with userId: ${userId}, workspaceId: ${workspaceId}, role: ${role}`);
       
-      // Check if the inviter has permission to add users to this workspace
-      if (invitedBy) {
+      // Skip permission checks for self-registration scenarios
+      // This includes Google users, direct registration, and system operations
+      const isSelfRegistration = invitedBy === 'system' || invitedBy === userId;
+      
+      console.log(`Adding user to workspace: userId=${userId}, workspaceId=${workspaceId}, role=${role}, invitedBy=${invitedBy}, isSelfRegistration=${isSelfRegistration}`);
+      
+      if (!isSelfRegistration && invitedBy) {
         const inviterRole = await this.getUserRole(invitedBy, workspaceId);
         console.log(`Inviter ${invitedBy} role in workspace: ${inviterRole}`);
         

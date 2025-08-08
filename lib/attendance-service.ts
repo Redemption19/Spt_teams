@@ -617,17 +617,40 @@ export class AttendanceService {
   }
 
   // Get attendance records for multiple workspaces (for owners)
-  static async getMultiWorkspaceAttendance(workspaceIds: string[], date?: Date): Promise<AttendanceRecord[]> {
+  static async getMultiWorkspaceAttendance(
+    workspaceIds: string[], 
+    date?: Date, 
+    dateRange?: { startDate?: Date; endDate?: Date }
+  ): Promise<AttendanceRecord[]> {
     try {
-      const targetDate = date || new Date();
-      const dateStr = format(targetDate, 'yyyy-MM-dd');
-      
       const promises = workspaceIds.map(workspaceId => {
-        const q = query(
+        let q = query(
           collection(db, this.COLLECTION),
-          where('workspaceId', '==', workspaceId),
-          where('date', '==', dateStr)
+          where('workspaceId', '==', workspaceId)
         );
+
+        // Apply date filtering
+        if (date) {
+          // Single date filtering
+          const dateStr = format(date, 'yyyy-MM-dd');
+          q = query(q, where('date', '==', dateStr));
+        } else if (dateRange && (dateRange.startDate || dateRange.endDate)) {
+          // Date range filtering
+          if (dateRange.startDate) {
+            const startDateStr = format(dateRange.startDate, 'yyyy-MM-dd');
+            q = query(q, where('date', '>=', startDateStr));
+          }
+          if (dateRange.endDate) {
+            const endDateStr = format(dateRange.endDate, 'yyyy-MM-dd');
+            q = query(q, where('date', '<=', endDateStr));
+          }
+        } else if (dateRange === undefined) {
+          // Default to today's records only if dateRange is undefined (not empty object)
+          const todayStr = format(new Date(), 'yyyy-MM-dd');
+          q = query(q, where('date', '==', todayStr));
+        }
+        // If dateRange is an empty object {}, fetch all records (no date filtering)
+
         return getDocs(q);
       });
 

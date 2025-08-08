@@ -493,24 +493,27 @@ export default function PayrollEmployeeList({
     <div className="space-y-4">
       {/* Filters */}
       <Card className="card-enhanced">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Search Input - Full width on mobile */}
+            <div className="w-full">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Search employees..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-border/50 focus:border-primary"
+                  className="pl-10 border-border/50 focus:border-primary min-h-[40px]"
                 />
               </div>
             </div>
             
-            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="w-[180px] border-border/50 focus:border-primary">
-                <SelectValue placeholder="Employee" />
-              </SelectTrigger>
+            {/* Filter Controls - Stack on mobile, row on larger screens */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+                <SelectTrigger className="w-full sm:w-[180px] border-border/50 focus:border-primary min-h-[40px]">
+                  <SelectValue placeholder="Employee" />
+                </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Employees</SelectItem>
                 {users.map((user) => (
@@ -528,58 +531,62 @@ export default function PayrollEmployeeList({
               </SelectContent>
             </Select>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px] border-border/50 focus:border-primary">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processed">Processed</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[140px] border-border/50 focus:border-primary min-h-[40px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processed">Processed</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-[160px] border-border/50 focus:border-primary">
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {allAvailableDepartments.map((dept) => (
-                  <SelectItem key={dept} value={dept}>
-                    <div className="flex items-center gap-2">
-                      <span>{dept}</span>
-                      {shouldShowCrossWorkspace && departments.find(d => d.name === dept)?.workspaceName && (
-                        <Badge variant="outline" className="text-xs">
-                          {departments.find(d => d.name === dept)?.workspaceName}
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="w-full sm:w-[160px] border-border/50 focus:border-primary min-h-[40px]">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {allAvailableDepartments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      <div className="flex items-center gap-2">
+                        <span>{dept}</span>
+                        {shouldShowCrossWorkspace && departments.find(d => d.name === dept)?.workspaceName && (
+                          <Badge variant="outline" className="text-xs">
+                            {departments.find(d => d.name === dept)?.workspaceName}
+                          </Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Action Buttons - Stack on mobile */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="border-border/50 hover:bg-accent hover:text-accent-foreground min-h-[40px] flex-1 sm:flex-initial"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="truncate">Refresh</span>
+              </Button>
 
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="border-border/50 hover:bg-accent hover:text-accent-foreground"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-
-            <Button 
-              onClick={() => setCreateFormOpen(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Employee Payroll
-            </Button>
+              <Button 
+                onClick={() => setCreateFormOpen(true)}
+                className="bg-primary hover:bg-primary/90 min-h-[40px] flex-1 sm:flex-initial"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                <span className="truncate">Create Employee Payroll</span>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -587,17 +594,17 @@ export default function PayrollEmployeeList({
       {/* Bulk Processing Controls */}
       {pendingEmployees.length > 0 && (
         <Card className="card-enhanced">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSelection(!showSelection)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 min-h-[40px] w-full sm:w-auto"
                 >
                   {showSelection ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                  {showSelection ? 'Hide Selection' : 'Bulk Process'}
+                  <span className="truncate">{showSelection ? 'Hide Selection' : 'Bulk Process'}</span>
                 </Button>
                 
                 {showSelection && (
@@ -606,13 +613,13 @@ export default function PayrollEmployeeList({
                       variant="outline"
                       size="sm"
                       onClick={handleSelectAll}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 min-h-[40px] w-full sm:w-auto"
                     >
                       {allPendingSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                      {allPendingSelected ? 'Deselect All' : 'Select All Pending'}
+                      <span className="truncate">{allPendingSelected ? 'Deselect All' : 'Select All Pending'}</span>
                     </Button>
                     
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-muted-foreground text-center sm:text-left">
                       {selectedEmployees.size} of {pendingEmployees.length} pending employees selected
                     </span>
                   </>
@@ -623,46 +630,38 @@ export default function PayrollEmployeeList({
                 <Button
                   onClick={handleBulkProcess}
                   disabled={bulkProcessing}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 min-h-[40px] w-full sm:w-auto"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
-                  {bulkProcessing ? 'Processing...' : `Process ${selectedEmployees.size} Employee(s)`}
+                  <span className="truncate">{bulkProcessing ? 'Processing...' : `Process ${selectedEmployees.size} Employee(s)`}</span>
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Auto-Processing Controls */}
-      {pendingEmployees.length > 0 && (
-        <Card className="card-enhanced">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium mb-2">Smart Processing Options</h4>
-                <p className="text-sm text-muted-foreground">
-                  Automatically process fixed salaries and review variable components
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
+            {/* Smart Processing Options */}
+            <div className="border-t border-border/50 pt-4">
+              <h4 className="font-medium mb-2">Smart Processing Options</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Automatically process fixed salaries and review variable components
+              </p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Button
                   variant="outline"
                   onClick={handleAutoProcessFixedSalaries}
                   disabled={autoProcessing}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 min-h-[40px] flex-1 sm:flex-initial"
                 >
                   <Calculator className="w-4 h-4" />
-                  {autoProcessing ? 'Auto-Processing...' : 'Auto-Process Fixed Salaries'}
+                  <span className="truncate">{autoProcessing ? 'Auto-Processing...' : 'Auto-Process Fixed Salaries'}</span>
                 </Button>
                 
                 <Button
                   variant="default"
                   onClick={handleLoadEmployeesNeedingReview}
-                  className="bg-orange-600 hover:bg-orange-700"
+                  className="bg-orange-600 hover:bg-orange-700 min-h-[40px] flex-1 sm:flex-initial"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
-                  Review Variable Salaries
+                  <span className="truncate">Review Variable Salaries</span>
                 </Button>
               </div>
             </div>
@@ -671,21 +670,28 @@ export default function PayrollEmployeeList({
       )}
 
       {/* Results count */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found
-          {pendingEmployees.length > 0 && (
-            <span className="ml-2">
-              • {pendingEmployees.length} pending processing
-            </span>
-          )}
-        </p>
-        {shouldShowCrossWorkspace && (
-          <Badge variant="outline" className="text-xs">
-            <Building className="w-3 h-3 mr-1" />
-            Cross-Workspace View
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+            Payroll Employees
+          </h2>
+          <Badge variant="secondary" className="bg-primary/10 text-primary text-sm px-3 py-1 w-fit">
+            {filteredEmployees.length} {filteredEmployees.length === 1 ? 'employee' : 'employees'}
           </Badge>
-        )}
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+          {pendingEmployees.length > 0 && (
+            <Badge variant="outline" className="text-xs px-2 py-1">
+              {pendingEmployees.length} pending processing
+            </Badge>
+          )}
+          {shouldShowCrossWorkspace && (
+            <Badge variant="outline" className="text-xs px-2 py-1">
+              <Building className="w-3 h-3 mr-1" />
+              Cross-Workspace View
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Payroll Employees List */}
@@ -793,4 +799,4 @@ export default function PayrollEmployeeList({
       />
     </div>
   );
-} 
+}

@@ -204,15 +204,28 @@ export default function AttendancePage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4 sm:mb-6">
+            <div className="flex-1">
+              <div className="h-6 sm:h-8 bg-muted rounded w-3/4 sm:w-1/3 mb-2"></div>
+              <div className="h-4 bg-muted rounded w-full sm:w-2/3"></div>
+            </div>
+            <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+              <div className="h-10 bg-muted rounded w-full sm:w-24"></div>
+              <div className="h-10 bg-muted rounded w-full sm:w-24"></div>
+              <div className="h-10 bg-muted rounded w-full sm:w-28"></div>
+            </div>
+          </div>
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-32 bg-muted rounded"></div>
+              <div key={i} className="h-24 sm:h-28 lg:h-32 bg-muted rounded"></div>
             ))}
           </div>
-          <div className="h-96 bg-muted rounded"></div>
+          {/* Content skeleton */}
+          <div className="h-80 sm:h-96 bg-muted rounded"></div>
         </div>
       </div>
     );
@@ -221,33 +234,45 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Attendance Management</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="flex flex-col space-y-3 sm:space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground truncate">
+            Attendance Management
+          </h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm lg:text-base leading-relaxed">
             Track and manage employee attendance for {format(new Date(), 'MMMM dd, yyyy')}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Link href="/dashboard/hr/attendance/analytics">
-            <Button variant="outline" className="flex items-center space-x-2 hover:bg-accent hover:text-accent-foreground transition-colors">
-              <BarChart3 className="h-4 w-4" />
-              <span>Analytics</span>
+        <div className="flex flex-col space-y-2 sm:flex-row sm:flex-wrap sm:items-center sm:space-y-0 sm:space-x-2 md:space-x-3 md:flex-nowrap">
+          <Link href="/dashboard/hr/attendance/analytics" className="w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-full sm:w-auto h-9 sm:h-10 flex items-center justify-center space-x-2 hover:bg-accent hover:text-accent-foreground transition-colors text-xs sm:text-sm"
+            >
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline sm:inline">Analytics</span>
+              <span className="xs:hidden sm:hidden">Stats</span>
             </Button>
           </Link>
           <Button
             variant="outline"
+            size="sm"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center space-x-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="w-full sm:w-auto h-9 sm:h-10 flex items-center justify-center space-x-2 hover:bg-accent hover:text-accent-foreground transition-colors text-xs sm:text-sm"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </Button>
-          <Link href="/dashboard/hr/attendance/new">
-            <Button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
-              <Plus className="h-4 w-4" />
-              <span>Add Record</span>
+          <Link href="/dashboard/hr/attendance/new" className="w-full sm:w-auto">
+            <Button 
+              size="sm"
+              className="w-full sm:w-auto h-9 sm:h-10 flex items-center justify-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-colors text-xs sm:text-sm"
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline sm:inline">Add Record</span>
+              <span className="xs:hidden sm:hidden">Add</span>
             </Button>
           </Link>
         </div>
@@ -256,39 +281,45 @@ export default function AttendancePage() {
       {/* Cross-workspace info for owners */}
       {shouldShowCrossWorkspace && (
         <Card className="card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-foreground">
-              <Globe className="h-5 w-5 text-primary" />
-              <span>Cross-Workspace Management</span>
-              <Badge variant="outline" className="ml-2">
+          <CardHeader className="pb-3 sm:pb-4">
+            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+              <CardTitle className="flex items-center space-x-2 text-foreground text-sm sm:text-base">
+                <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <span className="truncate">Cross-Workspace Management</span>
+              </CardTitle>
+              <Badge variant="outline" className="self-start sm:self-center">
                 <Globe className="h-3 w-3 mr-1" />
-                Owner View
+                <span className="text-xs">Owner View</span>
               </Badge>
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Select a workspace to view and manage its attendance data
-              {selectedWorkspace && allWorkspaces.length > 0 && (
-                <span className="ml-2 font-medium text-foreground">
-                  • Currently viewing: {allWorkspaces.find(ws => ws.id === selectedWorkspace)?.name || 'Unknown'}
-                </span>
-              )}
+            </div>
+            <CardDescription className="text-muted-foreground text-xs sm:text-sm">
+              <div className="space-y-1">
+                <div>Select a workspace to view and manage its attendance data</div>
+                {selectedWorkspace && allWorkspaces.length > 0 && (
+                  <div className="font-medium text-foreground text-xs sm:text-sm">
+                    Currently viewing: <span className="truncate inline-block max-w-[200px] sm:max-w-none">
+                      {allWorkspaces.find(ws => ws.id === selectedWorkspace)?.name || 'Unknown'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
+            <div className="flex flex-col space-y-3 sm:space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+              <div className="flex-1 min-w-0">
                 <Select value={selectedWorkspace} onValueChange={handleWorkspaceChange}>
-                  <SelectTrigger className="border-border/50 focus:border-primary">
+                  <SelectTrigger className="w-full h-9 sm:h-10 border-border/50 focus:border-primary text-xs sm:text-sm">
                     <SelectValue placeholder="Select a workspace" />
                   </SelectTrigger>
                   <SelectContent>
                     {allWorkspaces.map(workspace => (
                       <SelectItem key={workspace.id} value={workspace.id}>
-                        <div className="flex items-center space-x-2">
-                          <Building className="h-4 w-4" />
-                          <span>{workspace.name}</span>
+                        <div className="flex items-center space-x-2 max-w-full">
+                          <Building className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="truncate text-xs sm:text-sm">{workspace.name}</span>
                           {workspace.type && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs flex-shrink-0">
                               {workspace.type}
                             </Badge>
                           )}
@@ -298,8 +329,8 @@ export default function AttendancePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium">Total Workspaces:</span> {allWorkspaces.length}
+              <div className="text-xs sm:text-sm text-muted-foreground text-center md:text-left flex-shrink-0">
+                <span className="font-medium">Total:</span> {allWorkspaces.length} workspace{allWorkspaces.length !== 1 ? 's' : ''}
               </div>
             </div>
           </CardContent>

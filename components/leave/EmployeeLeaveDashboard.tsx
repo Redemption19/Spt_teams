@@ -174,55 +174,55 @@ export default function EmployeeLeaveDashboard({
     <div className="space-y-6">
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="stats-card">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-blue-500" />
-              <span className="text-sm font-medium text-muted-foreground">Pending</span>
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 flex-shrink-0" />
+              <span className="text-sm font-medium text-muted-foreground truncate">Pending</span>
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold text-foreground">{pendingRequests}</div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
+              <div className="text-xl sm:text-2xl font-bold text-foreground">{pendingRequests}</div>
+              <p className="text-xs text-muted-foreground leading-tight">Awaiting approval</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="stats-card">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="text-sm font-medium text-muted-foreground">Approved</span>
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
+              <span className="text-sm font-medium text-muted-foreground truncate">Approved</span>
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold text-foreground">{approvedRequests}</div>
-              <p className="text-xs text-muted-foreground">{totalDaysApproved} days total</p>
+              <div className="text-xl sm:text-2xl font-bold text-foreground">{approvedRequests}</div>
+              <p className="text-xs text-muted-foreground leading-tight">{totalDaysApproved} days total</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="stats-card">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center space-x-2">
-              <XCircle className="h-5 w-5 text-red-500" />
-              <span className="text-sm font-medium text-muted-foreground">Rejected</span>
+              <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0" />
+              <span className="text-sm font-medium text-muted-foreground truncate">Rejected</span>
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold text-foreground">{rejectedRequests}</div>
-              <p className="text-xs text-muted-foreground">Not approved</p>
+              <div className="text-xl sm:text-2xl font-bold text-foreground">{rejectedRequests}</div>
+              <p className="text-xs text-muted-foreground leading-tight">Not approved</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="stats-card">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center space-x-2">
-              <CalendarDays className="h-5 w-5 text-purple-500" />
-              <span className="text-sm font-medium text-muted-foreground">Total Requested</span>
+              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500 flex-shrink-0" />
+              <span className="text-sm font-medium text-muted-foreground truncate">Total Requested</span>
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold text-foreground">{totalDaysRequested}</div>
-              <p className="text-xs text-muted-foreground">Days requested</p>
+              <div className="text-xl sm:text-2xl font-bold text-foreground">{totalDaysRequested}</div>
+              <p className="text-xs text-muted-foreground leading-tight">Days requested</p>
             </div>
           </CardContent>
         </Card>
@@ -230,27 +230,33 @@ export default function EmployeeLeaveDashboard({
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="types">Leave Types</TabsTrigger>
-          <TabsTrigger value="applications">Annual Applications</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-auto bg-muted p-1 text-muted-foreground rounded-lg">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="types" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Leave Types</span>
+          </TabsTrigger>
+          <TabsTrigger value="applications" className="text-xs sm:text-sm px-2 py-3 sm:py-2 lg:py-1.5 min-h-[44px] sm:min-h-[40px] lg:min-h-[36px] touch-manipulation">
+            <span className="truncate">Annual Applications</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             {/* Recent Requests */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <Clock className="h-5 w-5 text-primary" />
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-foreground text-base sm:text-lg">
+                  <Clock className="h-5 w-5 text-primary flex-shrink-0" />
                   <span>Recent Requests</span>
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="text-muted-foreground text-sm">
                   Your latest leave requests
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 sm:px-6">
                 {leaveRequests.length === 0 ? (
                   <div className="text-center py-8">
                     <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -258,7 +264,7 @@ export default function EmployeeLeaveDashboard({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-2"
+                      className="mt-2 h-10 touch-manipulation"
                       onClick={() => setShowNewRequestDialog(true)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -268,9 +274,9 @@ export default function EmployeeLeaveDashboard({
                 ) : (
                   <div className="space-y-3">
                     {leaveRequests.slice(0, 3).map((request) => (
-                      <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{request.leaveType}</p>
+                      <div key={request.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg space-y-2 sm:space-y-0">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{request.leaveType}</p>
                           <p className="text-sm text-muted-foreground">
                             {format(parseISO(request.startDate), 'MMM dd')} - {format(parseISO(request.endDate), 'MMM dd, yyyy')}
                           </p>
@@ -280,6 +286,7 @@ export default function EmployeeLeaveDashboard({
                             request.status === 'approved' ? 'default' :
                             request.status === 'rejected' ? 'destructive' : 'secondary'
                           }
+                          className="self-start sm:self-center flex-shrink-0"
                         >
                           {request.status}
                         </Badge>
@@ -289,7 +296,7 @@ export default function EmployeeLeaveDashboard({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full"
+                        className="w-full h-10 touch-manipulation"
                         onClick={() => setActiveTab('requests')}
                       >
                         View All Requests
@@ -302,16 +309,16 @@ export default function EmployeeLeaveDashboard({
 
             {/* Leave Balances Summary */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-foreground text-base sm:text-lg">
+                  <TrendingUp className="h-5 w-5 text-primary flex-shrink-0" />
                   <span>Leave Balances</span>
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="text-muted-foreground text-sm">
                   Your current leave entitlements
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 sm:px-6">
                 {leaveBalances.length === 0 ? (
                   <div className="text-center py-8">
                     <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -320,14 +327,14 @@ export default function EmployeeLeaveDashboard({
                 ) : (
                   <div className="space-y-3">
                     {leaveBalances.map((balance) => (
-                      <div key={balance.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{balance.leaveTypeName}</p>
+                      <div key={balance.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg space-y-2 sm:space-y-0">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{balance.leaveTypeName}</p>
                           <p className="text-sm text-muted-foreground">
                             {balance.remainingDays} days remaining
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right flex-shrink-0">
                           <p className="text-sm font-medium">{balance.usedDays}/{balance.totalDays}</p>
                           <p className="text-xs text-muted-foreground">Used/Total</p>
                         </div>
@@ -557,4 +564,4 @@ export default function EmployeeLeaveDashboard({
       </Tabs>
     </div>
   );
-} 
+}

@@ -459,38 +459,41 @@ export default function EmployeeAnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="h-10">
               <Link href="/dashboard/hr/employees">
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to Employees
+                <span className="hidden sm:inline">Back to Employees</span>
+                <span className="sm:hidden">Back</span>
               </Link>
             </Button>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             {shouldShowCrossWorkspace ? 'Employee Analytics (All Workspaces)' : 'Employee Analytics'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {shouldShowCrossWorkspace
               ? `Comprehensive analytics across ${allWorkspaces.length} workspace${allWorkspaces.length > 1 ? 's' : ''}`
               : 'Comprehensive insights into your workforce data and trends'
             }
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
+            className="h-10 w-full sm:w-auto"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="h-10 w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
-            Export Report
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </Button>
         </div>
       </div>
@@ -506,72 +509,94 @@ export default function EmployeeAnalyticsPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/30 rounded-lg">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <Select value={selectedPreset} onValueChange={(value: any) => setSelectedPreset(value)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="last-30-days">Last 30 Days</SelectItem>
-              <SelectItem value="last-3-months">Last 3 Months</SelectItem>
-              <SelectItem value="last-6-months">Last 6 Months</SelectItem>
-              <SelectItem value="last-year">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col gap-4 p-4 bg-muted/30 rounded-lg sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <Select value={selectedPreset} onValueChange={(value: any) => setSelectedPreset(value)}>
+              <SelectTrigger className="w-full h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+                <SelectItem value="last-3-months">Last 3 Months</SelectItem>
+                <SelectItem value="last-6-months">Last 6 Months</SelectItem>
+                <SelectItem value="last-year">Last Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Building className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-full h-10">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-full h-10">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="on-leave">On Leave</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="resigned">Resigned</SelectItem>
+                <SelectItem value="terminated">Terminated</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Building className="w-4 h-4 text-muted-foreground" />
-          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="All Departments" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {departments.map(dept => (
-                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <UserCheck className="w-4 h-4 text-muted-foreground" />
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="on-leave">On Leave</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-              <SelectItem value="resigned">Resigned</SelectItem>
-              <SelectItem value="terminated">Terminated</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="ml-auto text-sm text-muted-foreground">
-          Showing data for {format(dateFilters.dateRange.from, 'MMM dd, yyyy')} - {format(dateFilters.dateRange.to, 'MMM dd, yyyy')}
+        <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+          <span className="hidden sm:inline">
+            Showing data for {format(dateFilters.dateRange.from, 'MMM dd, yyyy')} - {format(dateFilters.dateRange.to, 'MMM dd, yyyy')}
+          </span>
+          <span className="sm:hidden">
+            {format(dateFilters.dateRange.from, 'MMM dd')} - {format(dateFilters.dateRange.to, 'MMM dd, yyyy')}
+          </span>
         </div>
       </div>
 
       {analytics && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="demographics">Demographics</TabsTrigger>
-            <TabsTrigger value="compensation">Compensation</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-            <TabsTrigger value="alerts">Alerts</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-5 min-w-max sm:min-w-0 h-12">
+              <TabsTrigger value="overview" className="h-10 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap">
+                <span className="hidden sm:inline">Overview</span>
+                <span className="sm:hidden">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger value="demographics" className="h-10 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap">
+                <span className="hidden sm:inline">Demographics</span>
+                <span className="sm:hidden">Demo</span>
+              </TabsTrigger>
+              <TabsTrigger value="compensation" className="h-10 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap">
+                <span className="hidden sm:inline">Compensation</span>
+                <span className="sm:hidden">Pay</span>
+              </TabsTrigger>
+              <TabsTrigger value="trends" className="h-10 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap">
+                Trends
+              </TabsTrigger>
+              <TabsTrigger value="alerts" className="h-10 px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap">
+                Alerts
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <Card className="stats-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -626,7 +651,7 @@ export default function EmployeeAnalyticsPage() {
             </div>
 
             {/* Department and Status Overview */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <Card className="card-enhanced">
                 <CardHeader>
                   <CardTitle>Department Distribution</CardTitle>
@@ -643,15 +668,15 @@ export default function EmployeeAnalyticsPage() {
                       .map(([department, count]) => {
                         const percentage = analytics.totalEmployees > 0 ? (count / analytics.totalEmployees) * 100 : 0;
                         return (
-                          <div key={department} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 flex-1">
-                              <span className="text-sm font-medium truncate">{department}</span>
-                              <div className="flex-1 mx-2">
+                          <div key={department} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-sm font-medium truncate max-w-[120px] sm:max-w-none">{department}</span>
+                              <div className="flex-1 mx-2 min-w-[60px]">
                                 <Progress value={percentage} className="h-2" />
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline">{count}</Badge>
+                            <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                              <Badge variant="outline" className="text-xs">{count}</Badge>
                               <span className="text-xs text-muted-foreground w-10 text-right">
                                 {percentage.toFixed(0)}%
                               </span>
@@ -688,15 +713,15 @@ export default function EmployeeAnalyticsPage() {
                       };
                       
                       return (
-                        <div key={status} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm font-medium capitalize">{status.replace('-', ' ')}</span>
-                            <div className="flex-1 mx-2">
+                        <div key={status} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-sm font-medium capitalize max-w-[120px] sm:max-w-none truncate">{status.replace('-', ' ')}</span>
+                            <div className="flex-1 mx-2 min-w-[60px]">
                               <Progress value={percentage} className="h-2" />
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={getStatusColor(status)}>{count}</Badge>
+                          <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                            <Badge variant="outline" className={`text-xs ${getStatusColor(status)}`}>{count}</Badge>
                             <span className="text-xs text-muted-foreground w-10 text-right">
                               {percentage.toFixed(0)}%
                             </span>
@@ -710,7 +735,7 @@ export default function EmployeeAnalyticsPage() {
             </div>
 
             {/* Employment Type and Work Location */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <Card className="card-enhanced">
                 <CardHeader>
                   <CardTitle>Employment Type</CardTitle>
@@ -721,15 +746,15 @@ export default function EmployeeAnalyticsPage() {
                     {Object.entries(analytics.employmentTypeBreakdown).map(([type, count]) => {
                       const percentage = analytics.totalEmployees > 0 ? (count / analytics.totalEmployees) * 100 : 0;
                       return (
-                        <div key={type} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm font-medium capitalize">{type.replace('-', ' ')}</span>
-                            <div className="flex-1 mx-2">
+                        <div key={type} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-sm font-medium capitalize max-w-[120px] sm:max-w-none truncate">{type.replace('-', ' ')}</span>
+                            <div className="flex-1 mx-2 min-w-[60px]">
                               <Progress value={percentage} className="h-2" />
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{count}</Badge>
+                          <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                            <Badge variant="outline" className="text-xs">{count}</Badge>
                             <span className="text-xs text-muted-foreground w-10 text-right">
                               {percentage.toFixed(0)}%
                             </span>
@@ -751,15 +776,15 @@ export default function EmployeeAnalyticsPage() {
                     {Object.entries(analytics.workLocationBreakdown).map(([location, count]) => {
                       const percentage = analytics.totalEmployees > 0 ? (count / analytics.totalEmployees) * 100 : 0;
                       return (
-                        <div key={location} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm font-medium capitalize">{location}</span>
-                            <div className="flex-1 mx-2">
+                        <div key={location} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-sm font-medium capitalize max-w-[120px] sm:max-w-none truncate">{location}</span>
+                            <div className="flex-1 mx-2 min-w-[60px]">
                               <Progress value={percentage} className="h-2" />
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{count}</Badge>
+                          <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                            <Badge variant="outline" className="text-xs">{count}</Badge>
                             <span className="text-xs text-muted-foreground w-10 text-right">
                               {percentage.toFixed(0)}%
                             </span>
@@ -775,7 +800,7 @@ export default function EmployeeAnalyticsPage() {
 
           <TabsContent value="demographics" className="space-y-6">
             {/* Gender and Age Demographics */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <Card className="card-enhanced">
                 <CardHeader>
                   <CardTitle>Gender Distribution</CardTitle>
@@ -786,15 +811,15 @@ export default function EmployeeAnalyticsPage() {
                     {Object.entries(analytics.genderBreakdown).map(([gender, count]) => {
                       const percentage = analytics.totalEmployees > 0 ? (count / analytics.totalEmployees) * 100 : 0;
                       return (
-                        <div key={gender} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm font-medium capitalize">{gender}</span>
-                            <div className="flex-1 mx-2">
+                        <div key={gender} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-sm font-medium capitalize max-w-[120px] sm:max-w-none truncate">{gender}</span>
+                            <div className="flex-1 mx-2 min-w-[60px]">
                               <Progress value={percentage} className="h-2" />
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{count}</Badge>
+                          <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                            <Badge variant="outline" className="text-xs">{count}</Badge>
                             <span className="text-xs text-muted-foreground w-10 text-right">
                               {percentage.toFixed(0)}%
                             </span>
@@ -816,15 +841,15 @@ export default function EmployeeAnalyticsPage() {
                     {Object.entries(analytics.ageGroupBreakdown).map(([ageGroup, count]) => {
                       const percentage = analytics.totalEmployees > 0 ? (count / analytics.totalEmployees) * 100 : 0;
                       return (
-                        <div key={ageGroup} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm font-medium">{ageGroup}</span>
-                            <div className="flex-1 mx-2">
+                        <div key={ageGroup} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-sm font-medium max-w-[120px] sm:max-w-none truncate">{ageGroup}</span>
+                            <div className="flex-1 mx-2 min-w-[60px]">
                               <Progress value={percentage} className="h-2" />
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{count}</Badge>
+                          <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                            <Badge variant="outline" className="text-xs">{count}</Badge>
                             <span className="text-xs text-muted-foreground w-10 text-right">
                               {percentage.toFixed(0)}%
                             </span>
@@ -844,7 +869,7 @@ export default function EmployeeAnalyticsPage() {
                 <CardDescription>Employee tenure distribution</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
                   {analytics.tenureAnalysis.map((item, index) => (
                     <div key={index} className="text-center p-4 rounded-lg bg-muted/30">
                       <div className="text-2xl font-bold text-primary">{item.count}</div>
@@ -869,15 +894,15 @@ export default function EmployeeAnalyticsPage() {
                   {Object.entries(analytics.salaryRangeBreakdown).map(([range, count]) => {
                     const percentage = analytics.totalEmployees > 0 ? (count / analytics.totalEmployees) * 100 : 0;
                     return (
-                      <div key={range} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="text-sm font-medium">{range}</span>
-                          <div className="flex-1 mx-2">
+                      <div key={range} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-sm font-medium max-w-[120px] sm:max-w-none truncate">{range}</span>
+                          <div className="flex-1 mx-2 min-w-[60px]">
                             <Progress value={percentage} className="h-2" />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{count}</Badge>
+                        <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
+                          <Badge variant="outline" className="text-xs">{count}</Badge>
                           <span className="text-xs text-muted-foreground w-10 text-right">
                             {percentage.toFixed(0)}%
                           </span>
@@ -957,7 +982,7 @@ export default function EmployeeAnalyticsPage() {
 
           <TabsContent value="alerts" className="space-y-6">
             {/* Upcoming Events */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <Card className="card-enhanced">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

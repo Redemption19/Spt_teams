@@ -36,11 +36,13 @@ function VideoCallContent() {
   // Extract parameters
   const channelName = searchParams.get('channel');
   const meetingTitle = searchParams.get('title');
-  const appId = searchParams.get('appId');
   const token = searchParams.get('token');
   const interviewId = searchParams.get('interview');
   const teamId = searchParams.get('team');
   const eventId = searchParams.get('event');
+  
+  // Get Agora App ID from environment variables
+  const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
 
   useEffect(() => {
     // Validation

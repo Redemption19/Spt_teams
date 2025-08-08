@@ -70,7 +70,7 @@ export function useVoiceChat(options: UseVoiceChatOptions = {}): [VoiceChatState
   });
 
   const initializationRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Initialize voice services
   useEffect(() => {

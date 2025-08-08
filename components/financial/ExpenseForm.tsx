@@ -192,64 +192,68 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-6">
-        <CardTitle className="text-xl">Submit New Expense</CardTitle>
-        <CardDescription>
+      <CardHeader className="pb-4 sm:pb-6">
+        <CardTitle className="text-lg sm:text-xl">Submit New Expense</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
           Fill out the form below to submit an expense for approval
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">Basic Info</span>
+            <TabsList className="grid w-full grid-cols-4 h-auto">
+              <TabsTrigger value="basic" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5">
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline text-xs sm:text-sm">Basic Info</span>
+                <span className="sm:hidden text-xs">Basic</span>
               </TabsTrigger>
-              <TabsTrigger value="details" className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                <span className="hidden sm:inline">Details</span>
+              <TabsTrigger value="details" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5">
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline text-xs sm:text-sm">Details</span>
+                <span className="sm:hidden text-xs">Details</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Settings</span>
+              <TabsTrigger value="settings" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5">
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline text-xs sm:text-sm">Settings</span>
+                <span className="sm:hidden text-xs">Settings</span>
               </TabsTrigger>
-              <TabsTrigger value="receipt" className="flex items-center gap-2">
-                <Paperclip className="w-4 h-4" />
-                <span className="hidden sm:inline">Receipt</span>
+              <TabsTrigger value="receipt" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5">
+                <Paperclip className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline text-xs sm:text-sm">Receipt</span>
+                <span className="sm:hidden text-xs">Receipt</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Basic Information Tab */}
-            <TabsContent value="basic" className="space-y-6 mt-6">
-              <div className="space-y-4">
+            <TabsContent value="basic" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label htmlFor="title" className="text-sm font-medium">Expense Title *</Label>
+                  <Label htmlFor="title" className="text-xs sm:text-sm font-medium">Expense Title *</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="e.g., Business lunch with client"
-                    className="mt-1.5"
+                    className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+                  <Label htmlFor="description" className="text-xs sm:text-sm font-medium">Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Additional details about the expense..."
                     rows={3}
-                    className="mt-1.5 resize-none"
+                    className="mt-1 sm:mt-1.5 resize-none text-xs sm:text-sm"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                   <div>
-                    <Label htmlFor="amount" className="text-sm font-medium">Amount *</Label>
+                    <Label htmlFor="amount" className="text-xs sm:text-sm font-medium">Amount *</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -257,7 +261,7 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                       value={formData.amount}
                       onChange={(e) => handleInputChange('amount', e.target.value)}
                       placeholder="0.00"
-                      className="mt-1.5"
+                      className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                       required
                     />
                   </div>
@@ -275,23 +279,23 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
             </TabsContent>
 
             {/* Details Tab */}
-            <TabsContent value="details" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TabsContent value="details" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
+                  <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                    <Label htmlFor="category" className="text-xs sm:text-sm font-medium">Category *</Label>
                     <CreateCategoryDialog 
                       onCategoryCreated={handleCategoryCreated}
                       trigger={
-                        <Button variant="ghost" size="sm" type="button" className="h-6 px-2 text-xs">
-                          <Plus className="w-3 h-3 mr-1" />
-                          New
+                        <Button variant="ghost" size="sm" type="button" className="h-5 sm:h-6 px-1.5 sm:px-2 text-xs">
+                          <Plus className="w-3 h-3 mr-0.5 sm:mr-1" />
+                          <span className="hidden sm:inline">New</span>
                         </Button>
                       }
                     />
                   </div>
                   <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -314,9 +318,9 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="department" className="text-sm font-medium">Department (Optional)</Label>
+                  <Label htmlFor="department" className="text-xs sm:text-sm font-medium">Department (Optional)</Label>
                   <Select value={formData.departmentId || 'none'} onValueChange={(value) => handleInputChange('departmentId', value === 'none' ? undefined : value)}>
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
@@ -337,24 +341,24 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                     placeholder="Select expense date"
                     value={formData.expenseDate}
                     onChange={(date) => handleInputChange('expenseDate', date || new Date())}
-                    className="mt-1.5"
+                    className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="subcategory" className="text-sm font-medium">Subcategory</Label>
+                  <Label htmlFor="subcategory" className="text-xs sm:text-sm font-medium">Subcategory</Label>
                   <Input
                     id="subcategory"
                     value={formData.subcategory}
                     onChange={(e) => handleInputChange('subcategory', e.target.value)}
                     placeholder="e.g., Client meeting"
-                    className="mt-1.5"
+                    className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="tags" className="text-sm font-medium">Tags</Label>
+                <Label htmlFor="tags" className="text-xs sm:text-sm font-medium">Tags</Label>
                 <Input
                   id="tags"
                   value={formData.tags?.join(', ') || ''}
@@ -364,7 +368,7 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                     handleInputChange('tags', tagsArray);
                   }}
                   placeholder="e.g., urgent, project-alpha"
-                  className="mt-1.5"
+                  className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Separate tags with commas
@@ -373,12 +377,12 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
             </TabsContent>
 
             {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-6 mt-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                  <div>
-                    <Label htmlFor="billable" className="text-sm font-medium">Billable to Client</Label>
-                    <p className="text-sm text-muted-foreground">
+            <TabsContent value="settings" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg bg-muted/20">
+                  <div className="flex-1 min-w-0 pr-3">
+                    <Label htmlFor="billable" className="text-xs sm:text-sm font-medium">Billable to Client</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Can this expense be billed to a client?
                     </p>
                   </div>
@@ -389,10 +393,10 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                  <div>
-                    <Label htmlFor="reimbursable" className="text-sm font-medium">Reimbursable</Label>
-                    <p className="text-sm text-muted-foreground">
+                <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg bg-muted/20">
+                  <div className="flex-1 min-w-0 pr-3">
+                    <Label htmlFor="reimbursable" className="text-xs sm:text-sm font-medium">Reimbursable</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Should this expense be reimbursed?
                     </p>
                   </div>
@@ -406,67 +410,94 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
             </TabsContent>
 
             {/* Receipt Tab */}
-            <TabsContent value="receipt" className="space-y-6 mt-6">
-              <div>
-                <Label className="text-sm font-medium">Receipt Upload</Label>
-                <input
-                  id="receipt"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('receipt')?.click()}
-                  className="w-full h-32 border-2 border-dashed hover:border-primary transition-colors flex-col gap-3 mt-2"
-                >
-                  <Upload className="w-8 h-8" />
-                  <span className="text-sm">{formData.receiptFile ? formData.receiptFile.name : 'Upload Receipt'}</span>
-                  <span className="text-xs text-muted-foreground">Click to browse or drag and drop</span>
-                </Button>
-                {formData.receiptFile && (
-                  <div className="mt-3 flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <Badge variant="secondary" className="flex items-center gap-2">
-                      <Calendar className="w-3 h-3" />
-                      {formData.receiptFile.name}
-                    </Badge>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleInputChange('receiptFile', undefined)}
-                      className="h-8 w-8 p-0"
+            <TabsContent value="receipt" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <div className="space-y-3 sm:space-y-4">
+                <div>
+                  <Label className="text-xs sm:text-sm font-medium">Receipt Upload</Label>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                    Upload receipt images or documents (PDF, JPG, PNG)
+                  </p>
+                  
+                  <div className="border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors border-muted-foreground/25">
+                    <Upload className="w-8 sm:w-12 h-8 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                    <div className="space-y-1 sm:space-y-2">
+                      <p className="text-sm sm:text-lg font-medium">Drop files here or click to upload</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Supports PDF, JPG, PNG up to 10MB
+                      </p>
+                    </div>
+                    <input
+                      id="receipt"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="mt-3 sm:mt-4 h-9 sm:h-10 text-xs sm:text-sm"
+                      onClick={() => document.getElementById('receipt')?.click()}
                     >
-                      <X className="w-4 h-4" />
+                      <Upload className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                      Choose Files
                     </Button>
                   </div>
-                )}
-                <p className="text-xs text-muted-foreground mt-2">
-                  Upload receipt image or PDF (optional)
-                </p>
+                  
+                  {formData.receiptFile && (
+                    <div className="mt-3 flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <Badge variant="secondary" className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        <span className="text-xs sm:text-sm">{formData.receiptFile.name}</span>
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleInputChange('receiptFile', undefined)}
+                        className="h-6 sm:h-8 w-6 sm:w-8 p-0"
+                      >
+                        <X className="w-3 sm:w-4 h-3 sm:h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Upload receipt image or PDF (optional)
+                  </p>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
 
           {/* Action Buttons - Always visible */}
-          <div className="flex gap-4 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
             {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1 h-12">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel} 
+                className="flex-1 h-10 sm:h-12 text-sm sm:text-base"
+              >
                 Cancel
               </Button>
             )}
-            <Button type="submit" disabled={loading} className="flex-1 h-12">
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="flex-1 h-10 sm:h-12 text-sm sm:text-base"
+            >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting...
+                  <div className="animate-spin rounded-full h-3 sm:h-4 w-3 sm:w-4 border-b-2 border-white mr-1 sm:mr-2"></div>
+                  <span className="hidden sm:inline">Submitting...</span>
+                  <span className="sm:hidden">Submitting</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Submit Expense
+                  <Save className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Submit Expense</span>
+                  <span className="sm:hidden">Submit</span>
                 </>
               )}
             </Button>

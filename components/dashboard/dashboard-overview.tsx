@@ -949,12 +949,12 @@ export function DashboardOverview() {
 
       {/* Guest-specific notice */}
       {isGuest && (
-        <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <User className="h-5 w-5 text-primary mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-medium text-foreground mb-1">Guest Mode</h3>
-              <p className="text-sm text-muted-foreground">
+        <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg p-3 sm:p-4">
+          <div className="flex items-start space-x-2 sm:space-x-3">
+            <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-foreground mb-1 text-sm sm:text-base">Guest Mode</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 You&apos;re exploring the application as a guest. This is a demo environment with sample data. 
                 Create an account to save your work and access all features.
               </p>
@@ -964,19 +964,19 @@ export function DashboardOverview() {
       )}
 
       {/* Quick Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{getTaskProgressLabel()}</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium truncate pr-2">{getTaskProgressLabel()}</CardTitle>
+            <Target className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{displayStats.completedTasks}/{displayStats.totalTasks}</div>
-            <Progress value={displayCompletionPercentage} className="mt-3" />
-            <p className="text-xs text-muted-foreground mt-2">
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold">{displayStats.completedTasks}/{displayStats.totalTasks}</div>
+            <Progress value={displayCompletionPercentage} className="mt-2 sm:mt-3" />
+            <p className="text-xs text-muted-foreground mt-1 sm:mt-2">
               {Math.round(displayCompletionPercentage)}% completed
               {userRole === 'owner' && (
-                <span className="ml-1">({displayStats.viewLabel})</span>
+                <span className="ml-1 hidden sm:inline">({displayStats.viewLabel})</span>
               )}
             </p>
           </CardContent>
@@ -984,11 +984,11 @@ export function DashboardOverview() {
 
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Reports</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Pending Reports</CardTitle>
+            <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getDisplayPendingReports()}</div>
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold">{getDisplayPendingReports()}</div>
             <p className="text-xs text-muted-foreground">
               {getDisplayPendingReports() > 0 ? 'Reports due soon' : 'All caught up!'}
             </p>
@@ -997,18 +997,18 @@ export function DashboardOverview() {
 
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Teams</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Active Teams</CardTitle>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             {loading ? (
               <div className="space-y-2">
-                <div className="h-8 w-12 bg-muted rounded animate-pulse" />
-                <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-6 sm:h-8 w-10 sm:w-12 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-20 sm:w-24 bg-muted rounded animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">{displayStats.activeTeams}</div>
+                <div className="text-xl sm:text-2xl font-bold">{displayStats.activeTeams}</div>
                 <p className="text-xs text-muted-foreground">
                   {userRole === 'owner' && globalView ? 'Global teams' : getTeamsLabel()}
                 </p>
@@ -1019,11 +1019,11 @@ export function DashboardOverview() {
 
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Activity Score</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Activity Score</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activityScore}</div>
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold">{stats.activityScore}</div>
             <p className="text-xs text-muted-foreground">
               {stats.weeklyProgress >= 0 ? '+' : ''}{stats.weeklyProgress}% from last week
             </p>
@@ -1032,14 +1032,14 @@ export function DashboardOverview() {
       </div>
 
       {/* Additional Stats Row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Files</CardTitle>
-            <Folder className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Files</CardTitle>
+            <Folder className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalFiles}</div>
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalFiles}</div>
             <p className="text-xs text-muted-foreground">
               Across {stats.totalFolders} folders
             </p>
@@ -1048,16 +1048,16 @@ export function DashboardOverview() {
 
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Weekly Progress</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Weekly Progress</CardTitle>
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold flex items-center">
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold flex items-center">
               {stats.weeklyProgress >= 0 ? '+' : ''}{stats.weeklyProgress}%
               {stats.weeklyProgress >= 0 ? (
-                <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2 text-green-500 flex-shrink-0" />
               ) : (
-                <TrendingUp className="h-4 w-4 ml-2 text-red-500 rotate-180" />
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2 text-red-500 rotate-180 flex-shrink-0" />
               )}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -1068,11 +1068,11 @@ export function DashboardOverview() {
 
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Deadlines</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Upcoming Deadlines</CardTitle>
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.upcomingDeadlines.length}</div>
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold">{stats.upcomingDeadlines.length}</div>
             <p className="text-xs text-muted-foreground">
               {stats.upcomingDeadlines.length > 0 ? 'Tasks due soon' : 'No urgent deadlines'}
             </p>
@@ -1081,11 +1081,11 @@ export function DashboardOverview() {
 
         <Card className="card-interactive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Recent Activity</CardTitle>
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.recentActivity.length}</div>
+          <CardContent className="pt-2">
+            <div className="text-xl sm:text-2xl font-bold">{stats.recentActivity.length}</div>
             <p className="text-xs text-muted-foreground">
               Actions this week
             </p>
@@ -1097,46 +1097,48 @@ export function DashboardOverview() {
       {userRole === 'owner' && (
         <>
           {/* Global/Current Workspace Toggle */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
-            <div>
-              <h2 className="text-xl font-semibold">Workspace Management</h2>
-              <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl font-semibold">Workspace Management</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {globalView ? 'Viewing all workspaces' : `Viewing ${currentWorkspace?.name}`}
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 bg-background border rounded-lg p-1">
+            <div className="flex items-center w-full sm:w-auto">
+              <div className="flex items-center space-x-1 sm:space-x-2 bg-background border rounded-lg p-1 w-full sm:w-auto">
                 <Button
                   variant={!globalView ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setGlobalView(false)}
-                  className="text-xs"
+                  className="text-xs flex-1 sm:flex-none"
                 >
-                  Current Workspace
+                  <span className="hidden sm:inline">Current Workspace</span>
+                  <span className="sm:hidden">Current</span>
                 </Button>
                 <Button
                   variant={globalView ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setGlobalView(true)}
-                  className="text-xs"
+                  className="text-xs flex-1 sm:flex-none"
                 >
-                  All Workspaces
+                  <span className="hidden sm:inline">All Workspaces</span>
+                  <span className="sm:hidden">All</span>
                 </Button>
               </div>
             </div>
           </div>
 
           {/* Cross-workspace Overview Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="card-interactive border-l-4 border-l-yellow-500">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Globe className="h-4 w-4 mr-2 text-yellow-600" />
-                  Total Workspaces
+                <CardTitle className="text-xs sm:text-sm font-medium flex items-center">
+                  <Globe className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-yellow-600 flex-shrink-0" />
+                  <span className="truncate">Total Workspaces</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{allWorkspacesData.workspaces.length}</div>
+              <CardContent className="pt-2">
+                <div className="text-xl sm:text-2xl font-bold">{allWorkspacesData.workspaces.length}</div>
                 <p className="text-xs text-muted-foreground">
                   {allWorkspacesData.workspaces.filter(w => w.workspaceType === 'main').length} main, {' '}
                   {allWorkspacesData.workspaces.filter(w => w.workspaceType === 'sub').length} sub-workspaces
@@ -1579,91 +1581,93 @@ export function DashboardOverview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         <Button 
           variant="outline" 
-          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          className="h-auto p-3 sm:p-4 flex flex-col items-center space-y-1 sm:space-y-2 hover:bg-primary/5 transition-colors min-h-[80px] sm:min-h-[100px]"
           onClick={() => router.push('/dashboard/tasks')}
         >
-          <Target className="h-6 w-6 text-primary" />
-          <span className="text-sm font-medium">View Tasks</span>
-          <span className="text-xs text-muted-foreground">Manage your tasks</span>
+          <Target className="h-4 w-4 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium text-center">View Tasks</span>
+          <span className="text-xs text-muted-foreground text-center hidden sm:block">Manage your tasks</span>
         </Button>
         
         <Button 
           variant="outline" 
-          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          className="h-auto p-3 sm:p-4 flex flex-col items-center space-y-1 sm:space-y-2 hover:bg-primary/5 transition-colors min-h-[80px] sm:min-h-[100px]"
           onClick={() => router.push('/dashboard/reports')}
         >
-          <FileText className="h-6 w-6 text-primary" />
-          <span className="text-sm font-medium">Manage Reports</span>
-          <span className="text-xs text-muted-foreground">View & submit reports</span>
+          <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium text-center">Reports</span>
+          <span className="text-xs text-muted-foreground text-center hidden sm:block">View & submit reports</span>
         </Button>
         
         <Button 
           variant="outline" 
-          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          className="h-auto p-3 sm:p-4 flex flex-col items-center space-y-1 sm:space-y-2 hover:bg-primary/5 transition-colors min-h-[80px] sm:min-h-[100px]"
           onClick={() => router.push('/dashboard/folders')}
         >
-          <Folder className="h-6 w-6 text-primary" />
-          <span className="text-sm font-medium">Browse Files</span>
-          <span className="text-xs text-muted-foreground">Access documents</span>
+          <Folder className="h-4 w-4 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium text-center">Files</span>
+          <span className="text-xs text-muted-foreground text-center hidden sm:block">Access documents</span>
         </Button>
         
         {(userRole === 'owner' || userRole === 'admin') && (
           <Button 
             variant="outline" 
-            className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+            className="h-auto p-3 sm:p-4 flex flex-col items-center space-y-1 sm:space-y-2 hover:bg-primary/5 transition-colors min-h-[80px] sm:min-h-[100px]"
             onClick={() => router.push('/dashboard/analytics')}
           >
-            <BarChart3 className="h-6 w-6 text-primary" />
-            <span className="text-sm font-medium">View Analytics</span>
-            <span className="text-xs text-muted-foreground">Insights & metrics</span>
+            <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-center">Analytics</span>
+            <span className="text-xs text-muted-foreground text-center hidden sm:block">Insights & metrics</span>
           </Button>
         )}
 
         {/* Add Calendar action for all users */}
         <Button 
           variant="outline" 
-          className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 transition-colors"
+          className="h-auto p-3 sm:p-4 flex flex-col items-center space-y-1 sm:space-y-2 hover:bg-primary/5 transition-colors min-h-[80px] sm:min-h-[100px]"
           onClick={() => router.push('/dashboard/calendar')}
         >
-          <Calendar className="h-6 w-6 text-primary" />
-          <span className="text-sm font-medium">Calendar</span>
-          <span className="text-xs text-muted-foreground">View schedule</span>
+          <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium text-center">Calendar</span>
+          <span className="text-xs text-muted-foreground text-center hidden sm:block">View schedule</span>
         </Button>
       </div>
 
       {/* Analytics Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">Analytics & Insights</h2>
-            <p className="text-sm text-muted-foreground">Performance metrics and data trends</p>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg sm:text-xl font-semibold">Analytics & Insights</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Performance metrics and data trends</p>
           </div>
           {(userRole === 'owner' || userRole === 'admin') && (
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => router.push('/dashboard/analytics')}
+              className="w-full sm:w-auto"
             >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Full Analytics
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <span className="hidden sm:inline">Full Analytics</span>
+              <span className="sm:hidden">Analytics</span>
             </Button>
           )}
         </div>
 
         {/* Performance Metrics Row */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="card-interactive">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <TrendingUp className="h-4 w-4 mr-2 text-green-600" />
-                Completion Rate
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-green-600 flex-shrink-0" />
+                <span className="truncate">Completion Rate</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+            <CardContent className="pt-2">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {Math.round(completionPercentage)}%
               </div>
               <p className="text-xs text-muted-foreground">
@@ -1681,13 +1685,13 @@ export function DashboardOverview() {
 
           <Card className="card-interactive">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Clock className="h-4 w-4 mr-2 text-blue-600" />
-                Avg Response Time
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-blue-600 flex-shrink-0" />
+                <span className="truncate">Avg Response Time</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{calculateAvgResponseTime(stats.recentActivity)}</div>
+            <CardContent className="pt-2">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">{calculateAvgResponseTime(stats.recentActivity)}</div>
               <p className="text-xs text-muted-foreground">
                 Average task response time
               </p>
@@ -1699,13 +1703,13 @@ export function DashboardOverview() {
 
           <Card className="card-interactive">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Users className="h-4 w-4 mr-2 text-purple-600" />
-                Team Engagement
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-purple-600 flex-shrink-0" />
+                <span className="truncate">Team Engagement</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
+            <CardContent className="pt-2">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {stats.activityScore}%
               </div>
               <p className="text-xs text-muted-foreground">
@@ -1719,13 +1723,13 @@ export function DashboardOverview() {
 
           <Card className="card-interactive">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Target className="h-4 w-4 mr-2 text-orange-600" />
-                Goal Achievement
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center">
+                <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-orange-600 flex-shrink-0" />
+                <span className="truncate">Goal Achievement</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{Math.round(completionPercentage)}%</div>
+            <CardContent className="pt-2">
+              <div className="text-xl sm:text-2xl font-bold text-orange-600">{Math.round(completionPercentage)}%</div>
               <p className="text-xs text-muted-foreground">
                 Task completion rate
               </p>

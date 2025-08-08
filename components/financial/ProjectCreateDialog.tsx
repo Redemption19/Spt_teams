@@ -101,15 +101,15 @@ export function ProjectCreateDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4 max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg break-words">
+            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <FolderPlus className="w-4 h-4 text-primary" />
             </div>
             Create New Project
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base break-words">
             Create a new project that can be assigned to cost centers for better organization.
           </DialogDescription>
         </DialogHeader>
@@ -124,7 +124,7 @@ export function ProjectCreateDialog({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g., Website Redesign Project"
-              className="h-10"
+              className="h-11 sm:h-10 touch-manipulation"
               required
             />
           </div>
@@ -137,11 +137,11 @@ export function ProjectCreateDialog({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Brief description of the project goals and objectives..."
               rows={3}
-              className="resize-none"
+              className="resize-none min-h-[88px] sm:min-h-[80px] touch-manipulation"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label htmlFor="project-status" className="text-sm font-medium">Status</Label>
               <Select
@@ -150,7 +150,7 @@ export function ProjectCreateDialog({
                   setFormData({ ...formData, status: value })
                 }
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-11 sm:h-10 touch-manipulation">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,7 +201,7 @@ export function ProjectCreateDialog({
                 setFormData({ ...formData, visibility: value })
               }
             >
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-11 sm:h-10 touch-manipulation">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -213,12 +213,13 @@ export function ProjectCreateDialog({
           </div>
         </form>
 
-        <DialogFooter className="gap-3">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
           <Button 
             type="button" 
             variant="outline" 
             onClick={handleClose}
             disabled={isSubmitting}
+            className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
           >
             Cancel
           </Button>
@@ -226,17 +227,17 @@ export function ProjectCreateDialog({
             type="submit" 
             onClick={handleSubmit}
             disabled={isSubmitting || !formData.name.trim()}
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Creating...
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                <span className="truncate">Creating...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <FolderPlus className="w-4 h-4" />
-                Create Project
+                <FolderPlus className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">Create Project</span>
               </div>
             )}
           </Button>

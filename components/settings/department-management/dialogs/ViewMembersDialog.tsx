@@ -27,36 +27,36 @@ export function ViewMembersDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-4">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-base sm:text-lg break-words">
             {selectedDepartment?.name} Members ({members.length})
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
+        <div className="space-y-3 sm:space-y-4 max-h-[60vh] sm:max-h-96 overflow-y-auto">
           {members.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No members in this department</p>
+            <div className="text-center py-6 sm:py-8">
+              <Users className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-muted-foreground">No members in this department</p>
             </div>
           ) : (
             members.map((member) => (
-              <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
+              <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+                    <AvatarFallback className="text-xs sm:text-sm">
                       {member.userName.split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <div className="font-medium">{member.userName}</div>
-                    <div className="text-sm text-muted-foreground">{member.userEmail}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm sm:text-base truncate">{member.userName}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground truncate">{member.userEmail}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{member.userRole}</Badge>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="text-xs">{member.userRole}</Badge>
                   {member.departmentRole === 'head' && (
-                    <Badge className="bg-yellow-100 text-yellow-800">Head</Badge>
+                    <Badge className="bg-yellow-100 text-yellow-800 text-xs">Head</Badge>
                   )}
                   {isAdminOrOwner && (
                     <Button
@@ -64,8 +64,10 @@ export function ViewMembersDialog({
                       variant="outline"
                       onClick={() => handleRemoveMember(member.userId, selectedDepartment?.name || '')}
                       title="Remove member"
+                      className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 touch-manipulation"
                     >
-                      <UserMinus className="h-4 w-4" />
+                      <UserMinus className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline ml-1">Remove</span>
                     </Button>
                   )}
                 </div>

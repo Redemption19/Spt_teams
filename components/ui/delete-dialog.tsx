@@ -93,39 +93,39 @@ export function DeleteDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-lg">
+      <AlertDialogContent className="w-full max-w-md sm:max-w-lg md:max-w-xl">
         <AlertDialogHeader>
-          <AlertDialogTitle className={`flex items-center space-x-2 ${getWarningColor()}`}>
-            <AlertTriangle className="h-5 w-5" />
-            <span>{title}</span>
+          <AlertDialogTitle className={`flex items-center gap-2 text-base sm:text-lg ${getWarningColor()}`}>
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+            <span className="break-words">{title}</span>
           </AlertDialogTitle>
         </AlertDialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Main Description */}
           {description && (
-            <AlertDialogDescription className="text-base">
+            <AlertDialogDescription className="text-sm sm:text-base leading-relaxed">
               {description}
             </AlertDialogDescription>
           )}
 
           {/* Item Information */}
           {item && showItemInfo && (
-            <div className={`border rounded-lg p-4 ${getWarningBg()}`}>
-              <div className="flex items-start space-x-3">
+            <div className={`border rounded-lg p-3 sm:p-4 ${getWarningBg()}`}>
+              <div className="flex items-start gap-3">
                 <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${getWarningColor()}`} />
-                <div className="space-y-2 flex-1">
-                  <h4 className={`font-medium ${getWarningColor()}`}>
+                <div className="space-y-2 flex-1 min-w-0">
+                  <h4 className={`font-medium text-sm sm:text-base break-words ${getWarningColor()}`}>
                     Are you sure you want to delete &quot;{item.name}&quot;?
                   </h4>
                   
                   {/* Item Details */}
                   {itemDetails && itemDetails.length > 0 && (
-                    <div className={`text-sm space-y-1 ${getWarningColor().replace('600', '700').replace('400', '300')}`}>
+                    <div className={`text-xs sm:text-sm space-y-1 ${getWarningColor().replace('600', '700').replace('400', '300')}`}>
                       {itemDetails.map((detail, index) => (
-                        <div key={index} className="flex justify-between">
+                        <div key={index} className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                           <span className="font-medium">{detail.label}:</span>
-                          <span>{detail.value}</span>
+                          <span className="break-words">{detail.value}</span>
                         </div>
                       ))}
                     </div>
@@ -133,20 +133,20 @@ export function DeleteDialog({
 
                   {/* Auto-generated details from item */}
                   {!itemDetails && (
-                    <div className={`text-sm space-y-1 ${getWarningColor().replace('600', '700').replace('400', '300')}`}>
+                    <div className={`text-xs sm:text-sm space-y-1 ${getWarningColor().replace('600', '700').replace('400', '300')}`}>
                       {item.type && (
-                        <p><strong>Type:</strong> {item.type}</p>
+                        <p className="break-words"><strong>Type:</strong> {item.type}</p>
                       )}
                       {item.status && (
-                        <p className="flex items-center gap-2">
+                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                           <strong>Status:</strong>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs w-fit">
                             {item.status}
                           </Badge>
                         </p>
                       )}
                       {item.id && (
-                        <p><strong>ID:</strong> {item.id}</p>
+                        <p className="break-all"><strong>ID:</strong> {item.id}</p>
                       )}
                     </div>
                   )}
@@ -157,18 +157,18 @@ export function DeleteDialog({
 
           {/* Consequences Warning */}
           {consequences && consequences.length > 0 && (
-            <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
+            <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                <div className="space-y-2">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                <div className="space-y-2 min-w-0 flex-1">
+                  <h4 className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
                     This action will:
                   </h4>
-                  <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                  <ul className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 space-y-1">
                     {consequences.map((consequence, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <span className="text-gray-400 mt-1">•</span>
-                        <span>{consequence}</span>
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-1 flex-shrink-0">•</span>
+                        <span className="break-words">{consequence}</span>
                       </li>
                     ))}
                   </ul>
@@ -178,14 +178,19 @@ export function DeleteDialog({
           )}
 
           {/* Final Warning */}
-          <div className={`text-xs font-medium mt-3 ${getWarningColor()}`}>
+          <div className={`text-xs sm:text-sm font-medium text-center sm:text-left ${getWarningColor()}`}>
             ⚠️ This action cannot be undone.
           </div>
         </div>
 
-        <AlertDialogFooter className="gap-3 sm:gap-3">
+        <AlertDialogFooter>
           <AlertDialogCancel asChild>
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isLoading}
+              className="w-full sm:w-auto min-h-[44px] sm:min-h-[36px]"
+            >
               {cancelText}
             </Button>
           </AlertDialogCancel>
@@ -195,7 +200,7 @@ export function DeleteDialog({
               variant="destructive"
               onClick={onConfirm}
               disabled={isLoading}
-              className={getButtonColor()}
+              className={`w-full sm:w-auto min-h-[44px] sm:min-h-[36px] ${getButtonColor()}`}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

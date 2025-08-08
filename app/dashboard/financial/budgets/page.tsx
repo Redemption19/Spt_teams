@@ -415,28 +415,28 @@ export default function BudgetPage() {
   const CostCentersPage = dynamic(() => import('./cost-centers/page'), { ssr: false });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Budget Management</h1>
-          <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Budget Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Monitor and control your department and project budgets
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center gap-2">
           {/* Cross-workspace toggle for owners */}
           {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-            <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+            <div className="flex items-center space-x-2 px-2 sm:px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
               <button
                 onClick={() => handleWorkspaceViewToggle(!showAllWorkspaces)}
-                className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
+                className={`flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm font-medium transition-colors ${
                   showAllWorkspaces 
                     ? 'text-green-700 dark:text-green-400' 
                     : 'text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
                 }`}
               >
-                <span className="text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
-                <span>
+                <span className="text-sm sm:text-base">{showAllWorkspaces ? '🌐' : '🏢'}</span>
+                <span className="truncate">
                   {showAllWorkspaces 
                     ? `All Workspaces (${accessibleWorkspaces.length})` 
                     : 'Current Workspace'
@@ -446,36 +446,38 @@ export default function BudgetPage() {
             </div>
           )}
           <Link href="/dashboard/financial/budgets/advanced-analytics">
-            <Button variant="secondary" className="shrink-0">
-              📊 Advanced Analytics
+            <Button variant="secondary" className="shrink-0 min-h-[40px] text-xs sm:text-sm">
+              <span className="hidden sm:inline">📊 Advanced Analytics</span>
+              <span className="sm:hidden">📊 Analytics</span>
             </Button>
           </Link>
           {canCreate && (
-            <Button className="shrink-0" onClick={() => router.push('/dashboard/financial/budgets/new')}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Budget
+            <Button className="shrink-0 min-h-[40px] text-xs sm:text-sm" onClick={() => router.push('/dashboard/financial/budgets/new')}>
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Create Budget</span>
+              <span className="sm:hidden">Create</span>
             </Button>
           )}
         </div>
       </div>
       {/* Cross-workspace scope banner for owners */}
       {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
-        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-          <p className="text-sm text-green-700 dark:text-green-400">
+        <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+          <p className="text-xs sm:text-sm text-green-700 dark:text-green-400">
             🌐 <strong>Cross-Workspace Budgets:</strong> Displaying budgets across all {accessibleWorkspaces.length} accessible workspaces. Budgets, analytics, and management features from all workspaces are aggregated for centralized oversight.
           </p>
         </div>
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
-            <span className="h-4 w-4 text-muted-foreground text-lg">{currency?.symbol || '$'}</span>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Budget</CardTitle>
+            <span className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground text-sm sm:text-lg">{currency?.symbol || '$'}</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currency?.symbol || '$'}{(totalBudgetAmount || 0).toLocaleString()}</div>
+            <div className="text-lg sm:text-2xl font-bold">{currency?.symbol || '$'}{(totalBudgetAmount || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               Across {filteredBudgets.length} budgets
             </p>
@@ -483,11 +485,11 @@ export default function BudgetPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-500" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Spent</CardTitle>
+            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{currency?.symbol || '$'}{(totalSpentAmount || 0).toLocaleString()}</div>
+            <div className="text-lg sm:text-2xl font-bold text-red-600">{currency?.symbol || '$'}{(totalSpentAmount || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               {totalBudgetAmount > 0 ? ((totalSpentAmount / totalBudgetAmount) * 100).toFixed(1) : 0}% of total
             </p>
@@ -495,11 +497,11 @@ export default function BudgetPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Remaining</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Remaining</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{currency?.symbol || '$'}{totalRemaining.toLocaleString()}</div>
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{currency?.symbol || '$'}{totalRemaining.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               Available to spend
             </p>
@@ -507,11 +509,11 @@ export default function BudgetPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Budgets</CardTitle>
-            <Target className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Active Budgets</CardTitle>
+            <Target className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-lg sm:text-2xl font-bold text-blue-600">
               {filteredBudgets.filter(b => b.isActive).length}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -525,8 +527,8 @@ export default function BudgetPage() {
       {isOwner && showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
         <Card className="border-green-200 dark:border-green-800/50">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <span className="text-base mr-2">🏢</span>
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <span className="text-sm sm:text-base mr-2">🏢</span>
               Workspace Breakdown
             </CardTitle>
           </CardHeader>
@@ -538,14 +540,14 @@ export default function BudgetPage() {
                 const wsSpent = wsBudgets.reduce((sum, b) => sum + b.spent, 0);
                 const wsRemaining = wsTotal - wsSpent;
                 return (
-                  <div key={ws.id} className={`flex justify-between items-center p-4 rounded-lg border transition-colors ${
+                  <div key={ws.id} className={`flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 rounded-lg border transition-colors space-y-2 sm:space-y-0 ${
                     ws.id === currentWorkspace?.id
                       ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800/50'
                       : 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800/50'
                   }`}>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm">{ws.id === currentWorkspace?.id ? '🏛️' : '🏢'}</span>
-                      <span className={`font-medium ${
+                      <span className="text-xs sm:text-sm">{ws.id === currentWorkspace?.id ? '🏛️' : '🏢'}</span>
+                      <span className={`font-medium text-sm sm:text-base ${
                         ws.id === currentWorkspace?.id
                           ? 'text-blue-700 dark:text-blue-300'
                           : 'text-green-700 dark:text-green-300'
@@ -553,13 +555,13 @@ export default function BudgetPage() {
                         {ws.name}
                       </span>
                       {ws.id === currentWorkspace?.id && (
-                        <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                        <Badge variant="outline" className="text-xs px-1.5 sm:px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
                           Main
                         </Badge>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className={`text-lg font-bold ${
+                    <div className="text-left sm:text-right">
+                      <div className={`text-base sm:text-lg font-bold ${
                         ws.id === currentWorkspace?.id
                           ? 'text-blue-700 dark:text-blue-300'
                           : 'text-green-700 dark:text-green-300'
@@ -585,22 +587,22 @@ export default function BudgetPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="budgets">Budget Overview</TabsTrigger>
-          <TabsTrigger value="cost-centers">Cost Centers</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="budgets" className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-2.5">Budget Overview</TabsTrigger>
+          <TabsTrigger value="cost-centers" className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-2.5">Cost Centers</TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-2.5">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="budgets" className="space-y-4">
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Filters</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                     <SelectValue placeholder="Filter by period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -612,7 +614,7 @@ export default function BudgetPage() {
                 </Select>
 
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -625,22 +627,23 @@ export default function BudgetPage() {
 
                 <Dialog open={advancedFilterOpen} onOpenChange={setAdvancedFilterOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" onClick={() => setAdvancedFilterOpen(true)}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Advanced Filters
+                    <Button variant="outline" onClick={() => setAdvancedFilterOpen(true)} className="h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 w-full lg:w-auto">
+                  <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Advanced Filters</span>
+                  <span className="sm:hidden">Filters</span>
                 </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-3xl w-full">
+                  <DialogContent className="max-w-4xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Advanced Filters</DialogTitle>
+                      <DialogTitle className="text-base sm:text-lg">Advanced Filters</DialogTitle>
                     </DialogHeader>
-                    <div className="py-4 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="py-3 sm:py-4 space-y-4 sm:space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Budget Type */}
                         <div>
-                          <label className="block text-sm font-medium mb-1">Budget Type</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Budget Type</label>
                           <Select value={filterType} onValueChange={setFilterType}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                               <SelectValue placeholder="All Types" />
                             </SelectTrigger>
                             <SelectContent>
@@ -655,9 +658,9 @@ export default function BudgetPage() {
                         </div>
                         {/* Status */}
                         <div>
-                          <label className="block text-sm font-medium mb-1">Status</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Status</label>
                           <Select value={filterStatus} onValueChange={setFilterStatus}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                               <SelectValue placeholder="All Statuses" />
                             </SelectTrigger>
                             <SelectContent>
@@ -673,9 +676,9 @@ export default function BudgetPage() {
                         {/* Workspace (owners/admins) */}
                         {((isOwner && accessibleWorkspaces.length > 1) || (userProfile?.role === 'admin' && accessibleWorkspaces.length > 1)) && (
                           <div>
-                            <label className="block text-sm font-medium mb-1">Workspace</label>
+                            <label className="block text-xs sm:text-sm font-medium mb-1">Workspace</label>
                             <Select value={filterWorkspace} onValueChange={setFilterWorkspace}>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                                 <SelectValue placeholder="All Workspaces" />
                               </SelectTrigger>
                               <SelectContent>
@@ -688,12 +691,12 @@ export default function BudgetPage() {
                         </div>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Department */}
                         <div>
-                          <label className="block text-sm font-medium mb-1">Department</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Department</label>
                           <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                               <SelectValue placeholder="All Departments" />
                             </SelectTrigger>
                             <SelectContent>
@@ -706,9 +709,9 @@ export default function BudgetPage() {
                         </div>
                         {/* Category */}
                         <div>
-                          <label className="block text-sm font-medium mb-1">Category</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Category</label>
                           <Select value={filterCategory} onValueChange={setFilterCategory}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                               <SelectValue placeholder="All Categories" />
                             </SelectTrigger>
                             <SelectContent>
@@ -721,9 +724,9 @@ export default function BudgetPage() {
                         </div>
                         {/* Currency */}
                       <div>
-                          <label className="block text-sm font-medium mb-1">Currency</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Currency</label>
                           <Select value={filterCurrency} onValueChange={setFilterCurrency}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                               <SelectValue placeholder="All Currencies" />
                             </SelectTrigger>
                             <SelectContent>
@@ -735,12 +738,12 @@ export default function BudgetPage() {
                           </Select>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Creator */}
                       <div>
-                          <label className="block text-sm font-medium mb-1">Created By</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Created By</label>
                           <Select value={filterCreator} onValueChange={setFilterCreator}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                               <SelectValue placeholder="All Creators" />
                             </SelectTrigger>
                             <SelectContent>
@@ -753,34 +756,34 @@ export default function BudgetPage() {
                         </div>
                         {/* Date Range */}
                         <div>
-                          <label className="block text-sm font-medium mb-1">Start Date</label>
-                          <DatePicker value={filterStartDate ?? undefined} onChange={date => setFilterStartDate(date ?? null)} placeholder="Start Date" />
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Start Date</label>
+                          <DatePicker value={filterStartDate ?? undefined} onChange={date => setFilterStartDate(date ?? null)} placeholder="Start Date" className="h-9 sm:h-10 text-xs sm:text-sm" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">End Date</label>
-                          <DatePicker value={filterEndDate ?? undefined} onChange={date => setFilterEndDate(date ?? null)} placeholder="End Date" />
+                          <label className="block text-xs sm:text-sm font-medium mb-1">End Date</label>
+                          <DatePicker value={filterEndDate ?? undefined} onChange={date => setFilterEndDate(date ?? null)} placeholder="End Date" className="h-9 sm:h-10 text-xs sm:text-sm" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Amount range filter */}
                         <div>
-                          <label className="block text-sm font-medium mb-1">Min Amount</label>
-                          <Input type="number" value={filterAmountMin} onChange={e => setFilterAmountMin(e.target.value)} placeholder="Min" />
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Min Amount</label>
+                          <Input type="number" value={filterAmountMin} onChange={e => setFilterAmountMin(e.target.value)} placeholder="Min" className="h-9 sm:h-10 text-xs sm:text-sm" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">Max Amount</label>
-                          <Input type="number" value={filterAmountMax} onChange={e => setFilterAmountMax(e.target.value)} placeholder="Max" />
+                          <label className="block text-xs sm:text-sm font-medium mb-1">Max Amount</label>
+                          <Input type="number" value={filterAmountMax} onChange={e => setFilterAmountMax(e.target.value)} placeholder="Max" className="h-9 sm:h-10 text-xs sm:text-sm" />
                       </div>
                         {/* Alerts */}
-                        <div className="flex items-center gap-2 mt-6">
-                          <input type="checkbox" id="filter-alert" checked={filterAlert} onChange={e => setFilterAlert(e.target.checked)} className="form-checkbox h-5 w-5 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary" />
-                          <label htmlFor="filter-alert" className="text-sm font-medium">Only show budgets with triggered alerts</label>
+                        <div className="flex items-center gap-2 mt-4 sm:mt-6">
+                          <input type="checkbox" id="filter-alert" checked={filterAlert} onChange={e => setFilterAlert(e.target.checked)} className="form-checkbox h-4 w-4 sm:h-5 sm:w-5 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary" />
+                          <label htmlFor="filter-alert" className="text-xs sm:text-sm font-medium">Only show budgets with triggered alerts</label>
                         </div>
                       </div>
                     </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={handleResetAdvancedFilters}>Reset</Button>
-                      <Button onClick={handleApplyAdvancedFilters}>Apply Filters</Button>
+                    <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+                      <Button variant="outline" onClick={handleResetAdvancedFilters} className="h-9 sm:h-10 text-xs sm:text-sm px-4 sm:px-6 w-full sm:w-auto">Reset</Button>
+                      <Button onClick={handleApplyAdvancedFilters} className="h-9 sm:h-10 text-xs sm:text-sm px-4 sm:px-6 w-full sm:w-auto">Apply Filters</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -791,46 +794,45 @@ export default function BudgetPage() {
           {/* Budget DataTable */}
           <Card>
             <CardHeader>
-              <CardTitle>Budgets</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base sm:text-lg">Budgets</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 {loading ? 'Loading...' : `${filteredBudgets.length} budgets found`}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <span className="ml-2">Loading budgets...</span>
+                <div className="flex items-center justify-center py-6 sm:py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2 text-xs sm:text-sm">Loading budgets...</span>
                 </div>
               ) : error ? (
-                <div className="text-center py-8">
-                  <p className="text-red-600 mb-4">{error}</p>
-                  <Button onClick={fetchBudgets} variant="outline">
+                <div className="text-center py-6 sm:py-8">
+                  <p className="text-red-600 mb-4 text-xs sm:text-sm">{error}</p>
+                  <Button onClick={fetchBudgets} variant="outline" className="h-9 sm:h-10 text-xs sm:text-sm px-4 sm:px-6">
                     Try Again
                   </Button>
                 </div>
               ) : filteredBudgets.length === 0 ? (
-              <div className="text-center py-8">
-                  <p className="text-muted-foreground">No budgets found matching your filters.</p>
+              <div className="text-center py-6 sm:py-8">
+                  <p className="text-muted-foreground text-xs sm:text-sm mb-4">No budgets found matching your filters.</p>
                   <Button 
                     variant="outline" 
-                    className="mt-4" 
+                    className="h-9 sm:h-10 text-xs sm:text-sm px-4 sm:px-6" 
                     onClick={() => router.push('/dashboard/financial/budgets/new')}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Create First Budget
                   </Button>
               </div>
               ) : (
-                <DataTable
-                  columns={columns}
-                  data={tableData}
-                  searchKey="name"
-                  searchPlaceholder="Search budgets by name..."
-                  showColumnToggle={true}
-                  showPagination={true}
-                  pageSize={10}
-                />
+                <div className="overflow-x-auto">
+                  <DataTable
+                    columns={columns}
+                    data={tableData}
+                    searchKey="name"
+                    searchPlaceholder="Search budgets by name..."
+                  />
+                </div>
               )}
             </CardContent>
           </Card>

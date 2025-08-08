@@ -249,22 +249,22 @@ export function AttendanceList({
     <div className="space-y-6">
       {/* Filters */}
       <Card className="card-enhanced">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Search */}
-            <div className="relative">
+            <div className="relative sm:col-span-2 md:col-span-3 lg:col-span-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search records..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-border/50 focus:border-primary"
+                className="w-full h-11 sm:h-10 pl-10 border-border/50 focus:border-primary text-base sm:text-sm"
               />
             </div>
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="border-border/50 focus:border-primary">
+              <SelectTrigger className="w-full h-11 sm:h-10 border-border/50 focus:border-primary text-base sm:text-sm">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -279,7 +279,7 @@ export function AttendanceList({
 
             {/* Employee Filter */}
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="border-border/50 focus:border-primary">
+              <SelectTrigger className="w-full h-11 sm:h-10 border-border/50 focus:border-primary text-base sm:text-sm">
                 <SelectValue placeholder="Filter by employee" />
               </SelectTrigger>
               <SelectContent>
@@ -287,9 +287,9 @@ export function AttendanceList({
                 {employees.map((employee) => (
                   <SelectItem key={employee.id} value={employee.id}>
                     <div className="flex items-center space-x-2">
-                      <span>{employee.personalInfo.firstName} {employee.personalInfo.lastName}</span>
+                      <span className="truncate text-sm">{employee.personalInfo.firstName} {employee.personalInfo.lastName}</span>
                       {shouldShowCrossWorkspace && workspaceFilter === 'all' && employee.workspaceName && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
                           {employee.workspaceName}
                         </Badge>
                       )}
@@ -301,7 +301,7 @@ export function AttendanceList({
 
             {/* Date Range Filter */}
             <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
-              <SelectTrigger className="border-border/50 focus:border-primary">
+              <SelectTrigger className="w-full h-11 sm:h-10 border-border/50 focus:border-primary text-base sm:text-sm">
                 <SelectValue placeholder="Select date range" />
               </SelectTrigger>
               <SelectContent>
@@ -316,9 +316,9 @@ export function AttendanceList({
 
           {/* Workspace Filter for Owners */}
           {shouldShowCrossWorkspace && (
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <Select value={workspaceFilter} onValueChange={setWorkspaceFilter}>
-                <SelectTrigger className="border-border/50 focus:border-primary">
+                <SelectTrigger className="w-full h-11 sm:h-10 border-border/50 focus:border-primary text-base sm:text-sm">
                   <SelectValue placeholder="Filter by workspace" />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,7 +336,7 @@ export function AttendanceList({
       </Card>
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="flex items-center space-x-2">
           <Users className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium text-foreground">
@@ -345,8 +345,8 @@ export function AttendanceList({
         </div>
         
         {canCreate && (
-          <Link href="/dashboard/hr/attendance/new">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
+          <Link href="/dashboard/hr/attendance/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto h-11 sm:h-10 bg-primary hover:bg-primary/90 text-primary-foreground transition-colors text-base sm:text-sm">
               <Plus className="h-4 w-4 mr-2" />
               Add Record
             </Button>
@@ -357,17 +357,17 @@ export function AttendanceList({
       {/* Records */}
       {filteredRecords.length === 0 ? (
         <Card className="card-enhanced">
-          <CardContent className="p-12 text-center">
-            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Attendance Records</h3>
-            <p className="text-muted-foreground mb-4">
+          <CardContent className="p-6 sm:p-8 lg:p-12 text-center">
+            <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">No Attendance Records</h3>
+            <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
               {searchTerm || statusFilter !== 'all' || employeeFilter !== 'all' || dateRangeFilter !== 'all-time'
                 ? 'No records match your current filters. Try adjusting your search criteria or use "All Time" to see all records.'
                 : 'No attendance records found for the selected period.'}
             </p>
             {canCreate && (
               <Link href="/dashboard/hr/attendance/new">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
+                <Button className="h-11 sm:h-10 bg-primary hover:bg-primary/90 text-primary-foreground transition-colors text-base sm:text-sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Add First Record
                 </Button>
@@ -376,7 +376,7 @@ export function AttendanceList({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filteredRecords.map((record) => (
             <AttendanceCard
               key={record.id}

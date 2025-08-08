@@ -226,14 +226,14 @@ export default function ProductivityTrendsChart({
   if (loading) {
     return (
       <Card className="card-enhanced border border-border/30">
-        <CardHeader>
-          <CardTitle>Productivity Trends</CardTitle>
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Productivity Trends</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-72">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex items-center justify-center h-48 sm:h-72">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading trend data...</p>
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary mx-auto mb-2" />
+              <p className="text-xs sm:text-sm text-muted-foreground">Loading trend data...</p>
             </div>
           </div>
         </CardContent>
@@ -244,15 +244,15 @@ export default function ProductivityTrendsChart({
   if (data.length === 0) {
   return (
     <Card className="card-enhanced border border-border/30">
-      <CardHeader>
-        <CardTitle>Productivity Trends</CardTitle>
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="text-base sm:text-lg">Productivity Trends</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-72">
-            <div className="text-center">
-              <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Trend Data</h3>
-              <p className="text-sm text-muted-foreground">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex items-center justify-center h-48 sm:h-72">
+            <div className="text-center px-4">
+              <TrendingUp className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-muted-foreground mb-2">No Trend Data</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Not enough data to show productivity trends for the selected period.
               </p>
             </div>
@@ -264,10 +264,10 @@ export default function ProductivityTrendsChart({
 
   return (
     <Card className="card-enhanced border border-border/30 hover:border-primary/20 transition-colors">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Productivity Trends
-          <div className="text-sm text-muted-foreground">
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <span className="text-base sm:text-lg">Productivity Trends</span>
+          <div className="text-xs sm:text-sm text-muted-foreground">
             {showAllWorkspaces && (
               <span className="mr-2">🌐 All Workspaces ({accessibleWorkspaces?.length || 1})</span>
             )}
@@ -279,12 +279,19 @@ export default function ProductivityTrendsChart({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+      <CardContent className="p-3 sm:p-6">
+        <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
+          <LineChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis dataKey="week" className="stroke-muted-foreground" />
-            <YAxis className="stroke-muted-foreground" />
+            <XAxis 
+              dataKey="week" 
+              className="stroke-muted-foreground" 
+              tick={{ fontSize: 10 }}
+            />
+            <YAxis 
+              className="stroke-muted-foreground" 
+              tick={{ fontSize: 10 }}
+            />
             <Tooltip
               content={<CustomTooltip />}
               contentStyle={{
@@ -293,63 +300,65 @@ export default function ProductivityTrendsChart({
                 borderRadius: '8px',
                 color: 'hsl(var(--foreground))',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                fontSize: '14px',
+                fontSize: '12px',
                 fontWeight: '500',
-                padding: '12px 16px',
+                padding: '8px 12px',
               }}
               labelStyle={{
                 color: 'hsl(var(--foreground))',
                 fontWeight: '600',
                 marginBottom: '4px',
+                fontSize: '12px',
               }}
               itemStyle={{
                 color: 'hsl(var(--foreground))',
+                fontSize: '11px',
               }}
             />
             <Line
               type="monotone"
               dataKey="individual"
               stroke="hsl(var(--primary))"
-              strokeWidth={3}
-              dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+              strokeWidth={2}
+              dot={{ fill: 'hsl(var(--primary))', strokeWidth: 1, r: 3 }}
               name="Individual"
             />
             <Line
               type="monotone"
               dataKey="team"
               stroke="hsl(var(--accent))"
-              strokeWidth={3}
-              dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 4 }}
+              strokeWidth={2}
+              dot={{ fill: 'hsl(var(--accent))', strokeWidth: 1, r: 3 }}
               name="Team"
             />
           </LineChart>
         </ResponsiveContainer>
         
         {/* Trends summary */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-          <div className="text-center">
+        <div className="mt-3 sm:mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 pt-3 sm:pt-4 border-t">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Avg Individual</p>
-            <p className="text-lg font-semibold">
+            <p className="text-sm sm:text-lg font-semibold">
               {data.length > 0 ? Math.round(data.reduce((sum, d) => sum + d.individual, 0) / data.length) : 0}%
             </p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Avg Team</p>
-            <p className="text-lg font-semibold">
+            <p className="text-sm sm:text-lg font-semibold">
               {data.length > 0 ? Math.round(data.reduce((sum, d) => sum + d.team, 0) / data.length) : 0}%
             </p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Best Week</p>
-            <p className="text-lg font-semibold">
+            <p className="text-sm sm:text-lg font-semibold">
               {data.length > 0 ? data.reduce((prev, current) => 
                 prev.individual > current.individual ? prev : current
               ).week : '-'}
             </p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2">
             <p className="text-xs text-muted-foreground">Trend</p>
-            <p className="text-lg font-semibold">
+            <p className="text-sm sm:text-lg font-semibold">
               {data.length >= 2 ? (
                 data[data.length - 1].individual > data[0].individual ? 
                   <span className="text-green-600">↗️ Up</span> : 

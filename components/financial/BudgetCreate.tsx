@@ -256,54 +256,58 @@ export default function BudgetCreate({ onSuccess, onCancel, initialData, isEdit 
     
     
       <Card className="w-full">
-        <CardHeader className="pb-6">
-          <CardTitle className="text-xl">Create New Budget</CardTitle>
-          <CardDescription>
+        <CardHeader className="pb-4 sm:pb-6">
+          <CardTitle className="text-lg sm:text-xl">Create New Budget</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             Fill out the form below to create a new budget
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="p-3 sm:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="basic" className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+              <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
+                <TabsTrigger value="basic" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                  <FileText className="w-3 sm:w-4 h-3 sm:h-4" />
                   <span className="hidden sm:inline">Basic Info</span>
+                  <span className="sm:hidden">Basic</span>
                 </TabsTrigger>
-                <TabsTrigger value="allocation" className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
+                <TabsTrigger value="allocation" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                  <Users className="w-3 sm:w-4 h-3 sm:h-4" />
                   <span className="hidden sm:inline">Allocation</span>
+                  <span className="sm:hidden">Assign</span>
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
+                <TabsTrigger value="settings" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                  <Settings className="w-3 sm:w-4 h-3 sm:h-4" />
                   <span className="hidden sm:inline">Settings</span>
+                  <span className="sm:hidden">Config</span>
                 </TabsTrigger>
-                <TabsTrigger value="alerts" className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
+                <TabsTrigger value="alerts" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+                  <AlertTriangle className="w-3 sm:w-4 h-3 sm:h-4" />
                   <span className="hidden sm:inline">Alerts</span>
+                  <span className="sm:hidden">Alert</span>
                 </TabsTrigger>
               </TabsList>
               {/* Basic Info Tab */}
-              <TabsContent value="basic" className="space-y-6 mt-6">
-                <div className="space-y-4">
+              <TabsContent value="basic" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <Label htmlFor="name" className="text-sm font-medium">Budget Name *</Label>
-                    <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} required className="mt-1.5" />
+                    <Label htmlFor="name" className="text-xs sm:text-sm font-medium">Budget Name *</Label>
+                    <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} required className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                     <div>
-                      <Label htmlFor="amount" className="text-sm font-medium">Amount *</Label>
-                      <Input id="amount" type="number" step="0.01" value={formData.amount} onChange={e => handleInputChange('amount', parseFloat(e.target.value))} required className="mt-1.5" />
+                      <Label htmlFor="amount" className="text-xs sm:text-sm font-medium">Amount *</Label>
+                      <Input id="amount" type="number" step="0.01" value={formData.amount} onChange={e => handleInputChange('amount', parseFloat(e.target.value))} required className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm" />
                     </div>
                     <div>
                       <CurrencySelector value={formData.currency} onChange={val => handleInputChange('currency', val)} label="Currency" showConverter={true} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                     <div>
-                      <Label htmlFor="period" className="text-sm font-medium">Period *</Label>
+                      <Label htmlFor="period" className="text-xs sm:text-sm font-medium">Period *</Label>
                       <Select value={formData.period} onValueChange={val => handleInputChange('period', val)}>
-                        <SelectTrigger className="mt-1.5">
+                        <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                           <SelectValue placeholder="Select period" />
                         </SelectTrigger>
                         <SelectContent>
@@ -315,36 +319,38 @@ export default function BudgetCreate({ onSuccess, onCancel, initialData, isEdit 
                       </Select>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">Start Date *</Label>
-                      <DatePicker value={formData.startDate} onChange={date => handleInputChange('startDate', date)} />
+                      <Label className="text-xs sm:text-sm font-medium">Start Date *</Label>
+                      <DatePicker value={formData.startDate} onChange={date => handleInputChange('startDate', date)} className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm" />
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">End Date *</Label>
-                      <DatePicker value={formData.endDate} onChange={date => handleInputChange('endDate', date)} />
+                      <Label className="text-xs sm:text-sm font-medium">End Date *</Label>
+                      <DatePicker value={formData.endDate} onChange={date => handleInputChange('endDate', date)} className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm" />
                     </div>
                   </div>
                 </div>
               </TabsContent>
               {/* Allocation Tab */}
-              <TabsContent value="allocation" className="space-y-6 mt-6">
-                <div className="space-y-4">
-                  <Label className="text-sm font-medium">Assign Budget To *</Label>
-                  <Select value={assignmentType} onValueChange={val => handleAssignmentChange(val as any, '')}>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Select assignment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {isOwner && <SelectItem value="workspace">Workspace</SelectItem>}
-                      <SelectItem value="department">Department</SelectItem>
-                      {/* TODO: Add Project, Team options */}
-                    </SelectContent>
-                  </Select>
+              <TabsContent value="allocation" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium">Assign Budget To *</Label>
+                    <Select value={assignmentType} onValueChange={val => handleAssignmentChange(val as any, '')}>
+                      <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
+                        <SelectValue placeholder="Select assignment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {isOwner && <SelectItem value="workspace">Workspace</SelectItem>}
+                        <SelectItem value="department">Department</SelectItem>
+                        {/* TODO: Add Project, Team options */}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   {/* Workspace selector for cross-workspace assignment (owner only) */}
                   {assignmentType === 'workspace' && isOwner && (
                     <div>
-                      <Label className="text-sm font-medium">Workspace *</Label>
+                      <Label className="text-xs sm:text-sm font-medium">Workspace *</Label>
                       <Select value={formData.entityId} onValueChange={val => handleInputChange('entityId', val)}>
-                        <SelectTrigger className="mt-1.5">
+                        <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                           <SelectValue placeholder="Select workspace" />
                         </SelectTrigger>
                         <SelectContent>
@@ -361,9 +367,9 @@ export default function BudgetCreate({ onSuccess, onCancel, initialData, isEdit 
                   )}
                   {assignmentType === 'department' && (
                     <div>
-                      <Label className="text-sm font-medium">Department *</Label>
+                      <Label className="text-xs sm:text-sm font-medium">Department *</Label>
                       <Select value={formData.entityId} onValueChange={val => handleInputChange('entityId', val)}>
-                        <SelectTrigger className="mt-1.5">
+                        <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                           <SelectValue placeholder="Select department" />
                         </SelectTrigger>
                         <SelectContent>
@@ -376,33 +382,34 @@ export default function BudgetCreate({ onSuccess, onCancel, initialData, isEdit 
                   )}
                   {/* TODO: Add Project, Team assignment fields */}
                   {assignmentType === 'workspace' && (
-                    <div className="pt-2 text-muted-foreground">This budget will be assigned to the entire workspace.</div>
+                    <div className="pt-2 text-xs sm:text-sm text-muted-foreground">This budget will be assigned to the entire workspace.</div>
                   )}
                 </div>
               </TabsContent>
               {/* Settings Tab */}
-              <TabsContent value="settings" className="space-y-6 mt-6">
-                <div className="space-y-4">
+              <TabsContent value="settings" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+                    <Label htmlFor="description" className="text-xs sm:text-sm font-medium">Description</Label>
                     <Textarea
                       id="description"
                       value={formData.description || ''}
                       onChange={e => handleInputChange('description', e.target.value)}
                       placeholder="Describe the purpose or details of this budget..."
                       rows={3}
-                      className="mt-1.5 resize-none"
+                      className="mt-1 sm:mt-1.5 resize-none text-xs sm:text-sm"
                     />
                   </div>
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <Label htmlFor="categories" className="text-sm font-medium">Category</Label>
+                    <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                      <Label htmlFor="categories" className="text-xs sm:text-sm font-medium">Category</Label>
                       <CreateCategoryDialog
                         onCategoryCreated={handleCategoryCreated}
                         trigger={
-                          <Button variant="ghost" size="sm" type="button" className="h-6 px-2 text-xs">
+                          <Button variant="ghost" size="sm" type="button" className="h-6 sm:h-7 px-2 text-xs">
                             <Plus className="w-3 h-3 mr-1" />
-                            New
+                            <span className="hidden sm:inline">New</span>
+                            <span className="sm:hidden">+</span>
                           </Button>
                         }
                       />
@@ -411,7 +418,7 @@ export default function BudgetCreate({ onSuccess, onCancel, initialData, isEdit 
                       value={formData.categories && formData.categories[0] ? formData.categories[0] : ''}
                       onValueChange={val => setFormData(prev => ({ ...prev, categories: [val] }))}
                     >
-                      <SelectTrigger className="mt-1.5">
+                      <SelectTrigger className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -427,47 +434,57 @@ export default function BudgetCreate({ onSuccess, onCancel, initialData, isEdit 
                       </SelectContent>
                     </Select>
                   </div>
-                  <Label className="text-sm font-medium">Categories (comma separated)</Label>
-                  <Input value={formData.categories?.join(', ') || ''} onChange={e => handleInputChange('categories', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. Marketing, IT, HR" />
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium">Categories (comma separated)</Label>
+                    <Input value={formData.categories?.join(', ') || ''} onChange={e => handleInputChange('categories', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. Marketing, IT, HR" className="mt-1 sm:mt-1.5 h-9 sm:h-10 text-xs sm:text-sm" />
+                  </div>
                 </div>
               </TabsContent>
               {/* Alerts Tab */}
-              <TabsContent value="alerts" className="space-y-6 mt-6">
-                <div className="space-y-4">
+              <TabsContent value="alerts" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+                <div className="space-y-3 sm:space-y-4">
                   {formData.alerts.map((alert, idx) => (
-                    <div key={idx} className="flex items-center gap-4">
-                      <div>
-                        <Label className="text-sm font-medium">Threshold (%)</Label>
-                        <Input type="number" min={1} max={100} value={alert.threshold} onChange={e => handleAlertChange(idx, 'threshold', parseInt(e.target.value))} className="w-24" />
+                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 border rounded-lg">
+                      <div className="w-full sm:w-auto">
+                        <Label className="text-xs sm:text-sm font-medium">Threshold (%)</Label>
+                        <Input type="number" min={1} max={100} value={alert.threshold} onChange={e => handleAlertChange(idx, 'threshold', parseInt(e.target.value))} className="mt-1 sm:mt-1.5 w-full sm:w-24 h-9 sm:h-10 text-xs sm:text-sm" />
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium">Notify Users (comma separated emails)</Label>
-                        <Input value={alert.notifyUsers.join(', ')} onChange={e => handleAlertChange(idx, 'notifyUsers', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} className="w-64" />
+                      <div className="flex-1 w-full sm:w-auto">
+                        <Label className="text-xs sm:text-sm font-medium">Notify Users (comma separated emails)</Label>
+                        <Input value={alert.notifyUsers.join(', ')} onChange={e => handleAlertChange(idx, 'notifyUsers', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} className="mt-1 sm:mt-1.5 w-full sm:w-64 h-9 sm:h-10 text-xs sm:text-sm" />
                       </div>
-                      <Button type="button" variant="ghost" onClick={() => handleRemoveAlert(idx)} disabled={formData.alerts.length === 1}>Remove</Button>
+                      <Button type="button" variant="ghost" onClick={() => handleRemoveAlert(idx)} disabled={formData.alerts.length === 1} className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm mt-2 sm:mt-6">
+                        <span className="sm:hidden">Remove Alert</span>
+                        <span className="hidden sm:inline">Remove</span>
+                      </Button>
                     </div>
                   ))}
-                  <Button type="button" variant="outline" onClick={handleAddAlert}>Add Alert</Button>
+                  <Button type="button" variant="outline" onClick={handleAddAlert} className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                    <Plus className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                    Add Alert
+                  </Button>
                 </div>
               </TabsContent>
             </Tabs>
             {/* Action Buttons - Always visible */}
-            <div className="flex gap-4 pt-6 border-t">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
               {onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel} className="flex-1 h-12">
+                <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:flex-1 h-10 sm:h-12 text-xs sm:text-sm">
                   Cancel
                 </Button>
               )}
-              <Button type="submit" disabled={loading} className="flex-1 h-12">
+              <Button type="submit" disabled={loading} className="w-full sm:flex-1 h-10 sm:h-12 text-xs sm:text-sm">
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {isEdit ? 'Updating...' : 'Creating...'}
+                    <div className="animate-spin rounded-full h-3 sm:h-4 w-3 sm:w-4 border-b-2 border-white mr-1 sm:mr-2"></div>
+                    <span className="sm:hidden">{isEdit ? 'Updating...' : 'Creating...'}</span>
+                    <span className="hidden sm:inline">{isEdit ? 'Updating...' : 'Creating...'}</span>
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 mr-2" />
-                    {isEdit ? 'Update Budget' : 'Create Budget'}
+                    <Save className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="sm:hidden">{isEdit ? 'Update' : 'Create'}</span>
+                    <span className="hidden sm:inline">{isEdit ? 'Update Budget' : 'Create Budget'}</span>
                   </>
                 )}
               </Button>

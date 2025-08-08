@@ -106,7 +106,8 @@ export default function ViewJobPostingPage() {
 
   const getStatusBadge = (status: JobPosting['status']) => {
     const statusConfig = {
-      'draft': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Clock, label: 'Draft' },
+      'draft': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: FileText, label: 'Draft' },
+      'published': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle, label: 'Published' },
       'active': { color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle, label: 'Active' },
       'paused': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock, label: 'Paused' },
       'closed': { color: 'bg-red-100 text-red-800 border-red-200', icon: AlertTriangle, label: 'Closed' },
@@ -283,11 +284,11 @@ export default function ViewJobPostingPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                <span>Posted {format(jobPosting.postedDate, 'MMM dd, yyyy')}</span>
+                <span>Posted {jobPosting.postedDate ? format(jobPosting.postedDate, 'MMM dd, yyyy') : 'N/A'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
-                <span>{jobPosting.applications} applications</span>
+                <span>{Array.isArray(jobPosting.applications) ? jobPosting.applications.length : jobPosting.applications || 0} applications</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Eye className="w-4 h-4" />
@@ -426,11 +427,11 @@ export default function ViewJobPostingPage() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Posted Date</Label>
-                  <p className="text-sm">{format(jobPosting.postedDate, 'MMMM dd, yyyy')}</p>
+                  <p className="text-sm">{jobPosting.postedDate ? format(jobPosting.postedDate, 'MMMM dd, yyyy') : 'N/A'}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Applications</Label>
-                  <p className="text-sm">{jobPosting.applications} received</p>
+                  <p className="text-sm">{Array.isArray(jobPosting.applications) ? jobPosting.applications.length : jobPosting.applications || 0} received</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Views</Label>
@@ -511,4 +512,4 @@ export default function ViewJobPostingPage() {
       </div>
     </div>
   );
-} 
+}

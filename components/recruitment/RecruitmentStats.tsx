@@ -26,15 +26,15 @@ export default function RecruitmentStatsComponent({ stats, loading = false }: Re
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(8)].map((_, i) => (
           <Card key={i} className="card-enhanced">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+              <div className="h-3 sm:h-4 w-20 sm:w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-3 sm:h-4 w-3 sm:w-4 bg-gray-200 rounded animate-pulse" />
             </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="h-6 sm:h-8 w-12 sm:w-16 bg-gray-200 rounded animate-pulse" />
             </CardContent>
           </Card>
         ))}
@@ -110,26 +110,26 @@ export default function RecruitmentStatsComponent({ stats, loading = false }: Re
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Main Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="card-enhanced hover:card-hover-enhanced transition-all duration-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+            <Card key={index} className="card-enhanced hover:card-hover-enhanced transition-all duration-200 min-h-[100px] sm:min-h-[120px]">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate pr-2">
                   {stat.title}
                 </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}/10`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                <div className={`p-1.5 sm:p-2 rounded-lg ${stat.bgColor}/10 flex-shrink-0`}>
+                  <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${stat.color}`} />
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${stat.color}`}>
+              <CardContent className="p-3 sm:p-4 pt-0">
+                <div className={`text-lg sm:text-2xl font-bold ${stat.color} truncate`}>
                   {stat.value}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                   {stat.description}
                 </p>
               </CardContent>
@@ -139,47 +139,47 @@ export default function RecruitmentStatsComponent({ stats, loading = false }: Re
       </div>
 
       {/* Conversion Rates */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="card-enhanced">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Application to Interview</CardTitle>
-            <Target className="h-4 w-4 text-blue-500" />
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-3">
+        <Card className="card-enhanced min-h-[100px] sm:min-h-[120px]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate pr-2">Application to Interview</CardTitle>
+            <Target className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-blue-600">
               {stats.applicationToInterviewRate}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {stats.totalApplications} applications → {Math.round((stats.applicationToInterviewRate / 100) * stats.totalApplications)} interviews
             </p>
           </CardContent>
         </Card>
 
-        <Card className="card-enhanced">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Interview to Offer</CardTitle>
-            <Award className="h-4 w-4 text-green-500" />
+        <Card className="card-enhanced min-h-[100px] sm:min-h-[120px]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate pr-2">Interview to Offer</CardTitle>
+            <Award className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-green-600">
               {stats.interviewToOfferRate}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {stats.interviewsCompleted} interviews → {stats.offersSent} offers
             </p>
           </CardContent>
         </Card>
 
-        <Card className="card-enhanced">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Offer to Hire</CardTitle>
-            <CheckCircle className="h-4 w-4 text-purple-500" />
+        <Card className="card-enhanced min-h-[100px] sm:min-h-[120px]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate pr-2">Offer to Hire</CardTitle>
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-purple-600">
               {stats.offerToHireRate}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {stats.offersSent} offers → {Math.round((stats.offerToHireRate / 100) * stats.offersSent)} hires
             </p>
           </CardContent>
@@ -187,4 +187,4 @@ export default function RecruitmentStatsComponent({ stats, loading = false }: Re
       </div>
     </div>
   );
-} 
+}

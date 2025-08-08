@@ -148,41 +148,174 @@ export default function RecruitmentPage() {
 
         // Load data for selected workspace
         const workspaceId = selectedWorkspace || savedWorkspace || allWorkspacesData[0]?.id;
+        console.log('🔍 [DEBUG] Loading data for workspace ID:', workspaceId);
+        console.log('🔍 [DEBUG] Available workspaces:', allWorkspacesData.map(w => ({ id: w.id, name: w.name })));
+        
         if (workspaceId) {
-          const [statsData, jobsData, candidatesData, interviewsData, pipelinesData] = await Promise.all([
-            RecruitmentService.getRecruitmentStats(workspaceId),
-            RecruitmentService.getWorkspaceJobPostings(workspaceId),
-            RecruitmentService.getWorkspaceCandidates(workspaceId),
-            RecruitmentService.getWorkspaceInterviews(workspaceId),
-            RecruitmentService.getWorkspaceHiringPipelines(workspaceId)
-          ]);
+          try {
+            console.log('🔍 [DEBUG] Starting parallel data fetch...');
+            const [statsData, jobsData, candidatesData, jobApplicationsData, interviewsData, pipelinesData] = await Promise.all([
+              RecruitmentService.getRecruitmentStats(workspaceId).catch(err => {
+                console.error('❌ [ERROR] Failed to fetch recruitment stats:', err);
+                return null;
+              }),
+              RecruitmentService.getWorkspaceJobPostings(workspaceId).catch(err => {
+                console.error('❌ [ERROR] Failed to fetch job postings:', err);
+                return [];
+              }),
+              RecruitmentService.getWorkspaceCandidates(workspaceId).catch(err => {
+                console.error('❌ [ERROR] Failed to fetch candidates:', err);
+                return [];
+              }),
+              RecruitmentService.getWorkspaceJobApplications(workspaceId).catch(err => {
+                console.error('❌ [ERROR] Failed to fetch job applications:', err);
+                return [];
+              }),
+              RecruitmentService.getWorkspaceInterviews(workspaceId).catch(err => {
+                console.error('❌ [ERROR] Failed to fetch interviews:', err);
+                return [];
+              }),
+              RecruitmentService.getWorkspaceHiringPipelines(workspaceId).catch(err => {
+                console.error('❌ [ERROR] Failed to fetch hiring pipelines:', err);
+                return [];
+              })
+            ]);
+            
+            console.log('📊 [DEBUG] Raw data fetched:');
+            console.log('  - Stats Data:', statsData);
+            console.log('  - Job Postings:', jobsData?.length || 0, 'items');
+            console.log('  - Candidates:', candidatesData?.length || 0, 'items');
+            console.log('  - Job Applications:', jobApplicationsData?.length || 0, 'items');
+            console.log('  - Interviews:', interviewsData?.length || 0, 'items');
+            console.log('  - Pipelines:', pipelinesData?.length || 0, 'items');
 
-          setStats(statsData);
-          setJobPostings(jobsData);
-          setCandidates(candidatesData);
-          setInterviews(interviewsData);
-          setPipelines(pipelinesData);
+          // Use job applications as candidates if candidates collection is empty
+          const finalCandidates = candidatesData.length > 0 ? candidatesData : jobApplicationsData.map(app => ({
+          id: app.id,
+          workspaceId: app.workspaceId,
+          name: `${app.candidateInfo.firstName} ${app.candidateInfo.lastName}`,
+          email: app.candidateInfo.email,
+          phone: app.candidateInfo.phone || '',
+          location: '',
+            status: app.status as any,
+            score: app.rating ? app.rating * 20 : undefined, // Convert 1-5 rating to 1-100 score
+            experience: 0, // Default value
+            education: '',
+            appliedDate: app.createdAt,
+            notes: app.notes?.join('; ') || '',
+            tags: [],
+            jobId: app.jobId,
+            resume: app.candidateInfo.resume,
+            coverLetter: app.candidateInfo.coverLetter,
+            portfolio: app.candidateInfo.portfolio,
+            linkedIn: app.candidateInfo.linkedIn,
+            skills: [],
+            expectedSalary: undefined,
+            availabilityDate: undefined,
+            createdAt: app.createdAt,
+            updatedAt: app.updatedAt,
+            createdBy: '',
+            updatedBy: ''
+          }));
+
+            console.log('✅ [DEBUG] Final candidates processed:', finalCandidates?.length || 0, 'items');
+            console.log('📈 [DEBUG] Final stats object being set:', statsData);
+            
+            setStats(statsData);
+            setJobPostings(jobsData);
+            setCandidates(finalCandidates);
+            setInterviews(interviewsData);
+            setPipelines(pipelinesData);
+          } catch (fetchError) {
+            console.error('❌ [ERROR] Error in data fetching block:', fetchError);
+          }
         }
       } else {
         // Member/Admin - load current workspace data
-        const [statsData, jobsData, candidatesData, interviewsData, pipelinesData] = await Promise.all([
-          RecruitmentService.getRecruitmentStats(currentWorkspace.id),
-          RecruitmentService.getWorkspaceJobPostings(currentWorkspace.id),
-          RecruitmentService.getWorkspaceCandidates(currentWorkspace.id),
-          RecruitmentService.getWorkspaceInterviews(currentWorkspace.id),
-          RecruitmentService.getWorkspaceHiringPipelines(currentWorkspace.id)
-        ]);
+        console.log('🔍 [DEBUG] Loading data for current workspace (Member/Admin):', currentWorkspace.id);
+        
+        try {
+          const [statsData, jobsData, candidatesData, jobApplicationsData, interviewsData, pipelinesData] = await Promise.all([
+            RecruitmentService.getRecruitmentStats(currentWorkspace.id).catch(err => {
+              console.error('❌ [ERROR] Failed to fetch recruitment stats (current workspace):', err);
+              return null;
+            }),
+            RecruitmentService.getWorkspaceJobPostings(currentWorkspace.id).catch(err => {
+              console.error('❌ [ERROR] Failed to fetch job postings (current workspace):', err);
+              return [];
+            }),
+            RecruitmentService.getWorkspaceCandidates(currentWorkspace.id).catch(err => {
+              console.error('❌ [ERROR] Failed to fetch candidates (current workspace):', err);
+              return [];
+            }),
+            RecruitmentService.getWorkspaceJobApplications(currentWorkspace.id).catch(err => {
+              console.error('❌ [ERROR] Failed to fetch job applications (current workspace):', err);
+              return [];
+            }),
+            RecruitmentService.getWorkspaceInterviews(currentWorkspace.id).catch(err => {
+              console.error('❌ [ERROR] Failed to fetch interviews (current workspace):', err);
+              return [];
+            }),
+            RecruitmentService.getWorkspaceHiringPipelines(currentWorkspace.id).catch(err => {
+              console.error('❌ [ERROR] Failed to fetch hiring pipelines (current workspace):', err);
+              return [];
+            })
+          ]);
+          
+          console.log('📊 [DEBUG] Raw data fetched (current workspace):');
+          console.log('  - Stats Data:', statsData);
+          console.log('  - Job Postings:', jobsData?.length || 0, 'items');
+          console.log('  - Candidates:', candidatesData?.length || 0, 'items');
+          console.log('  - Job Applications:', jobApplicationsData?.length || 0, 'items');
+          console.log('  - Interviews:', interviewsData?.length || 0, 'items');
+          console.log('  - Pipelines:', pipelinesData?.length || 0, 'items');
 
-        setStats(statsData);
-        setJobPostings(jobsData);
-        setCandidates(candidatesData);
-        setInterviews(interviewsData);
-        setPipelines(pipelinesData);
+        // Use job applications as candidates if candidates collection is empty
+        const finalCandidates = candidatesData.length > 0 ? candidatesData : jobApplicationsData.map(app => ({
+          id: app.id,
+          workspaceId: app.workspaceId,
+          name: `${app.candidateInfo.firstName} ${app.candidateInfo.lastName}`,
+          email: app.candidateInfo.email,
+          phone: app.candidateInfo.phone || '',
+          location: '',
+          status: app.status as any,
+          score: app.rating ? app.rating * 20 : undefined, // Convert 1-5 rating to 1-100 score
+          experience: 0, // Default value
+          education: '',
+          appliedDate: app.createdAt,
+          notes: app.notes?.join('; ') || '',
+          tags: [],
+          jobId: app.jobId,
+          resume: app.candidateInfo.resume,
+          coverLetter: app.candidateInfo.coverLetter,
+          portfolio: app.candidateInfo.portfolio,
+          linkedIn: app.candidateInfo.linkedIn,
+          skills: [],
+          expectedSalary: undefined,
+          availabilityDate: undefined,
+          createdAt: app.createdAt,
+          updatedAt: app.updatedAt,
+          createdBy: '',
+          updatedBy: ''
+        }));
+
+          console.log('✅ [DEBUG] Final candidates processed (current workspace):', finalCandidates?.length || 0, 'items');
+          console.log('📈 [DEBUG] Final stats object being set (current workspace):', statsData);
+          
+          setStats(statsData);
+          setJobPostings(jobsData);
+          setCandidates(finalCandidates);
+          setInterviews(interviewsData);
+          setPipelines(pipelinesData);
+        } catch (fetchError) {
+          console.error('❌ [ERROR] Error in data fetching block (current workspace):', fetchError);
+        }
       }
 
       setInitialLoadComplete(true);
+      console.log('🎯 [DEBUG] Data loading completed successfully');
     } catch (error) {
-      console.error('Error loading recruitment data:', error);
+      console.error('❌ [ERROR] Top-level error loading recruitment data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load recruitment data. Please try again.',
@@ -296,6 +429,7 @@ export default function RecruitmentPage() {
         workspaceId: currentWorkspace.id,
         candidateId: data.candidateId!,
         jobPostingId: data.jobPostingId!,
+        title: `Interview with ${data.interviewer}`,
         type: data.type!,
         date: interviewDate,
         time: data.time!,
@@ -304,7 +438,13 @@ export default function RecruitmentPage() {
         location: data.location || '',
         meetingLink: data.meetingLink || '',
         status: 'scheduled',
-        createdBy: user?.uid || 'unknown'
+        notes: '',
+        feedback: '',
+        rating: undefined,
+        outcome: undefined,
+        nextSteps: '',
+        createdBy: user?.uid || 'unknown',
+        updatedBy: user?.uid || 'unknown'
       });
 
       // Send interview invitation to candidate
@@ -313,15 +453,14 @@ export default function RecruitmentPage() {
         const jobPosting = await RecruitmentService.getJobPosting(data.jobPostingId!);
         
         if (candidate && jobPosting) {
-          await RecruitmentService.sendInterviewInvitation(
-            interviewId,
-            candidate.email,
-            candidate.name,
-            jobPosting.title,
-            interviewDate,
-            data.time!,
-            data.interviewer!
-          );
+          await RecruitmentService.sendInterviewInvitation(interviewId, {
+            candidateEmail: candidate.email,
+            candidateName: candidate.name,
+            jobTitle: jobPosting.title,
+            interviewDate: interviewDate,
+            interviewTime: data.time!,
+            interviewer: data.interviewer!
+          });
 
           toast({
             title: 'Interview Scheduled',
@@ -406,40 +545,49 @@ export default function RecruitmentPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <div className="flex flex-col space-y-3 sm:space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
             Recruitment & Onboarding
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base mt-1 line-clamp-2">
             Manage job postings, track applications, and handle the recruitment process
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:gap-2 md:gap-3 shrink-0">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
+            disabled={refreshing} 
+            className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
+          >
+            <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="truncate">Refresh</span>
           </Button>
-                    {canManageRecruitment && (
+          {canManageRecruitment && (
             <Button 
               onClick={() => router.push('/dashboard/hr/recruitment/create')}
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              className="w-full sm:w-auto h-9 sm:h-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-xs sm:text-sm"
             >
-                <Plus className="w-4 h-4 mr-2" />
-                Post Job
-              </Button>
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="truncate">Post Job</span>
+            </Button>
           )}
-          
         </div>
       </div>
 
       {/* Cross-workspace scope banner for owners */}
       {isOwner && shouldShowCrossWorkspace && allWorkspaces.length > 1 && (
-        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
-          <p className="text-sm text-green-700 dark:text-green-400">
-            🌐 <strong>Cross-Workspace Recruitment:</strong> Displaying recruitment data across all {allWorkspaces.length} accessible workspaces. Job postings, candidates, and interviews from all workspaces are aggregated for centralized management.
+        <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
+          <p className="text-xs sm:text-sm text-green-700 dark:text-green-400 leading-relaxed">
+            <span className="inline-block mr-1">🌐</span>
+            <strong className="font-semibold">Cross-Workspace Recruitment:</strong> 
+            <span className="block sm:inline sm:ml-1">
+              Displaying recruitment data across all {allWorkspaces.length} accessible workspaces. Job postings, candidates, and interviews from all workspaces are aggregated for centralized management.
+            </span>
           </p>
         </div>
       )}
@@ -448,42 +596,80 @@ export default function RecruitmentPage() {
       {stats && <RecruitmentStatsComponent stats={stats} loading={loading} />}
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="jobs">Job Postings</TabsTrigger>
-          <TabsTrigger value="candidates">Candidates</TabsTrigger>
-          <TabsTrigger value="interviews">Interviews</TabsTrigger>
-          <TabsTrigger value="pipeline">Hiring Pipeline</TabsTrigger>
-          <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto bg-muted p-0.5 sm:p-1 text-muted-foreground overflow-x-auto">
+          <TabsTrigger 
+            value="overview" 
+            className="text-xs sm:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] truncate data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <span className="truncate">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="jobs" 
+            className="text-xs sm:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] truncate data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <span className="truncate sm:hidden">Jobs</span>
+            <span className="hidden sm:inline truncate">Job Postings</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="candidates" 
+            className="text-xs sm:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] truncate data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <span className="truncate">Candidates</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="interviews" 
+            className="text-xs sm:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] truncate data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <span className="truncate">Interviews</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="pipeline" 
+            className="text-xs sm:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] truncate data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <span className="truncate sm:hidden">Pipeline</span>
+            <span className="hidden sm:inline truncate">Hiring Pipeline</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="onboarding" 
+            className="text-xs sm:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] truncate data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <span className="truncate">Onboarding</span>
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-3 sm:space-y-4">
           <Card className="card-enhanced">
-            <CardHeader>
-              <CardTitle>Recruitment Overview</CardTitle>
-              <CardDescription>Quick overview of your recruitment activities</CardDescription>
+            <CardHeader className="p-3 sm:p-4 md:p-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl">Recruitment Overview</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Quick overview of your recruitment activities</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{jobPostings.filter(job => job.status === 'active').length}</div>
-                  <div className="text-sm text-muted-foreground">Active Job Postings</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{candidates.length}</div>
-                  <div className="text-sm text-muted-foreground">Total Candidates</div>
+            <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                <div className="text-center p-3 sm:p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 mb-1 sm:mb-2">
+                    {jobPostings.filter(job => job.status === 'active').length}
                   </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">{interviews.filter(i => i.status === 'scheduled').length}</div>
-                  <div className="text-sm text-muted-foreground">Scheduled Interviews</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground truncate">Active Job Postings</div>
+                </div>
+                <div className="text-center p-3 sm:p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600 mb-1 sm:mb-2">
+                    {candidates.length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground truncate">Total Candidates</div>
+                </div>
+                <div className="text-center p-3 sm:p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 sm:col-span-2 lg:col-span-1">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-600 mb-1 sm:mb-2">
+                    {interviews.filter(i => i.status === 'scheduled').length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground truncate">Scheduled Interviews</div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="jobs" className="space-y-4">
+        <TabsContent value="jobs" className="space-y-3 sm:space-y-4">
           <JobPostingsList
             jobPostings={jobPostings}
             loading={loading}
@@ -491,16 +677,17 @@ export default function RecruitmentPage() {
           />
         </TabsContent>
 
-        <TabsContent value="candidates" className="space-y-4">
+        <TabsContent value="candidates" className="space-y-3 sm:space-y-4">
           <CandidatesList
             candidates={candidates}
+            interviews={interviews}
             loading={loading}
             onStatusChange={canManageRecruitment ? handleUpdateCandidateStatus : undefined}
             onDelete={canManageRecruitment ? handleDeleteCandidate : undefined}
           />
         </TabsContent>
 
-        <TabsContent value="interviews" className="space-y-4">
+        <TabsContent value="interviews" className="space-y-3 sm:space-y-4">
           <InterviewManagement
             interviews={interviews}
             candidates={candidates}
@@ -512,7 +699,7 @@ export default function RecruitmentPage() {
           />
         </TabsContent>
 
-        <TabsContent value="pipeline" className="space-y-4">
+        <TabsContent value="pipeline" className="space-y-3 sm:space-y-4">
           <HiringPipelineManagement
             pipelines={pipelines}
             candidates={candidates}
@@ -521,7 +708,7 @@ export default function RecruitmentPage() {
           />
         </TabsContent>
 
-        <TabsContent value="onboarding" className="space-y-4">
+        <TabsContent value="onboarding" className="space-y-3 sm:space-y-4">
           <OnboardingManagement
             employees={onboardingEmployees}
             candidates={candidates}

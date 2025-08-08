@@ -25,9 +25,9 @@ export default function TaskDetailDialog({
 }: TaskDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-4 max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg">Task Details</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg break-words">Task Details</DialogTitle>
         </DialogHeader>
         {selectedTask && (
           <div className="space-y-4 sm:space-y-6">
@@ -94,29 +94,29 @@ export default function TaskDetailDialog({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-3 pt-2 border-t">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-2 pt-4 border-t">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto order-3 sm:order-1 text-red-600 border-red-200 hover:bg-red-50"
+                className="w-full sm:w-auto order-3 sm:order-1 h-11 sm:h-10 touch-manipulation text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950"
                 onClick={() => selectedTask && initiateDeleteTask(selectedTask)}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Task
+                <Trash2 className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">Delete Task</span>
               </Button>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto order-2 sm:order-1"
+                  className="w-full sm:w-auto order-2 sm:order-1 h-11 sm:h-10 touch-manipulation"
                   onClick={() => setIsOpen(false)}
                 >
                   Close
                 </Button>
                 <Button
-                  className="w-full sm:w-auto order-1 sm:order-2"
+                  className="w-full sm:w-auto order-1 sm:order-2 h-11 sm:h-10 touch-manipulation"
                   onClick={() => selectedTask && handleEditTask(selectedTask)}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Task
+                  <Edit className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Edit Task</span>
                 </Button>
               </div>
             </div>

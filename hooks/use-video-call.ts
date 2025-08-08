@@ -36,7 +36,7 @@ export function useVideoCall({
   const { user } = useAuth();
   const { toast } = useToast();
   const videoServiceRef = useRef<VideoCallService | null>(null);
-  const callIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const callIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   const [state, setState] = useState<VideoCallState>({
     isInCall: false,

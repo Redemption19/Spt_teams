@@ -32,19 +32,19 @@ export const createBudgetColumns = ({
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="h-auto p-0 font-medium"
+        className="h-auto p-0 font-medium text-xs sm:text-sm"
       >
         Name
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        <ArrowUpDown className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
     ),
     cell: ({ row }) => {
       const budget = row.original;
       return (
-        <div className="space-y-1">
-          <div className="font-medium text-foreground">{budget.name}</div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="font-medium text-foreground text-xs sm:text-sm">{budget.name}</div>
           {budget.description && (
-            <div className="text-sm text-muted-foreground line-clamp-1">
+            <div className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
               {budget.description}
             </div>
           )}
@@ -58,16 +58,16 @@ export const createBudgetColumns = ({
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="h-auto p-0 font-medium"
+        className="h-auto p-0 font-medium text-xs sm:text-sm"
       >
         Amount
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        <ArrowUpDown className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
     ),
     cell: ({ row }) => {
       const budget = row.original;
       return (
-        <div className="text-right font-medium">
+        <div className="text-right font-medium text-xs sm:text-sm">
           {budget.currency} {formatNumber(budget.amount)}
         </div>
       );
@@ -78,7 +78,7 @@ export const createBudgetColumns = ({
     header: "Period",
     cell: ({ row }) => {
       const budget = row.original;
-      return <div className="font-medium capitalize">{budget.period}</div>;
+      return <div className="font-medium capitalize text-xs sm:text-sm">{budget.period}</div>;
     },
   },
   {
@@ -86,7 +86,7 @@ export const createBudgetColumns = ({
     header: "Start Date",
     cell: ({ row }) => {
       const budget = row.original;
-      return <div className="font-medium">{formatDate(budget.startDate)}</div>;
+      return <div className="font-medium text-xs sm:text-sm">{formatDate(budget.startDate)}</div>;
     },
   },
   {
@@ -94,7 +94,7 @@ export const createBudgetColumns = ({
     header: "End Date",
     cell: ({ row }) => {
       const budget = row.original;
-      return <div className="font-medium">{formatDate(budget.endDate)}</div>;
+      return <div className="font-medium text-xs sm:text-sm">{formatDate(budget.endDate)}</div>;
     },
   },
   {
@@ -112,7 +112,7 @@ export const createBudgetColumns = ({
         }
       };
       return (
-        <Badge className={getStatusColor(status)} variant="outline">
+        <Badge className={`${getStatusColor(status)} text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 sm:py-1`} variant="outline">
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </Badge>
       );
@@ -124,9 +124,9 @@ export const createBudgetColumns = ({
     cell: ({ row }) => {
       const budget = row.original;
       return budget.type === 'department' ? (
-        <div className="font-medium">{getDepartmentName(budget.entityId)}</div>
+        <div className="font-medium text-xs sm:text-sm">{getDepartmentName(budget.entityId)}</div>
       ) : (
-        <span className="text-muted-foreground">N/A</span>
+        <span className="text-muted-foreground text-xs sm:text-sm">N/A</span>
       );
     },
   },
@@ -138,9 +138,9 @@ export const createBudgetColumns = ({
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 p-0">
               <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -167,4 +167,4 @@ export const createBudgetColumns = ({
       );
     },
   },
-]; 
+];

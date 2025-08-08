@@ -362,34 +362,36 @@ export default function AttendanceAnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
           <Link href="/dashboard/hr/attendance">
-            <Button variant="outline" size="sm" className="hover:bg-accent hover:text-accent-foreground transition-colors">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto hover:bg-accent hover:text-accent-foreground transition-colors">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Attendance
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Attendance Analytics</h1>
-            <p className="text-muted-foreground mt-1">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Attendance Analytics</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Comprehensive insights into attendance patterns and trends
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
           <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="w-full sm:w-auto hover:bg-accent hover:text-accent-foreground transition-colors min-h-[44px]"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
+            <span className="sm:hidden">Refresh Data</span>
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
+          <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground transition-colors min-h-[44px]">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </Button>
         </div>
       </div>
@@ -407,12 +409,12 @@ export default function AttendanceAnalyticsPage() {
 
       {/* Filters */}
       <Card className="card-enhanced">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Date Range</label>
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground block">Date Range</label>
               <Select value={filters.dateRange} onValueChange={(value: any) => setFilters(prev => ({ ...prev, dateRange: value }))}>
-                <SelectTrigger className="border-border/50 focus:border-primary">
+                <SelectTrigger className="border-border/50 focus:border-primary min-h-[44px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -427,10 +429,10 @@ export default function AttendanceAnalyticsPage() {
             </div>
 
             {shouldShowCrossWorkspace && (
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Workspace Scope</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground block">Workspace Scope</label>
                 <Select value={filters.workspaceScope} onValueChange={(value: any) => setFilters(prev => ({ ...prev, workspaceScope: value }))}>
-                  <SelectTrigger className="border-border/50 focus:border-primary">
+                  <SelectTrigger className="border-border/50 focus:border-primary min-h-[44px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -441,10 +443,10 @@ export default function AttendanceAnalyticsPage() {
               </div>
             )}
 
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Department</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground block">Department</label>
               <Select value={filters.department || 'all'} onValueChange={(value) => setFilters(prev => ({ ...prev, department: value === 'all' ? undefined : value }))}>
-                <SelectTrigger className="border-border/50 focus:border-primary">
+                <SelectTrigger className="border-border/50 focus:border-primary min-h-[44px]">
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
@@ -456,10 +458,10 @@ export default function AttendanceAnalyticsPage() {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Employment Type</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground block">Employment Type</label>
               <Select value={filters.employmentType || 'all'} onValueChange={(value) => setFilters(prev => ({ ...prev, employmentType: value === 'all' ? undefined : value }))}>
-                <SelectTrigger className="border-border/50 focus:border-primary">
+                <SelectTrigger className="border-border/50 focus:border-primary min-h-[44px]">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -478,58 +480,58 @@ export default function AttendanceAnalyticsPage() {
       {analytics && (
         <div className="space-y-6">
           {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="stats-card">
-              <CardContent className="p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <Card className="stats-card hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                    <p className="text-2xl font-bold text-foreground">{formatPercentage(analytics.attendanceRate)}</p>
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Attendance Rate</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground mt-1">{formatPercentage(analytics.attendanceRate)}</p>
                   </div>
-                  <div className="p-3 rounded-full bg-primary/10">
-                    <TrendingUp className="h-6 w-6 text-primary" />
+                  <div className="p-2 sm:p-3 rounded-full bg-primary/10 flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="stats-card">
-              <CardContent className="p-6">
+            <Card className="stats-card hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Avg Work Hours</p>
-                    <p className="text-2xl font-bold text-foreground">{formatHours(analytics.avgWorkHours)}</p>
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Avg Work Hours</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground mt-1">{formatHours(analytics.avgWorkHours)}</p>
                   </div>
-                  <div className="p-3 rounded-full bg-accent/10">
-                    <Clock className="h-6 w-6 text-accent" />
+                  <div className="p-2 sm:p-3 rounded-full bg-accent/10 flex-shrink-0">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="stats-card">
-              <CardContent className="p-6">
+            <Card className="stats-card hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Punctuality Rate</p>
-                    <p className="text-2xl font-bold text-foreground">{formatPercentage(analytics.punctualityRate)}</p>
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Punctuality Rate</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground mt-1">{formatPercentage(analytics.punctualityRate)}</p>
                   </div>
-                  <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/20">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  <div className="p-2 sm:p-3 rounded-full bg-green-100 dark:bg-green-900/20 flex-shrink-0">
+                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="stats-card">
-              <CardContent className="p-6">
+            <Card className="stats-card hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Records</p>
-                    <p className="text-2xl font-bold text-foreground">{analytics.totalRecords}</p>
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Total Records</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground mt-1">{analytics.totalRecords}</p>
                   </div>
-                  <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20">
-                    <Users className="h-6 w-6 text-blue-600" />
+                  <div className="p-2 sm:p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 flex-shrink-0">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
@@ -537,29 +539,31 @@ export default function AttendanceAnalyticsPage() {
           </div>
 
           {/* Additional Analytics Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
             {/* Status Breakdown */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  <span>Status Breakdown</span>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center space-x-2 text-foreground text-base sm:text-lg">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                  <span className="truncate">Status Breakdown</span>
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="text-muted-foreground text-xs sm:text-sm">
                   Distribution of attendance statuses
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-2 sm:space-y-3">
                   {analytics.statusBreakdown.map((status) => (
-                    <div key={status.status} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-primary"></div>
-                        <span className="text-sm font-medium text-foreground capitalize">{status.status.replace('-', ' ')}</span>
+                    <div key={status.status} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary flex-shrink-0"></div>
+                        <span className="text-xs sm:text-sm font-medium text-foreground capitalize truncate">{status.status.replace('-', ' ')}</span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-sm font-semibold text-foreground">{status.count}</span>
-                        <span className="text-xs text-muted-foreground ml-2">({formatPercentage(status.percentage)})</span>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                          <span className="text-sm sm:text-base font-semibold text-foreground">{status.count}</span>
+                          <span className="text-xs text-muted-foreground">({formatPercentage(status.percentage)})</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -569,26 +573,30 @@ export default function AttendanceAnalyticsPage() {
 
             {/* Department Performance */}
             <Card className="card-enhanced">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <Building className="h-5 w-5 text-primary" />
-                  <span>Department Performance</span>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center space-x-2 text-foreground text-base sm:text-lg">
+                  <Building className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                  <span className="truncate">Department Performance</span>
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="text-muted-foreground text-xs sm:text-sm">
                   Attendance rates by department
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-2 sm:space-y-3">
                   {analytics.departmentStats.map((dept) => (
-                    <div key={dept.department} className="flex items-center justify-between">
-                      <div>
-                        <span className="text-sm font-medium text-foreground">{dept.department}</span>
-                        <span className="text-xs text-muted-foreground ml-2">({dept.employees} employees)</span>
+                    <div key={dept.department} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="min-w-0 flex-1 mr-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                          <span className="text-xs sm:text-sm font-medium text-foreground truncate">{dept.department}</span>
+                          <span className="text-xs text-muted-foreground">({dept.employees} employees)</span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-sm font-semibold text-foreground">{formatPercentage(dept.attendanceRate)}</span>
-                        <span className="text-xs text-muted-foreground ml-2">({formatHours(dept.avgHours)})</span>
+                      <div className="text-right flex-shrink-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                          <span className="text-sm sm:text-base font-semibold text-foreground">{formatPercentage(dept.attendanceRate)}</span>
+                          <span className="text-xs text-muted-foreground">({formatHours(dept.avgHours)})</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -599,21 +607,21 @@ export default function AttendanceAnalyticsPage() {
 
           {/* Work Patterns */}
           <Card className="card-enhanced">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-foreground">
-                <Calendar className="h-5 w-5 text-primary" />
-                <span>Work Patterns</span>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center space-x-2 text-foreground text-base sm:text-lg">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <span className="truncate">Work Patterns</span>
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription className="text-muted-foreground text-xs sm:text-sm">
                 Distribution of work hour patterns
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {analytics.workPatterns.map((pattern) => (
-                  <div key={pattern.pattern} className="text-center p-4 rounded-lg bg-muted/30 border border-border/30">
-                    <div className="text-2xl font-bold text-foreground">{pattern.count}</div>
-                    <div className="text-sm text-muted-foreground">{pattern.pattern}</div>
+                  <div key={pattern.pattern} className="text-center p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 hover:border-border/50 transition-all duration-200">
+                    <div className="text-xl sm:text-2xl font-bold text-foreground mb-1">{pattern.count}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground font-medium truncate" title={pattern.pattern}>{pattern.pattern}</div>
                     <div className="text-xs text-muted-foreground mt-1">Avg: {formatHours(pattern.avgHours)}</div>
                   </div>
                 ))}

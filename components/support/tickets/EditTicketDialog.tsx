@@ -34,17 +34,18 @@ export const EditTicketDialog: React.FC<EditTicketDialogProps> = ({ ticket, open
 
   return (
     <Dialog open={open} onOpenChange={onCancel}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4 max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Ticket</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl break-words">Edit Ticket</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-6">
           <div>
             <label className="text-sm font-medium">Title</label>
             <Input
               value={form.title}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Ticket title"
+              className="h-11 sm:h-10 touch-manipulation"
             />
           </div>
           <div>
@@ -54,16 +55,17 @@ export const EditTicketDialog: React.FC<EditTicketDialogProps> = ({ ticket, open
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Describe the issue"
               rows={4}
+              className="min-h-[100px] touch-manipulation"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">Category</label>
               <Select
                 value={form.category}
                 onValueChange={(value) => handleChange('category', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10 touch-manipulation">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -81,7 +83,7 @@ export const EditTicketDialog: React.FC<EditTicketDialogProps> = ({ ticket, open
                 value={form.priority}
                 onValueChange={(value) => handleChange('priority', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10 touch-manipulation">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -93,16 +95,25 @@ export const EditTicketDialog: React.FC<EditTicketDialogProps> = ({ ticket, open
               </Select>
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onCancel} disabled={saving}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-2">
+            <Button 
+              variant="outline" 
+              onClick={onCancel} 
+              disabled={saving}
+              className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+            <Button 
+              onClick={handleSave} 
+              disabled={saving}
+              className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
+            >
+              <span className="truncate">{saving ? 'Saving...' : 'Save Changes'}</span>
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-}; 
+};

@@ -697,19 +697,19 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Invoice Management</h1>
-          <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1 sm:space-y-2">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Invoice Management</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Create, send, and track your business invoices
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           {/* Cross-workspace toggle for owners */}
           {isOwner && accessibleWorkspaces && accessibleWorkspaces.length > 1 && (
             <Select value={showAllWorkspaces ? 'all' : 'current'} onValueChange={(value) => handleWorkspaceViewToggle(value === 'all')}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48 min-h-[40px] text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -719,23 +719,24 @@ export default function InvoicesPage() {
             </Select>
           )}
           {canCreate && (
-            <Button onClick={() => router.push('/dashboard/financial/invoices/create')}>
-              <Plus className="w-4 h-4 mr-2" />
-              New Invoice
+            <Button onClick={() => router.push('/dashboard/financial/invoices/create')} className="min-h-[40px] text-xs sm:text-sm">
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">New Invoice</span>
+              <span className="sm:hidden">New</span>
             </Button>
           )}
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Amount</CardTitle>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-0">
+            <div className="text-lg sm:text-2xl font-bold break-all">
               {getCurrencySymbol()}{formatNumber(summaryStats.totalAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -745,12 +746,12 @@ export default function InvoicesPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Paid</CardTitle>
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-green-600 break-all">
               {getCurrencySymbol()}{formatNumber(summaryStats.paidAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -760,12 +761,12 @@ export default function InvoicesPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Pending</CardTitle>
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+          <CardContent className="pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-blue-600 break-all">
               {getCurrencySymbol()}{formatNumber(summaryStats.pendingAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -775,12 +776,12 @@ export default function InvoicesPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium truncate">Overdue</CardTitle>
+            <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+          <CardContent className="pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-red-600 break-all">
               {getCurrencySymbol()}{formatNumber(summaryStats.overdueAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -790,39 +791,42 @@ export default function InvoicesPage() {
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="list">Invoice List</TabsTrigger>
-          <TabsTrigger value="create">Create Invoice</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="invoice-types">Invoice Types</TabsTrigger>
-          <TabsTrigger value="hierarchy">
-            <Building2 className="w-4 h-4 mr-2" />
-            Hierarchy
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-6 min-w-[600px] sm:min-w-0">
+            <TabsTrigger value="list" className="text-xs sm:text-sm">Invoice List</TabsTrigger>
+            <TabsTrigger value="create" className="text-xs sm:text-sm">Create Invoice</TabsTrigger>
+            <TabsTrigger value="templates" className="text-xs sm:text-sm">Templates</TabsTrigger>
+            <TabsTrigger value="clients" className="text-xs sm:text-sm">Clients</TabsTrigger>
+            <TabsTrigger value="invoice-types" className="text-xs sm:text-sm">Invoice Types</TabsTrigger>
+            <TabsTrigger value="hierarchy" className="text-xs sm:text-sm">
+              <Building2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Hierarchy</span>
+              <span className="sm:hidden">Hier</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="list" className="space-y-4">
+        <TabsContent value="list" className="space-y-4 sm:space-y-6">
           {/* Filters */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Filters</CardTitle>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Filters</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="relative sm:col-span-2 lg:col-span-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3 h-3 sm:w-4 sm:h-4" />
                   <Input
                     placeholder="Search invoices..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-8 sm:pl-10 min-h-[40px] text-sm"
                   />
                 </div>
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[40px] text-sm">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -836,7 +840,7 @@ export default function InvoicesPage() {
                 </Select>
 
                 <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[40px] text-sm">
                     <SelectValue placeholder="Filter by date" />
                   </SelectTrigger>
                   <SelectContent>
@@ -847,8 +851,8 @@ export default function InvoicesPage() {
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline" onClick={handleExportInvoices}>
-                  <Download className="w-4 h-4 mr-2" />
+                <Button variant="outline" onClick={handleExportInvoices} className="min-h-[40px] text-xs sm:text-sm sm:col-span-2 lg:col-span-1">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Export
                 </Button>
               </div>
@@ -857,87 +861,90 @@ export default function InvoicesPage() {
 
           {/* Invoice List */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="pb-3 sm:pb-6">
+              <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <CardTitle>Invoices</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Invoices</CardTitle>
+                  <CardDescription className="text-sm">
                     {filteredInvoices.length} invoices found
                   </CardDescription>
                 </div>
                 {payableInvoices.length > 0 && canEdit && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:gap-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="select-all"
                         checked={selectedInvoices.size > 0 && selectedInvoices.size === payableInvoices.length}
                         onCheckedChange={handleSelectAll}
+                        className="min-h-[20px] min-w-[20px]"
                       />
-                      <Label htmlFor="select-all" className="text-sm">
+                      <Label htmlFor="select-all" className="text-xs sm:text-sm">
                         Select all payable ({payableInvoices.length})
                       </Label>
                     </div>
                     {selectedInvoices.size > 0 && (
                       <Button
                         onClick={openBulkPaymentDialog}
-                        className="bg-primary hover:bg-primary/90"
+                        className="bg-primary hover:bg-primary/90 min-h-[40px] text-xs sm:text-sm"
                         size="sm"
                       >
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Mark {selectedInvoices.size} as Paid
+                        <CreditCard className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Mark {selectedInvoices.size} as Paid</span>
+                        <span className="sm:hidden">Pay ({selectedInvoices.size})</span>
                       </Button>
                     )}
                   </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="pt-0">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredInvoices.map((invoice) => {
                   const effectiveStatus = isInvoiceOverdue(invoice) ? 'overdue' : invoice.status;
                   const overdueDays = isInvoiceOverdue(invoice) ? getOverdueDays(invoice.dueDate) : 0;
                   const isPayable = invoice.status === 'sent' || isInvoiceOverdue(invoice);
                   
                   return (
-                    <div key={invoice.id} className="border rounded-lg p-4 space-y-3">
+                    <div key={invoice.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
                       <div className="flex items-start justify-between">
                         {isPayable && canEdit && (
-                          <div className="flex items-center mr-3 mt-1">
+                          <div className="flex items-center mr-2 sm:mr-3 mt-1">
                             <Checkbox
                               id={`select-${invoice.id}`}
                               checked={selectedInvoices.has(invoice.id)}
                               onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
+                              className="min-h-[20px] min-w-[20px]"
                             />
                           </div>
                         )}
                         <div className="flex-1">
-                           <div className="flex items-start justify-between">
-                             <div className="space-y-1">
-                               <div className="flex items-center gap-2">
-                                 <h3 className="font-medium">{invoice.invoiceNumber}</h3>
-                                 <Badge className={getStatusColor(effectiveStatus)}>
+                           <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
+                             <div className="space-y-1 flex-1">
+                               <div className="flex flex-col space-y-1 sm:space-y-0 sm:flex-row sm:items-center sm:gap-2">
+                                 <h3 className="font-medium text-sm sm:text-base">{invoice.invoiceNumber}</h3>
+                                 <Badge className={`${getStatusColor(effectiveStatus)} text-xs`}>
                                    {getStatusIcon(effectiveStatus)}
                                    <span className="ml-1 capitalize">{effectiveStatus}</span>
                                  </Badge>
                                </div>
-                               <p className="text-sm text-muted-foreground">
+                               <p className="text-xs sm:text-sm text-muted-foreground">
                                  {invoice.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                </p>
                                {invoice.notes && (
-                                 <p className="text-sm text-muted-foreground">{invoice.notes}</p>
+                                 <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{invoice.notes}</p>
                                )}
                              </div>
-                             <div className="text-right space-y-1">
-                               <div className="text-lg font-bold">
+                             <div className="text-left sm:text-right space-y-1 sm:ml-4">
+                               <div className="text-base sm:text-lg font-bold">
                                  {getCurrencySymbol()}{formatNumber(invoice.total)}
                                </div>
-                               <div className="text-sm text-muted-foreground">{invoice.currency}</div>
+                               <div className="text-xs sm:text-sm text-muted-foreground">{invoice.currency}</div>
                              </div>
                            </div>
                          </div>
                        </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
                         <div>
                           <span className="text-muted-foreground">Issue Date:</span>
                           <div className="font-medium">{formatDate(invoice.issueDate)}</div>
@@ -959,60 +966,63 @@ export default function InvoicesPage() {
                       </div>
 
                       {effectiveStatus === 'overdue' && overdueDays > 0 && (
-                        <div className="bg-transparent border border-primary rounded p-3">
-                          <p className="text-sm text-primary flex items-center gap-1">
-                            <AlertCircle className="w-4 h-4" />
+                        <div className="bg-transparent border border-primary rounded p-2 sm:p-3">
+                          <p className="text-xs sm:text-sm text-primary flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                             <strong>Overdue by {overdueDays} days</strong>
                           </p>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <div className="text-sm text-muted-foreground">
+                      <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between pt-2 border-t">
+                        <div className="text-xs sm:text-sm text-muted-foreground">
                           Created {formatDate(invoice.createdAt)}
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 overflow-x-auto">
                           <Button 
                             variant="ghost" 
                             size="sm"
                             onClick={() => router.push(`/dashboard/financial/invoices/${invoice.id}`)}
+                            className="min-h-[36px] min-w-[36px] p-2"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           {canEdit && (
                             <Button 
                               variant="ghost" 
                               size="sm"
                               onClick={() => router.push(`/dashboard/financial/invoices/edit/${invoice.id}`)}
+                              className="min-h-[36px] min-w-[36px] p-2"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           )}
                           <Button 
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleDownloadInvoice(invoice.id)}
+                            className="min-h-[36px] min-w-[36px] p-2"
                           >
-                            <Download className="w-4 h-4" />
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           {invoice.status === 'draft' && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="text-blue-600 hover:text-blue-700"
+                              className="text-blue-600 hover:text-blue-700 min-h-[36px] min-w-[36px] p-2"
                               onClick={() => handleSendInvoice(invoice.id)}
                             >
-                              <Send className="w-4 h-4" />
+                              <Send className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           )}
                           {canDelete && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 min-h-[36px] min-w-[36px] p-2"
                               onClick={() => handleDeleteInvoice(invoice)}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           )}
                         </div>
@@ -1022,16 +1032,19 @@ export default function InvoicesPage() {
                 })}
 
                 {filteredInvoices.length === 0 && (
-                  <div className="text-center py-8">
-                    <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">
+                  <div className="text-center py-6 sm:py-8">
+                    <FileText className="w-8 h-8 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                    <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">
                       {invoices.length === 0 
                         ? 'No invoices found. Create your first invoice to get started.' 
                         : 'No invoices found matching your filters.'}
                     </p>
                     {canCreate && invoices.length === 0 && (
-                      <Button onClick={() => router.push('/dashboard/financial/invoices/create')}>
-                        <Plus className="w-4 h-4 mr-2" />
+                      <Button 
+                        onClick={() => router.push('/dashboard/financial/invoices/create')}
+                        className="min-h-[40px] text-sm"
+                      >
+                        <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                         Create First Invoice
                       </Button>
                     )}

@@ -277,7 +277,7 @@ export default function AnnualLeaveApplicationsList({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2 mt-4 pt-4 border-t">
                 <Button
                   variant="outline"
                   size="sm"
@@ -286,9 +286,10 @@ export default function AnnualLeaveApplicationsList({
                     setEditDialogOpen(true);
                   }}
                   disabled={!canEditApplication(application)}
+                  className="w-full sm:w-auto h-10 sm:h-9 touch-manipulation"
                 >
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
+                  <Eye className="h-4 w-4 mr-1 flex-shrink-0" />
+                  <span className="truncate">View</span>
                 </Button>
                 
                 {canEditApplication(application) && (
@@ -296,9 +297,10 @@ export default function AnnualLeaveApplicationsList({
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(application)}
+                    className="w-full sm:w-auto h-10 sm:h-9 touch-manipulation"
                   >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
+                    <Edit className="h-4 w-4 mr-1 flex-shrink-0" />
+                    <span className="truncate">Edit</span>
                   </Button>
                 )}
                 
@@ -307,9 +309,10 @@ export default function AnnualLeaveApplicationsList({
                     variant="outline"
                     size="sm"
                     onClick={() => handleDelete(application)}
+                    className="w-full sm:w-auto h-10 sm:h-9 touch-manipulation"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
+                    <Trash2 className="h-4 w-4 mr-1 flex-shrink-0" />
+                    <span className="truncate">Delete</span>
                   </Button>
                 )}
               </div>
@@ -320,9 +323,9 @@ export default function AnnualLeaveApplicationsList({
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-4 max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Annual Leave Application</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg break-words">Edit Annual Leave Application</DialogTitle>
           </DialogHeader>
           {selectedApplication && (
             <AnnualLeaveApplicationForm
@@ -345,27 +348,27 @@ export default function AnnualLeaveApplicationsList({
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-4">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Application</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg break-words">Delete Application</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base break-words">
               Are you sure you want to delete this annual leave application? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+            <AlertDialogCancel disabled={deleting} className="w-full sm:w-auto h-11 sm:h-10 touch-manipulation">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto h-11 sm:h-10 touch-manipulation"
             >
               {deleting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
+                  <span className="truncate">Deleting...</span>
                 </>
               ) : (
-                'Delete'
+                <span className="truncate">Delete</span>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -373,4 +376,4 @@ export default function AnnualLeaveApplicationsList({
       </AlertDialog>
     </div>
   );
-} 
+}
