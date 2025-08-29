@@ -28,6 +28,12 @@ yarn-error.log*
 .env
 .env*.local
 
+# IDE and tool directories
+.github
+.cursor
+.vscode
+.trae
+
 # vercel
 .vercel
 
