@@ -43,7 +43,9 @@ import {
   Zap,
   Activity,
   Shield,
-  Wallet
+  Wallet,
+  CoinsIcon,
+  Banknote
 } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useAuth } from '@/lib/auth-context';
@@ -599,135 +601,128 @@ export default function FinancialDashboard() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold truncate">Financial Management</h1>
-              {workspaceIds.length > 1 && (
-                <Badge variant="outline" className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 whitespace-nowrap px-2 py-1 text-xs sm:px-3 sm:text-sm w-fit">
-                  <Building className="w-3 h-3 sm:w-4 sm:h-4" />
-                  {workspaceIds.length} Workspaces
-                </Badge>
-              )}
-            </div>
-            <div className="text-sm sm:text-base text-muted-foreground">
-              <p className="mb-1 sm:mb-0">Track expenses, manage budgets, and monitor financial performance</p>
-              {workspaceIds.length > 1 && (
-                <p className="text-xs sm:text-sm text-primary/80">
-                  • Viewing aggregated data from {workspaceIds.length} workspaces
-                </p>
-              )}
-              {financialData.lastUpdated && (
-                <p className="text-xs sm:text-sm text-muted-foreground/80">
-                  • Last updated: {financialData.lastUpdated.toLocaleTimeString()}
-                </p>
-              )}
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
+        {/* Left side - Title and Description */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold truncate">Financial Management</h1>
+          </div>
+          <div className="text-sm sm:text-base text-muted-foreground">
+            <p className="mb-1 sm:mb-0">Track expenses, manage budgets, and monitor financial performance</p>
+            {workspaceIds.length > 1 && (
+              <p className="text-xs sm:text-sm text-primary/80">
+                • Viewing aggregated data from {workspaceIds.length} workspaces
+              </p>
+            )}
+            {financialData.lastUpdated && (
+              <p className="text-xs sm:text-sm text-muted-foreground/80">
+                • Last updated: {financialData.lastUpdated.toLocaleTimeString()}
+              </p>
+            )}
           </div>
         </div>
         
-        {/* Action Buttons - Mobile Responsive */}
-        <div className="flex flex-col gap-3 sm:gap-4">
-          {/* Primary Actions Row */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            {/* Refresh Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="min-h-[40px] sm:min-h-[36px] w-full sm:w-auto justify-center sm:justify-start"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            
-            <Button className="bg-primary hover:bg-primary/90 min-h-[40px] sm:min-h-[36px] w-full sm:w-auto justify-center sm:justify-start" asChild>
-              <Link href="/dashboard/financial/reports">
-                <FileText className="w-4 h-4 mr-2" />
-                Generate Report
+        {/* Right side - Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+          {/* 1. Expenses */}
+          {financialPermissions.canViewExpenses && (
+            <Button variant="outline" size="sm" asChild className="h-9 w-full sm:w-auto justify-center">
+              <Link href="/dashboard/financial/expenses">
+                <Banknote className="w-4 h-4 mr-2" />
+                Expenses
               </Link>
             </Button>
-          </div>
+          )}
           
-          {/* Quick Access Navigation - Responsive Grid */}
-          <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
-            {financialPermissions.canViewExpenses && (
-              <Button variant="outline" size="sm" asChild className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
-                <Link href="/dashboard/financial/expenses">
-                  <Receipt className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Expenses</span>
-                </Link>
+          {/* 2. Invoice */}
+          {financialPermissions.canViewInvoices && (
+            <Button variant="outline" size="sm" asChild className="h-9 w-full sm:w-auto justify-center">
+              <Link href="/dashboard/financial/invoices">
+                <FileText className="w-4 h-4 mr-2" />
+                Invoices
+              </Link>
+            </Button>
+          )}
+          
+          {/* 3. Budget */}
+          {financialPermissions.canViewBudgets && (
+            <Button variant="outline" size="sm" asChild className="h-9 w-full sm:w-auto justify-center">
+              <Link href="/dashboard/financial/budgets">
+                <Target className="w-4 h-4 mr-2" />
+                Budgets
+              </Link>
+            </Button>
+          )}
+          
+          {/* 4. Generate Report */}
+          <Button className="bg-primary hover:bg-primary/90 h-9 w-full sm:w-auto justify-center" asChild>
+            <Link href="/dashboard/financial/reports">
+              <FileText className="w-4 h-4 mr-2" />
+              Generate Report
+            </Link>
+          </Button>
+          
+          {/* 5. Settings Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-9 w-full sm:w-auto justify-center">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+                <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
-            )}
-            {financialPermissions.canViewInvoices && (
-              <Button variant="outline" size="sm" asChild className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
-                <Link href="/dashboard/financial/invoices">
-                  <FileText className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Invoices</span>
-                </Link>
-              </Button>
-            )}
-            {financialPermissions.canViewBudgets && (
-              <Button variant="outline" size="sm" asChild className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
-                <Link href="/dashboard/financial/budgets">
-                  <Target className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Budgets</span>
-                </Link>
-              </Button>
-            )}
-            
-            {/* Settings Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-h-[40px] sm:min-h-[36px] justify-center sm:justify-start">
-                  <Settings className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Settings</span>
-                  <ChevronDown className="w-4 h-4 ml-0 sm:ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Financial Settings</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {financialPermissions.canManageCurrencySettings && (
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Financial Settings</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {financialPermissions.canManageCurrencySettings && (
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/financial/currency">
+                    <Coins className="w-4 h-4 mr-2" />
+                    Currency Settings
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {financialPermissions.canViewCostCenters && (
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/financial/cost-centers">
+                    <Building className="w-4 h-4 mr-2" />
+                    Cost Centers
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {financialPermissions.canManageFinancialSettings && (
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/financial/billing">
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Billing Management
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {financialPermissions.canViewFinancialReports && (
+                <>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/financial/currency">
-                      <Coins className="w-4 h-4 mr-2" />
-                      Currency Settings
+                    <Link href="/dashboard/financial/reports">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Financial Reports
                     </Link>
                   </DropdownMenuItem>
-                )}
-                {financialPermissions.canViewCostCenters && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/financial/cost-centers">
-                      <Building className="w-4 h-4 mr-2" />
-                      Cost Centers
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                {financialPermissions.canManageFinancialSettings && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/financial/billing">
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Billing Management
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                {financialPermissions.canViewFinancialReports && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/financial/reports">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Financial Reports
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* 6. Refresh Button */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="h-9 w-full sm:w-auto justify-center"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
       </div>
 
