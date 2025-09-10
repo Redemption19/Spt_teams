@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  DollarSign,
+  Wallet,
   FileText,
   Download,
   Calendar,
@@ -344,7 +344,7 @@ export default function MemberPayrollDashboard({ workspaceId }: MemberPayrollDas
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium truncate">Base Salary</CardTitle>
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
           <CardContent className="p-3 sm:p-4 pt-0">
             <div className="text-lg sm:text-xl lg:text-2xl font-bold truncate">

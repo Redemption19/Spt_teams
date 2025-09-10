@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { DollarSign, TrendingDown, TrendingUp, Target, AlertTriangle } from 'lucide-react';
+import { Wallet, TrendingDown, TrendingUp, Target, AlertTriangle } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace-context';
 import { BudgetTrackingService } from '@/lib/budget-tracking-service';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,7 @@ function BudgetAnalyticsTab({ workspaceIds }: { workspaceIds: string[] }) {
         <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between p-3 sm:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Total Budget</CardTitle>
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+            <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-3 sm:p-6 pt-0">
             <div className="text-lg sm:text-xl font-bold">₵{analytics.totalBudget?.toLocaleString()}</div>

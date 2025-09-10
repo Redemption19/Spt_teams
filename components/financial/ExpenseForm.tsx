@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Upload, Save, X, Plus, FileText, DollarSign, Settings, Paperclip } from 'lucide-react';
+import { Calendar, Upload, Save, X, Plus, FileText, Wallet, Settings, Paperclip } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useAuth } from '@/lib/auth-context';
 import { CurrencySelector } from '@/components/financial/CurrencySelector';
@@ -208,7 +208,7 @@ export default function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
                 <span className="sm:hidden text-xs">Basic</span>
               </TabsTrigger>
               <TabsTrigger value="details" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5">
-                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Wallet className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline text-xs sm:text-sm">Details</span>
                 <span className="sm:hidden text-xs">Details</span>
               </TabsTrigger>

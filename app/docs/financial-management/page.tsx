@@ -1,6 +1,6 @@
 'use client';
 
-import { DollarSign, CreditCard, PieChart, TrendingUp, Receipt, Calculator, FileText, Users, Shield, BarChart3, Settings, Calendar, Target, AlertCircle, CheckCircle, Clock, Globe, Scan, Building2, Brain, Layers, Workflow, Eye, Zap, Database } from 'lucide-react';
+import { Wallet, CreditCard, PieChart, TrendingUp, Receipt, Calculator, FileText, Users, Shield, BarChart3, Settings, Calendar, Target, AlertCircle, CheckCircle, Clock, Globe, Scan, Building2, Brain, Layers, Workflow, Eye, Zap, Database } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export default function FinancialManagementPage() {
       {/* Core Financial Features */}
       <div className="space-y-6">
         <h2 className="text-3xl font-bold flex items-center gap-2">
-          <DollarSign className="h-8 w-8 text-primary" />
+          <Wallet className="h-8 w-8 text-primary" />
           Core Financial Features
         </h2>
         
@@ -568,7 +568,7 @@ export default function FinancialManagementPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
+                    <Wallet className="h-5 w-5" />
                     Payment Processing
                   </CardTitle>
                   <CardDescription>
@@ -910,7 +910,7 @@ export default function FinancialManagementPage() {
       <div className="space-y-6 p-6 rounded-lg bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
         <h2 className="text-2xl font-bold">🎯 Ready to Optimize Your Finances?</h2>
         <p className="text-muted-foreground">
-          Start managing your finances more effectively with SPT Teams' comprehensive financial management tools.
+          Start managing your finances more effectively with SPT&apos; Teams comprehensive financial management tools.
         </p>
         
         <div className="grid gap-4 md:grid-cols-3">
@@ -940,7 +940,7 @@ export default function FinancialManagementPage() {
         <div className="flex gap-4">
           <Button asChild>
             <Link href="/docs/getting-started">
-              <DollarSign className="mr-2 h-4 w-4" />
+              <Wallet className="mr-2 h-4 w-4" />
               Get Started
             </Link>
           </Button>

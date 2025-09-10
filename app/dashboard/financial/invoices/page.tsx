@@ -18,7 +18,7 @@ import {
   Clock, 
   CheckCircle, 
   XCircle, 
-  DollarSign,
+  Wallet,
   Calendar,
   AlertCircle,
   Filter,
@@ -733,7 +733,7 @@ export default function InvoicesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
             <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Amount</CardTitle>
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-lg sm:text-2xl font-bold break-all">

@@ -17,7 +17,7 @@ import { BudgetTrackingService } from "@/lib/budget-tracking-service";
 import { DepartmentService, Department } from "@/lib/department-service";
 // TODO: Import ProjectService, TeamService if available
 import type { BudgetFormData } from "@/lib/types/financial-types";
-import { FileText, DollarSign, Settings, AlertTriangle, Save, Users, ArrowLeft, Plus } from 'lucide-react';
+import { FileText, Wallet, Settings, AlertTriangle, Save, Users, ArrowLeft, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CreateCategoryDialog from '@/components/financial/CreateCategoryDialog';
 import { ExpenseManagementService } from '@/lib/expense-management-service';

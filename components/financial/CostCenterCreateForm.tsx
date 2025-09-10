@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { BudgetTrackingService } from '@/lib/budget-tracking-service';
-import { Building, DollarSign, Calendar, User, Briefcase, FolderOpen, Globe, Plus } from 'lucide-react';
+import { Building, Wallet, Calendar, User, Briefcase, FolderOpen, Globe, Plus } from 'lucide-react';
 import { ProjectService } from '@/lib/project-service';
 import { WorkspaceService } from '@/lib/workspace-service';
 import { ProjectCreateDialog } from './ProjectCreateDialog';
@@ -310,7 +310,7 @@ export function CostCenterCreateForm({
           {/* Budget Information */}
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-foreground">
-              <DollarSign className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
+              <Wallet className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
               Budget Information
             </div>
             

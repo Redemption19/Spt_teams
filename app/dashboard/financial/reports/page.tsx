@@ -31,7 +31,7 @@ import {
   FileText, 
   TrendingUp, 
   TrendingDown,
-  DollarSign,
+  Wallet,
   PieChart,
   LineChart,
   Filter,
@@ -330,7 +330,7 @@ export default function FinancialReportsPage() {
   const insightsWithIcons = useMemo(() => {
     const iconMap: { [key: string]: any } = {
       'TrendingUp': TrendingUp,
-      'DollarSign': DollarSign,
+      'Wallet': Wallet,
       'FileText': FileText,
       'BarChart3': BarChart3
     };

@@ -15,7 +15,7 @@ import {
   Download, 
   Calendar, 
   Building, 
-  DollarSign,
+  Wallet,
   TrendingUp,
   TrendingDown,
   Users,

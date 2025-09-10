@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   User, 
   Briefcase, 
-  DollarSign, 
+  Wallet, 
   Loader2, 
   AlertCircle,
   Phone,
@@ -407,7 +407,7 @@ export function EmployeeForm({
               <span className="xs:hidden">Job</span>
             </TabsTrigger>
             <TabsTrigger value="compensation" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 touch-manipulation">
-              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+              <Wallet className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Compensation</span>
               <span className="xs:hidden">Pay</span>
             </TabsTrigger>

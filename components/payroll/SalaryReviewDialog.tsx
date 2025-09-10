@@ -12,7 +12,7 @@ import {
   Calculator,
   Loader2,
   User,
-  DollarSign,
+  Wallet,
   Clock,
   Gift,
   FileText
@@ -218,7 +218,7 @@ export default function SalaryReviewDialog({
 
                   <div className="space-y-2">
                     <Label htmlFor={`other-allowance-${currentEmployee.id}`} className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
+                      <Wallet className="w-4 h-4" />
                       Other Allowance
                     </Label>
                     <Input

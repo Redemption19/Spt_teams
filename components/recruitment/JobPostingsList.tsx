@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { 
   Briefcase,
   MapPin,
-  DollarSign,
+  Wallet,
   Calendar,
   Eye,
   Edit,
@@ -261,7 +261,7 @@ export default function JobPostingsList({
                         <span className="truncate">{job.location}</span>
                       </span>
                       <span className="flex items-center gap-1.5 sm:gap-2">
-                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <Wallet className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span className="truncate">{formatAmount(job.salaryRange.min)} - {formatAmount(job.salaryRange.max)}</span>
                       </span>
                       <span className="flex items-center gap-1.5 sm:gap-2">

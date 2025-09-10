@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, Settings, Users, Shield, Globe, Database, Zap, BarChart3, FileText, Calendar, DollarSign, UserCheck, Lock, Workflow, Bell, Palette, Monitor } from 'lucide-react';
+import { Building2, Settings, Users, Shield, Globe, Database, Zap, BarChart3, FileText, Calendar, Wallet, UserCheck, Lock, Workflow, Bell, Palette, Monitor } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -427,7 +427,7 @@ export default function WorkspacesPage() {
           <Card className="text-center">
             <CardHeader>
               <CardTitle className="flex flex-col items-center gap-2">
-                <DollarSign className="h-8 w-8 text-green-500" />
+                <Wallet className="h-8 w-8 text-green-500" />
                 Financial Management
               </CardTitle>
             </CardHeader>

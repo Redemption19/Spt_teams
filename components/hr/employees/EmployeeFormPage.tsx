@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   User, 
   Briefcase, 
-  DollarSign, 
+  Wallet, 
   Loader2, 
   ArrowLeft,
   Upload,
@@ -596,7 +596,7 @@ export function EmployeeFormPage({ employee, mode }: EmployeeFormPageProps) {
                 Employment Details
               </TabsTrigger>
               <TabsTrigger value="compensation" className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
+                <Wallet className="w-4 h-4" />
                 Compensation
               </TabsTrigger>
             </TabsList>

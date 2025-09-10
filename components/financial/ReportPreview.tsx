@@ -15,7 +15,7 @@ import {
   Download, 
   Calendar, 
   Building, 
-  DollarSign,
+  Wallet,
   TrendingUp,
   TrendingDown,
   Users,
@@ -195,7 +195,7 @@ export function ReportPreview({
       'expense_analysis': TrendingUp,
       'cost_center_analysis': Building,
       'profit_loss': FileText,
-      'cash_flow': DollarSign,
+      'cash_flow': Wallet,
       'invoice_aging': Clock
     };
     const IconComponent = icons[template.type] || FileText;

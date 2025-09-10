@@ -9,7 +9,7 @@ import {
   ArrowLeft,
   Briefcase,
   MapPin,
-  DollarSign,
+  Wallet,
   FileText,
   Users,
   Clock,
@@ -277,7 +277,7 @@ export default function ViewJobPostingPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="flex items-center gap-2 text-sm">
-                <DollarSign className="w-4 h-4 text-green-600" />
+                <Wallet className="w-4 h-4 text-green-600" />
                 <span className="font-medium">
                   {getCurrencySymbol(jobPosting.salaryRange.currency)}{jobPosting.salaryRange.min.toLocaleString()} - {getCurrencySymbol(jobPosting.salaryRange.currency)}{jobPosting.salaryRange.max.toLocaleString()}
                 </span>

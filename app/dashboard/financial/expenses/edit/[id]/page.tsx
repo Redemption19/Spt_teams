@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DatePicker } from '@/components/ui/date-picker';
 import { LoadingSpinner, ExpenseEditSkeleton } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Trash2, AlertTriangle, FileText, DollarSign, Settings, Paperclip, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, AlertTriangle, FileText, Wallet, Settings, Paperclip, Plus, X } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useAuth } from '@/lib/auth-context';
 import { useCurrency } from '@/hooks/use-currency';
@@ -377,7 +377,7 @@ export default function EditExpensePage() {
                   <span className="hidden sm:inline">Basic Info</span>
                 </TabsTrigger>
                 <TabsTrigger value="details" className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
+                  <Wallet className="w-4 h-4" />
                   <span className="hidden sm:inline">Details</span>
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">

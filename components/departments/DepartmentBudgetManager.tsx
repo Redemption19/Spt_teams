@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  DollarSign, 
+  Wallet, 
   TrendingUp, 
   TrendingDown, 
   AlertTriangle, 
@@ -52,13 +52,7 @@ export default function DepartmentBudgetManager({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (currentWorkspace?.id && department.id) {
-      fetchDepartmentBudgets();
-    }
-  }, [currentWorkspace?.id, department.id]);
-
-  const fetchDepartmentBudgets = async () => {
+  const fetchDepartmentBudgets = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -88,7 +82,13 @@ export default function DepartmentBudgetManager({
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace?.id, department.id]);
+
+  useEffect(() => {
+    if (currentWorkspace?.id && department.id) {
+      fetchDepartmentBudgets();
+    }
+  }, [currentWorkspace?.id, department.id, fetchDepartmentBudgets]);
 
   const calculateBudgetSummary = (budgets: Budget[]): BudgetSummary => {
     const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
@@ -197,7 +197,7 @@ export default function DepartmentBudgetManager({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

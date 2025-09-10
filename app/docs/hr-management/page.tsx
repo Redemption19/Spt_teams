@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, UserPlus, Clock, DollarSign, BarChart3, Shield, Calendar, FileText, Award, Target, TrendingUp, CheckCircle, Video, MapPin, Workflow, CreditCard, Timer, ClipboardList, Star, MessageSquare } from 'lucide-react';
+import { Users, UserPlus, Clock, Wallet, BarChart3, Shield, Calendar, FileText, Award, Target, TrendingUp, CheckCircle, Video, MapPin, Workflow, CreditCard, Timer, ClipboardList, Star, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +51,7 @@ export default function HRManagementPage() {
           <Card className="relative overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-green-500" />
+                <Wallet className="h-5 w-5 text-green-500" />
                 Payroll Management
               </CardTitle>
               <CardDescription>
@@ -291,7 +291,7 @@ export default function HRManagementPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
+                    <Wallet className="h-5 w-5" />
                     Salary Management
                   </CardTitle>
                   <CardDescription>

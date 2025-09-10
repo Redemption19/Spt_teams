@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { 
   Calendar, 
-  DollarSign, 
+  Wallet, 
   Users, 
   AlertCircle, 
   Clock,
@@ -94,7 +94,7 @@ export default function HRUpcomingEvents() {
               date: payrollDate,
               type: 'payroll',
               priority: 'high',
-              icon: <DollarSign className="w-4 h-4 text-green-500" />,
+              icon: <Wallet className="w-4 h-4 text-green-500" />,
               actionRequired: true,
               count: payrollEmployees.length
             });

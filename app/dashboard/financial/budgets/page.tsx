@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, TrendingUp, TrendingDown, AlertTriangle, Target, DollarSign, Calendar, Settings } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, AlertTriangle, Target, Wallet, Calendar, Settings } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/lib/auth-context';
 import { BudgetTrackingService } from '@/lib/budget-tracking-service';

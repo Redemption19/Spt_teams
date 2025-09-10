@@ -13,7 +13,7 @@ import {
   CheckCircle, 
   AlertCircle, 
   Loader2,
-  DollarSign,
+  Wallet,
   FileText,
   BarChart3,
   Target,
@@ -275,7 +275,7 @@ export function FinancialPermissionMigration() {
                       <span className="text-sm">Invoice Management</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-orange-600" />
+                      <Wallet className="w-4 h-4 text-orange-600" />
                       <span className="text-sm">Cost Center Management</span>
                     </div>
                     <div className="flex items-center gap-2">

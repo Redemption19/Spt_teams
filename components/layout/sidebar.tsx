@@ -41,7 +41,7 @@ import {
   Download,
   Bell,
   Shield,
-  DollarSign,
+  Wallet,
   Receipt,
   Target,
   Building,
@@ -50,6 +50,8 @@ import {
   UserPlus,
   Video,
   Phone,
+  Coins,
+  BanknoteIcon,
 } from 'lucide-react';
 import { useNotifications } from '@/lib/notification-context';
 
@@ -188,19 +190,19 @@ const navigationGroups = [
   {
     type: 'dropdown',
     name: 'Financial Management',
-    icon: DollarSign,
+    icon: BarChart3,
     requiresPermission: true,
     items: [
       {
         name: 'Financial Dashboard',
         href: '/dashboard/financial/overview',
-        icon: DollarSign,
+        icon: Wallet,
         description: 'Overview of budgets, expenses, and financial metrics',
       },
       {
         name: 'Expense Management',
         href: '/dashboard/financial/expenses',
-        icon: Receipt,
+        icon: BanknoteIcon,
         description: 'Submit and track expense reports',
       },
       {
@@ -227,7 +229,7 @@ const navigationGroups = [
       {
         name: 'Currency Settings',
         href: '/dashboard/financial/currency',
-        icon: DollarSign,
+        icon: Coins,
         description: 'Manage currencies and exchange rates',
         adminOnly: true,
       },
@@ -304,7 +306,7 @@ const navigationGroups = [
       {
         name: 'Payroll Management',
         href: '/dashboard/hr/payroll',
-        icon: DollarSign,
+        icon: Wallet,
         description: 'Process payroll and manage salaries',
       },
       {

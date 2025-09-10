@@ -10,7 +10,7 @@ import {
   ArrowLeft, 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
+  Wallet, 
   Calendar, 
   PieChart,
   BarChart3,
@@ -597,7 +597,7 @@ export default function ExpenseAnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatAmount(totalAmount)}</div>
@@ -1448,7 +1448,7 @@ export default function ExpenseAnalyticsPage() {
 
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-green-500" />
+                      <Wallet className="w-4 h-4 text-green-500" />
                       <span className="text-sm font-medium">Total Amount</span>
                     </div>
                     <Badge variant="secondary">{formatAmount(totalAmount)}</Badge>

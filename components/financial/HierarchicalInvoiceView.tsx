@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { 
   Building2, 
   TrendingUp, 
-  DollarSign, 
+  Wallet, 
   FileText, 
   Users, 
   BarChart3,
@@ -351,7 +351,7 @@ export default function HierarchicalInvoiceView({ workspaceId, className }: Hier
                       {getCurrencySymbol()}{formatNumber(filteredSummary.totalAmount)}
                     </p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-600" />
+                  <Wallet className="w-8 h-8 text-green-600" />
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
                   {filteredSummary.collectionRate.toFixed(1)}% collection rate

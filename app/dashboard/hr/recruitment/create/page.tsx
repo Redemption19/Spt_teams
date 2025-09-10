@@ -15,7 +15,7 @@ import {
   X,
   Briefcase,
   MapPin,
-  DollarSign,
+  Wallet,
   Users,
   FileText,
   CheckCircle,
@@ -376,7 +376,7 @@ export default function CreateJobPostingPage() {
           <Card className="card-enhanced">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-600" />
+                <Wallet className="w-5 h-5 text-green-600" />
                 Salary Information
               </CardTitle>
               <CardDescription>

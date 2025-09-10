@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Filter, Download, Search, Eye, Edit, Trash2, DollarSign, Clock, CheckCircle, XCircle, BarChart3, Settings, Upload } from 'lucide-react';
+import { Plus, Filter, Download, Search, Eye, Edit, Trash2, Wallet, Clock, CheckCircle, XCircle, BarChart3, Settings, Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/data-table';
@@ -613,7 +613,7 @@ export default function ExpensesPage() {
             <Card className="card-enhanced">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
                 <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Across All Workspaces</CardTitle>
-                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-lg sm:text-xl lg:text-2xl font-bold break-all">{getCurrencySymbol()}{formatNumber(workspaceSummary.totalAmount || 0)}</div>
@@ -728,7 +728,7 @@ export default function ExpensesPage() {
           <Card className="card-enhanced">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
               <CardTitle className="text-xs sm:text-sm font-medium truncate">Total Expenses</CardTitle>
-              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+              <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-lg sm:text-xl lg:text-2xl font-bold break-all">{getCurrencySymbol()}{formatNumber(expenseStats.totalAmount)}</div>

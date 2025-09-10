@@ -10,7 +10,7 @@ import {
   Users, 
   Clock, 
   Calendar, 
-  DollarSign, 
+  Wallet, 
   UserPlus,
   AlertCircle,
   CheckCircle,

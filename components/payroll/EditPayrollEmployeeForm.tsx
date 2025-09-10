@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { 
   User, 
-  DollarSign, 
+  Wallet, 
   Calculator,
   Loader2, 
   AlertCircle,
@@ -534,7 +534,7 @@ export default function EditPayrollEmployeeForm({
             <Card>
               <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
-                  <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <Wallet className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   Salary & Allowances
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm lg:text-base">

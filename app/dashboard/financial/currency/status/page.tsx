@@ -21,7 +21,7 @@ import {
   TrendingUp,
   RefreshCw,
   Globe,
-  DollarSign,
+  Wallet,
   Settings,
   Activity,
   Target
@@ -348,7 +348,7 @@ export default function CurrencySystemStatus() {
         <Card className="card-enhanced border-border/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Total Conversions</CardTitle>
-            <DollarSign className="h-4 w-4 text-accent" />
+            <Wallet className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
@@ -468,7 +468,7 @@ export default function CurrencySystemStatus() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <DollarSign className="h-4 w-4 text-primary" />
+                          <Wallet className="h-4 w-4 text-primary" />
                         </div>
                         <span className="font-medium text-foreground">{currency.code}</span>
                       </div>
@@ -596,7 +596,7 @@ export default function CurrencySystemStatus() {
                 </div>
                 <div className="flex items-center space-x-3 p-4 bg-card/50 hover:bg-card/70 border border-border/30 rounded-lg transition-all duration-200 hover:shadow-md backdrop-blur-sm">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
-                    <DollarSign className="h-4 w-4 text-primary" />
+                    <Wallet className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">Currency conversion: 100 GHS → USD</p>

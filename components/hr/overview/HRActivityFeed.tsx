@@ -7,7 +7,7 @@ import {
   User, 
   Clock, 
   UserPlus, 
-  DollarSign, 
+  Wallet, 
   Calendar, 
   CheckCircle, 
   XCircle,
@@ -81,7 +81,7 @@ export default function HRActivityFeed() {
         return <User className="w-4 h-4 text-indigo-500" />;
       default:
         if (activity.entity.toLowerCase().includes('payroll')) {
-          return <DollarSign className="w-4 h-4 text-green-500" />;
+          return <Wallet className="w-4 h-4 text-green-500" />;
         }
         if (activity.entity.toLowerCase().includes('leave')) {
           return <Calendar className="w-4 h-4 text-orange-500" />;

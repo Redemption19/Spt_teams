@@ -225,7 +225,7 @@ export class FinancialReportsService {
           trend: this.getTrend(expenseData.changePercentage),
           description: 'Compared to last period',
           color: this.getTrend(expenseData.changePercentage) === 'down' ? 'text-green-600' : 'text-red-600',
-          icon: 'DollarSign'
+          icon: 'Wallet'
         },
         {
           title: 'Outstanding Invoices',
@@ -998,7 +998,7 @@ export class FinancialReportsService {
         trend: 'stable',
         description: 'No data available',
         color: 'text-muted-foreground',
-        icon: 'DollarSign'
+        icon: 'Wallet'
       },
       {
         title: 'Outstanding Invoices',

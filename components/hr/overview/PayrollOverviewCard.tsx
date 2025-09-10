@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp } from 'lucide-react';
+import { Wallet, TrendingUp } from 'lucide-react';
 import { PayrollService } from '@/lib/payroll-service';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useToast } from '@/hooks/use-toast';
@@ -204,7 +204,7 @@ export default function PayrollOverviewCard({
           <CardTitle className="text-sm font-medium">
           {shouldShowCrossWorkspace ? 'Payroll (All Workspaces)' : 'Payroll'}
         </CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <Wallet className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="h-8 w-20 bg-gray-200 rounded animate-pulse mb-2" />
@@ -224,7 +224,7 @@ export default function PayrollOverviewCard({
         <CardTitle className="text-sm font-medium">
           {shouldShowCrossWorkspace ? 'Payroll (All Workspaces)' : 'Payroll'}
         </CardTitle>
-        <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <Wallet className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatAmount(stats.totalPayroll)}</div>

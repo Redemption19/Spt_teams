@@ -19,7 +19,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/hooks/use-currency';
 import { 
-  DollarSign, 
   TrendingUp, 
   TrendingDown, 
   CreditCard,
@@ -43,7 +42,8 @@ import {
   XCircle,
   Zap,
   Activity,
-  Shield
+  Shield,
+  Wallet
 } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useAuth } from '@/lib/auth-context';
@@ -781,7 +781,7 @@ export default function FinancialDashboard() {
                   {workspaceIds.length} WS
                 </Badge>
               )}
-              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -1046,7 +1046,7 @@ export default function FinancialDashboard() {
               {financialPermissions.canCreateBudgets && (
                 <Button asChild className="w-full sm:w-auto">
                   <Link href="/dashboard/financial/budgets/new">
-                    <DollarSign className="w-4 h-4 mr-2" />
+                    <Wallet className="w-4 h-4 mr-2" />
                     <span className="sm:inline">Create Budget</span>
                   </Link>
                 </Button>
@@ -1112,7 +1112,7 @@ export default function FinancialDashboard() {
                   </p>
                   <Button asChild className="w-full sm:w-auto">
                     <Link href="/dashboard/financial/budgets/new">
-                      <DollarSign className="w-4 h-4 mr-2" />
+                      <Wallet className="w-4 h-4 mr-2" />
                       Create Budget
                     </Link>
                   </Button>
@@ -1177,7 +1177,7 @@ export default function FinancialDashboard() {
             <Card className="stats-card">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-blue-600" />
+                  <Wallet className="w-4 h-4 text-blue-600" />
                   Total Amount
                 </CardTitle>
               </CardHeader>

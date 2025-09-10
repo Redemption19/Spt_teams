@@ -13,7 +13,7 @@ import {
   TrendingUp,
   TrendingDown,
   Target,
-  DollarSign,
+  Wallet,
   Users,
   Activity,
   Download,
@@ -278,7 +278,7 @@ export function CostCenterComparison({
                       {formatAmount(filteredData.reduce((sum, center) => sum + center.budget, 0))}
                     </p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-muted-foreground" />
+                  <Wallet className="h-8 w-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>

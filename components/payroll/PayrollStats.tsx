@@ -3,7 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  DollarSign,
+  Wallet,
   Users,
   TrendingUp,
   TrendingDown,
@@ -93,7 +93,7 @@ export default function PayrollStats({ stats, loading }: PayrollStatsProps) {
         <CardContent className="p-4 sm:p-5 lg:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 min-w-0 flex-1">
-              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
+              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
               <span className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Total Gross Pay</span>
             </div>
             <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />

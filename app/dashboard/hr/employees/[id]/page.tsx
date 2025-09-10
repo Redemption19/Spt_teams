@@ -15,7 +15,7 @@ import {
   FileText, 
   User, 
   Briefcase, 
-  DollarSign,
+  Wallet,
   MapPin,
   Phone,
   Mail,
@@ -230,7 +230,7 @@ export default function EmployeeDetailPage() {
         <Card className="stats-card">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <Wallet className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Salary</span>
             </div>
             <p className="font-semibold text-sm sm:text-base">

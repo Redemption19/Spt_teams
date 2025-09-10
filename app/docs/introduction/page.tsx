@@ -8,7 +8,7 @@ import {
   Users, 
   BarChart3, 
   FolderOpen, 
-  DollarSign, 
+  Wallet, 
   UserPlus, 
   Calendar, 
   Bot, 
@@ -115,7 +115,7 @@ export default function IntroductionPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <Wallet className="h-5 w-5 text-primary" />
                 Financial Management
               </CardTitle>
             </CardHeader>

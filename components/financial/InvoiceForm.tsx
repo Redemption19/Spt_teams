@@ -19,7 +19,7 @@ import { InvoiceTypeService, type InvoiceType } from '@/lib/invoice-type-service
 import CreateClientModal from '@/components/financial/CreateClientModal';
 import CreateInvoiceTypeModal from '@/components/financial/CreateInvoiceTypeModal';
 import type { InvoiceFormData, Invoice } from '@/lib/types/financial-types';
-import { FileText, DollarSign, Settings, Users, Save, Plus, Minus, ArrowLeft, UserPlus } from 'lucide-react';
+import { FileText, Wallet, Settings, Users, Save, Plus, Minus, ArrowLeft, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Project {
@@ -349,7 +349,7 @@ export default function InvoiceForm({ onSuccess, onCancel, initialData, isEdit =
                 <span className="sm:hidden">Basic</span>
               </TabsTrigger>
               <TabsTrigger value="items" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
-                <DollarSign className="w-3 sm:w-4 h-3 sm:h-4" />
+                <Wallet className="w-3 sm:w-4 h-3 sm:h-4" />
                 <span className="hidden sm:inline">Items</span>
                 <span className="sm:hidden">Items</span>
               </TabsTrigger>

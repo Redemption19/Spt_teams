@@ -7,7 +7,7 @@ import { BillingService } from '@/lib/billing-service';
 import { ExpenseManagementService } from '@/lib/expense-management-service';
 import { DepartmentService } from '@/lib/department-service';
 import { BudgetTrackingService } from '@/lib/budget-tracking-service';
-import { TrendingDown, ArrowUpRight, ArrowDownRight, Calendar, DollarSign, Download, FileText, ArrowLeft } from 'lucide-react';
+import { TrendingDown, ArrowUpRight, ArrowDownRight, Calendar, Wallet, Download, FileText, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ChartAreaInteractive } from '@/components/ui/ChartAreaInteractive';
 import { ChartPieInteractive } from '@/components/ui/ChartPieInteractive';
@@ -313,7 +313,7 @@ export default function AdvancedAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 text-2xl font-bold text-green-600">
-              <DollarSign className="w-6 h-6" />₵{revenue.toLocaleString()}
+              <Wallet className="w-6 h-6" />₵{revenue.toLocaleString()}
             </div>
           </CardContent>
         </Card>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Info, CheckCircle, X, Bell, Clock, TrendingDown, Users, DollarSign, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle, X, Bell, Clock, TrendingDown, Users, Wallet, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -155,8 +155,8 @@ export function AlertNotifications() {
         setError('Failed to load alerts. Please try again.');
         toast.error('Failed to load alerts');
         
-        // Fallback to mock data
-        setAlerts(mockAlerts);
+        // Set empty array on error since not using mock data
+        setAlerts([]);
       } finally {
         setLoading(false);
       }
@@ -171,60 +171,6 @@ export function AlertNotifications() {
       }
     };
   }, [currentWorkspace?.id, user?.uid]);
-
-  // Mock alerts as fallback
-  const mockAlerts: AlertNotification[] = [
-    {
-      id: '1',
-      type: 'critical',
-      title: 'Budget Overrun Alert',
-      message: 'Marketing department has exceeded 95% of allocated budget with 2 months remaining in the quarter.',
-      department: 'Marketing',
-      timestamp: '2 hours ago',
-      actionRequired: true,
-      category: 'budget'
-    },
-    {
-      id: '2',
-      type: 'warning',
-      title: 'Performance Decline',
-      message: 'Engineering team productivity has decreased by 12% compared to last month.',
-      department: 'Engineering',
-      timestamp: '4 hours ago',
-      actionRequired: true,
-      category: 'performance'
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: 'New Team Member',
-      message: 'Sales department has onboarded 3 new team members this week.',
-      department: 'Sales',
-      timestamp: '1 day ago',
-      actionRequired: false,
-      category: 'hr'
-    },
-    {
-      id: '4',
-      type: 'warning',
-      title: 'Project Deadline Risk',
-      message: 'Operations team has 2 projects at risk of missing deadlines this month.',
-      department: 'Operations',
-      timestamp: '1 day ago',
-      actionRequired: true,
-      category: 'project'
-    },
-    {
-      id: '5',
-      type: 'success',
-      title: 'KPI Target Achieved',
-      message: 'HR department has successfully achieved 98% employee satisfaction target.',
-      department: 'HR',
-      timestamp: '2 days ago',
-      actionRequired: false,
-      category: 'performance'
-    }
-  ];
 
   const [filter, setFilter] = useState<'all' | 'critical' | 'warning' | 'info' | 'success'>('all');
 
@@ -297,7 +243,7 @@ export function AlertNotifications() {
       case 'performance':
         return <TrendingDown className="h-3 w-3" />;
       case 'budget':
-        return <DollarSign className="h-3 w-3" />;
+        return <Wallet className="h-3 w-3" />;
       case 'hr':
         return <Users className="h-3 w-3" />;
       case 'project':

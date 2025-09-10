@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Briefcase,
   MapPin,
-  DollarSign,
+  Wallet,
   FileText,
   Users,
   Clock,
@@ -427,7 +427,7 @@ export default function EditJobPostingPage() {
           <Card className="card-enhanced">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-primary" />
+                <Wallet className="w-5 h-5 text-primary" />
                 Salary Information
               </CardTitle>
               <CardDescription>

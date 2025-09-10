@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  DollarSign, 
+  Wallet, 
   Settings, 
   Plus, 
   Edit, 
@@ -409,7 +409,7 @@ export default function CurrencySettingsPage() {
         <CardContent className="pt-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
-              <DollarSign className="w-5 h-5 text-primary" />
+              <Wallet className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
               <p className="font-medium">Default Currency: Ghana Cedi (GHS)</p>
@@ -592,7 +592,7 @@ export default function CurrencySettingsPage() {
               {/* Basic Settings */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
+                  <Wallet className="w-4 h-4" />
                   Basic Configuration
                 </h3>
                 

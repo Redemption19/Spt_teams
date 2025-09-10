@@ -39,7 +39,7 @@ import {
   AlertCircle, 
   XCircle,
   Calendar,
-  DollarSign,
+  Wallet,
   User,
   Building,
   Mail,
@@ -617,7 +617,7 @@ export default function ViewInvoicePage() {
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Currency</label>
                     <div className="flex items-center gap-2 mt-1">
-                      <DollarSign className="w-4 h-4 text-muted-foreground" />
+                      <Wallet className="w-4 h-4 text-muted-foreground" />
                       <span>{invoice.currency}</span>
                     </div>
                   </div>
@@ -680,7 +680,7 @@ export default function ViewInvoicePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
+                  <Wallet className="w-5 h-5" />
                   Invoice Summary
                 </CardTitle>
               </CardHeader>

@@ -15,7 +15,7 @@ import {
   BarChart3, 
   PieChart,
   Calendar,
-  DollarSign,
+  Wallet,
   Clock,
   Building,
   UserCheck,

@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Target,
   Calendar,
-  DollarSign,
+  Wallet,
   Activity,
   Filter,
   Download

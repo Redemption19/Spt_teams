@@ -14,7 +14,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  DollarSign,
+  Wallet,
   Calendar,
   Tag,
   FileText,
@@ -351,7 +351,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
+                <Wallet className="w-5 h-5" />
                 Amount Details
               </CardTitle>
             </CardHeader>

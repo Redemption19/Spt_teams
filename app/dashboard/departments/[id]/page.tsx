@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Building2, Users, TrendingUp, ArrowLeft, Edit, Settings, Loader2, AlertTriangle, DollarSign, Briefcase, Mail, Crown, UserCheck } from 'lucide-react';
+import { Building2, Users, TrendingUp, ArrowLeft, Edit, Settings, Loader2, AlertTriangle, Wallet, Briefcase, Mail, Crown, UserCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -315,7 +315,7 @@ export default function DepartmentDetailsPage() {
                   <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-medium mb-2">No Members Found</h3>
                   <p className="text-muted-foreground mb-4">
-                    This department doesn't have any members assigned yet.
+                    This department doesn&apos;t have any members assigned yet.
                   </p>
                   <Button 
                     variant="outline"

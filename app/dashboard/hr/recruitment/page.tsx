@@ -29,7 +29,7 @@ import {
   AlertCircle,
   Briefcase,
   MapPin,
-  DollarSign,
+  Wallet,
   Star,
   UserPlus,
   Send,

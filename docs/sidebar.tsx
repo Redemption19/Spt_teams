@@ -6,7 +6,7 @@ import {
   Users, 
   BarChart3, 
   FolderOpen, 
-  DollarSign, 
+  Wallet, 
   UserPlus, 
   Calendar, 
   Bot, 
@@ -61,7 +61,7 @@ export const sidebar = [
   {
     title: "Financial Management",
     path: "/docs/financial-management",
-    icon: DollarSign,
+    icon: Wallet,
     description: "Expenses, budgets, invoices, and financial tracking"
   },
   {
@@ -123,7 +123,7 @@ export const sidebarGroups = [
     title: "Management Suites",
     items: [
       { title: "Document Management", path: "/docs/document-management", icon: FolderOpen },
-      { title: "Financial Management", path: "/docs/financial-management", icon: DollarSign },
+      { title: "Financial Management", path: "/docs/financial-management", icon: Wallet },
       { title: "HR Management", path: "/docs/hr-management", icon: UserPlus },
       { title: "Calendar & Tasks", path: "/docs/calendar-tasks", icon: Calendar }
     ]

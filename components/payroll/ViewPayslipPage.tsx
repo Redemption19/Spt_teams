@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, 
   Receipt, 
-  DollarSign, 
+  Wallet, 
   User, 
   Calendar, 
   TrendingUp, 
@@ -184,7 +184,7 @@ export function ViewPayslipPage({ payslip, onDownload, onSend }: ViewPayslipPage
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-white" />
+                    <Wallet className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">
@@ -465,7 +465,7 @@ export function ViewPayslipPage({ payslip, onDownload, onSend }: ViewPayslipPage
                 </div>
                 <div className="text-right print:hidden">
                   <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                    <DollarSign className="w-8 h-8 text-white" />
+                    <Wallet className="w-8 h-8 text-white" />
                   </div>
                 </div>
               </div>

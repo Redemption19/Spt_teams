@@ -36,7 +36,7 @@ import {
   Download,
   Bell,
   Shield,
-  DollarSign,
+  Wallet,
   Receipt,
   Target,
   Building,
@@ -182,13 +182,13 @@ const navigationGroups = [
   {
     type: 'dropdown',
     name: 'Financial Management',
-    icon: DollarSign,
+    icon: Wallet,
     requiresPermission: true,
     items: [
       {
         name: 'Financial Dashboard',
         href: '/dashboard/financial/overview',
-        icon: DollarSign,
+        icon: Wallet,
         description: 'Overview of budgets, expenses, and financial metrics',
       },
       {
@@ -221,7 +221,7 @@ const navigationGroups = [
       {
         name: 'Currency Settings',
         href: '/dashboard/financial/currency',
-        icon: DollarSign,
+        icon: Wallet,
         description: 'Manage currencies and exchange rates',
         adminOnly: true,
       },
@@ -298,7 +298,7 @@ const navigationGroups = [
       {
         name: 'Payroll Management',
         href: '/dashboard/hr/payroll',
-        icon: DollarSign,
+        icon: Wallet,
         description: 'Process payroll and manage salaries',
       },
       {
