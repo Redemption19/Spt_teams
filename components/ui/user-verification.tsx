@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, CheckCircle, AlertCircle, User, Building } from 'lucide-react';
 import { getDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { safeFormatDate } from '@/lib/utils/date-utils';
 
 export function UserVerification() {
   const [userId, setUserId] = useState('');
@@ -287,7 +288,7 @@ export function UserVerification() {
                     <p><strong>Role:</strong> <Badge variant="outline">{uw.role}</Badge></p>
                     <p><strong>Scope:</strong> {uw.scope || 'N/A'}</p>
                     <p><strong>Effective Role:</strong> {uw.effectiveRole || 'N/A'}</p>
-                    <p><strong>Joined:</strong> {uw.joinedAt ? new Date(uw.joinedAt.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
+                    <p><strong>Joined:</strong> {safeFormatDate(uw.joinedAt, undefined, 'N/A')}</p>
                   </div>
                 ))}
               </div>
@@ -311,4 +312,4 @@ export function UserVerification() {
       </CardContent>
     </Card>
   );
-} 
+}

@@ -61,6 +61,7 @@ import DeleteTaskAlertDialog from './dialogs/DeleteTaskAlertDialog';
 import TaskDetailDialog from './dialogs/TaskDetailDialog';
 import ProjectCardGrid from './ProjectCardGrid';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import { useI18n } from '@/lib/i18n-context';
 
 // Types
 export interface ProjectWithStats extends Project {
@@ -91,6 +92,7 @@ export const STATUS_COLORS = {
 };
 
 export default function ProjectTaskManagement() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
   const { currentWorkspace, userRole, accessibleWorkspaces } = useWorkspace();
@@ -799,7 +801,7 @@ export default function ProjectTaskManagement() {
         <div className="min-w-0 flex-1 space-y-2 sm:space-y-3">
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Projects & Tasks
+              {t('tasks.title')}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
               {showAllWorkspaces && accessibleWorkspaces && accessibleWorkspaces.length > 1
@@ -960,8 +962,8 @@ export default function ProjectTaskManagement() {
             <div className="space-y-3 sm:space-y-0">
               <div className="relative w-full sm:hidden">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search projects & tasks..."
+                  <Input
+                    placeholder={t('tasks.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="h-11 pl-10 border-border/50 focus:border-primary"
@@ -972,7 +974,7 @@ export default function ProjectTaskManagement() {
                 <div className="hidden sm:block relative lg:col-span-2 xl:col-span-2">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Search projects & tasks..."
+                    placeholder={t('tasks.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="h-10 pl-10 border-border/50 focus:border-primary"

@@ -275,11 +275,11 @@ export default function AnnualLeaveApplicationForm({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => router.push('/dashboard/hr/leave')}
             className="flex items-center gap-2 flex-shrink-0 h-9 px-3"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden xs:inline">Back</span>
+            <span className="hidden xs:inline">Back to Leave</span>
           </Button>
           <div className="min-w-0 flex-1">
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground leading-tight">

@@ -1,6 +1,6 @@
 'use client';
 
-import { DollarSign, CreditCard, PieChart, TrendingUp, Receipt, Calculator, FileText, Users, Shield, BarChart3, Settings, Calendar, Target, AlertCircle, CheckCircle, Clock, Globe } from 'lucide-react';
+import { DollarSign, CreditCard, PieChart, TrendingUp, Receipt, Calculator, FileText, Users, Shield, BarChart3, Settings, Calendar, Target, AlertCircle, CheckCircle, Clock, Globe, Scan, Building2, Brain, Layers, Workflow, Eye, Zap, Database } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,18 +34,20 @@ export default function FinancialManagementPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Receipt className="h-5 w-5 text-green-500" />
-                Expense Management
+                Comprehensive Expense Management
               </CardTitle>
               <CardDescription>
-                Track, categorize, and manage all business expenses
+                Advanced expense tracking with OCR, multi-currency support, and intelligent workflows
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Receipt scanning and OCR</li>
+                <li>• Receipt scanning with OCR capabilities</li>
+                <li>• Multi-currency expense tracking with real-time conversion</li>
+                <li>• Department & project allocation</li>
+                <li>• Multi-level approval workflows with notification chains</li>
+                <li>• Real-time spending insights and trend analysis</li>
                 <li>• Automated expense categorization</li>
-                <li>• Mileage and travel tracking</li>
-                <li>• Expense approval workflows</li>
               </ul>
             </CardContent>
           </Card>
@@ -54,18 +56,20 @@ export default function FinancialManagementPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-blue-500" />
-                Budget Planning
+                Advanced Budget Control
               </CardTitle>
               <CardDescription>
-                Create and monitor budgets across departments
+                Comprehensive budget planning with cost center management and real-time tracking
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Department-wise budgeting</li>
-                <li>• Real-time budget tracking</li>
-                <li>• Budget variance analysis</li>
-                <li>• Automated alerts and notifications</li>
+                <li>• Department, project, and cost center budgets</li>
+                <li>• Real-time budget tracking with detailed updates</li>
+                <li>• Automated alert systems for budget thresholds</li>
+                <li>• Variance analysis with detailed reports</li>
+                <li>• Cost center analytics and performance tracking</li>
+                <li>• Budget overrun notifications</li>
               </ul>
             </CardContent>
           </Card>
@@ -94,18 +98,20 @@ export default function FinancialManagementPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-orange-500" />
-                Financial Reporting
+                Financial Reporting & Analytics
               </CardTitle>
               <CardDescription>
-                Comprehensive financial analytics and insights
+                Advanced reporting with AI-powered insights and drill-down analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• P&L statements</li>
-                <li>• Cash flow analysis</li>
-                <li>• Expense trend reports</li>
-                <li>• Custom financial dashboards</li>
+                <li>• Dynamic reports with drag-and-drop interface</li>
+                <li>• Real-time financial KPIs and metrics visualization</li>
+                <li>• AI-powered budget forecasting and trend prediction</li>
+                <li>• Drill-down analysis for detailed breakdowns</li>
+                <li>• Export capabilities (PDF, Excel, CSV)</li>
+                <li>• Performance dashboards</li>
               </ul>
             </CardContent>
           </Card>
@@ -146,6 +152,72 @@ export default function FinancialManagementPage() {
                 <li>• Audit trail maintenance</li>
                 <li>• Financial data encryption</li>
                 <li>• Regulatory reporting</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Scan className="h-5 w-5 text-cyan-500" />
+                OCR Receipt Management
+              </CardTitle>
+              <CardDescription>
+                Intelligent receipt processing with optical character recognition
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>• Automatic data extraction from receipts</li>
+                <li>• Smart categorization and tagging</li>
+                <li>• Mobile receipt capture</li>
+                <li>• Duplicate detection and prevention</li>
+                <li>• Multi-format support (PDF, JPG, PNG)</li>
+                <li>• Receipt validation and verification</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-amber-500" />
+                Cost Center Management
+              </CardTitle>
+              <CardDescription>
+                Detailed cost center analytics and performance tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>• Hierarchical cost center structure</li>
+                <li>• Real-time cost allocation tracking</li>
+                <li>• Performance metrics and KPIs</li>
+                <li>• Cross-departmental cost analysis</li>
+                <li>• Budget vs. actual cost comparisons</li>
+                <li>• Cost center profitability analysis</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-violet-500" />
+                AI-Powered Forecasting
+              </CardTitle>
+              <CardDescription>
+                Intelligent budget forecasting and trend prediction
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>• Machine learning-based predictions</li>
+                <li>• Seasonal trend analysis</li>
+                <li>• Anomaly detection and alerts</li>
+                <li>• Scenario planning and modeling</li>
+                <li>• Predictive cash flow analysis</li>
+                <li>• Risk assessment and mitigation</li>
               </ul>
             </CardContent>
           </Card>

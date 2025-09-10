@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth-context';
 import { useWorkspace } from '@/lib/workspace-context';
 import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
+import { safeFormatDate } from '@/lib/utils/date-utils';
 import { UserService } from '@/lib/user-service';
 import { PermissionsService } from '@/lib/permissions-service';
 
@@ -397,7 +398,7 @@ export default function PermissionsPage() {
                       <div className="space-y-2 text-xs text-muted-foreground">
                         <div className="flex items-center justify-between">
                           <span>Joined:</span>
-                          <span>{new Date(userItem.joinedAt).toLocaleDateString()}</span>
+                          <span>{safeFormatDate(userItem.joinedAt, undefined, 'Unknown')}</span>
                         </div>
                         
                         {user.jobTitle && (
@@ -535,4 +536,4 @@ export default function PermissionsPage() {
       />
     </div>
   );
-} 
+}

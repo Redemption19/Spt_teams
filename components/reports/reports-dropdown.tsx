@@ -27,6 +27,7 @@ import { PendingApprovals } from './PendingReport/pending-approvals';
 import { ExportReports } from './Export/export-reports';
 import { MemberReportsDashboard } from './MemberReport/MemberReportsDashboard';
 import Link from 'next/link';
+import { useI18n } from '@/lib/i18n-context';
 
 type ReportView = 
   | 'my-reports' 
@@ -39,6 +40,7 @@ type ReportView =
   | 'member-reports-dashboard';
 
 export function ReportsDropdown() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const router = useRouter();
   const viewParam = searchParams.get('view') as ReportView;
@@ -67,15 +69,15 @@ export function ReportsDropdown() {
 
   const getViewTitle = (view: ReportView) => {
     switch (view) {
-      case 'my-reports': return 'My Reports';
-      case 'submit-report': return 'Submit Report';
-      case 'all-reports': return 'All Reports';
-      case 'report-templates': return 'Report Templates';
-      case 'reports-dashboard': return 'Reports Dashboard';
-      case 'pending-approvals': return 'Pending Approvals';
-      case 'export-reports': return 'Export Reports';
-      case 'member-reports-dashboard': return 'Member Reports Dashboard';
-      default: return 'Reports';
+      case 'my-reports': return t('reports.myReports');
+      case 'submit-report': return t('reports.submitReport');
+      case 'all-reports': return t('reports.allReports');
+      case 'report-templates': return t('reports.reportTemplates');
+      case 'reports-dashboard': return t('reports.reportsDashboard');
+      case 'pending-approvals': return t('reports.pendingApprovals');
+      case 'export-reports': return t('reports.exportReports');
+      case 'member-reports-dashboard': return t('reports.memberReportsDashboard');
+      default: return t('nav.reports');
     }
   };
 
@@ -160,7 +162,7 @@ export function ReportsDropdown() {
       case 'member-reports-dashboard':
         return (
           <div className="flex items-center gap-3">
-            <Button
+            <Button 
               onClick={() => {
                 // Dispatch refresh event to be handled by the child component
                 const event = new CustomEvent('refreshDashboard');
@@ -170,12 +172,12 @@ export function ReportsDropdown() {
               size="sm"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              {t('reports.refresh')}
             </Button>
             <Link href="/dashboard/reports?view=submit-report">
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Submit Report
+                {t('reports.submitReport')}
               </Button>
             </Link>
           </div>

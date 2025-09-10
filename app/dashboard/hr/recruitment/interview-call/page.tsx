@@ -134,7 +134,7 @@ export default function InterviewVideoCallPage() {
               {error || 'Interview data could not be loaded'}
             </p>
             <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={() => router.push('/dashboard/hr/recruitment')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Go Back
               </Button>

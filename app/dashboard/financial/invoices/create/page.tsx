@@ -42,7 +42,7 @@ export default function CreateInvoicePage() {
   };
 
   const handleCancel = () => {
-    router.back();
+    router.push('/dashboard/financial/invoices');
   };
 
   if (!user || !userProfile || !currentWorkspace) {
@@ -62,7 +62,7 @@ export default function CreateInvoicePage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => router.back()}>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices')}>
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <div>
@@ -80,8 +80,8 @@ export default function CreateInvoicePage() {
               <p className="text-muted-foreground mb-6">
                 You don&apos;t have permission to create invoices. Please contact your workspace administrator.
               </p>
-              <Button onClick={() => router.back()}>
-                Go Back
+              <Button onClick={() => router.push('/dashboard/financial/invoices')}>
+                Back to Invoices
               </Button>
             </div>
           </CardContent>

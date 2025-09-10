@@ -98,11 +98,11 @@ export function ViewPayslipPage({ payslip, onDownload, onSend }: ViewPayslipPage
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/hr/payroll')}
                 className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back
+                Back to Payroll
               </Button>
               <div className="h-6 w-px bg-border" />
               <div className="flex items-center gap-3">
@@ -475,4 +475,4 @@ export function ViewPayslipPage({ payslip, onDownload, onSend }: ViewPayslipPage
       </div>
     </div>
   );
-} 
+}

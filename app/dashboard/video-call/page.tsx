@@ -146,7 +146,7 @@ function VideoCallContent() {
             <p className="text-sm text-muted-foreground">{error}</p>
           </div>
           <div className="space-y-2">
-            <Button onClick={() => router.back()} className="w-full">
+            <Button onClick={handleCallEnd} className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Go Back
             </Button>

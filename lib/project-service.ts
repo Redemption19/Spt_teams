@@ -150,6 +150,177 @@ export class ProjectService {
   }
 
   /**
+   * Get projects by department
+   */
+  static async getDepartmentProjects(departmentId: string): Promise<Project[]> {
+    try {
+      // Input validation
+      if (!departmentId || typeof departmentId !== 'string' || departmentId.trim() === '') {
+        throw new Error('Invalid department ID provided');
+      }
+
+      const projectsRef = collection(db, 'projects');
+      const q = query(
+        projectsRef,
+        where('departmentId', '==', departmentId.trim()),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const projects: Project[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        try {
+          projects.push({
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            startDate: data.startDate?.toDate(),
+            dueDate: data.dueDate?.toDate(),
+          } as Project);
+        } catch (docError) {
+          console.warn(`Skipping invalid project document ${doc.id}:`, docError);
+        }
+      });
+
+      return projects;
+    } catch (error) {
+      console.error('Error getting department projects:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to get department projects');
+    }
+  }
+
+  /**
+   * Assign project to department
+   */
+  static async assignProjectToDepartment(projectId: string, departmentId: string, assignedBy: string): Promise<void> {
+    try {
+      // Input validation
+      if (!projectId || typeof projectId !== 'string' || projectId.trim() === '') {
+        throw new Error('Invalid project ID provided');
+      }
+      if (!departmentId || typeof departmentId !== 'string' || departmentId.trim() === '') {
+        throw new Error('Invalid department ID provided');
+      }
+      if (!assignedBy || typeof assignedBy !== 'string' || assignedBy.trim() === '') {
+        throw new Error('Invalid user ID provided for assignment');
+      }
+
+      const project = await this.getProject(projectId.trim());
+      if (!project) {
+        throw new Error(`Project with ID '${projectId}' not found`);
+      }
+
+      // Check if project is already assigned to this department
+      if (project.departmentId === departmentId.trim()) {
+        throw new Error('Project is already assigned to this department');
+      }
+
+      // Check if project is archived or completed
+      if (project.status === 'archived') {
+        throw new Error('Cannot assign archived projects to departments');
+      }
+
+      const projectRef = doc(db, 'projects', projectId.trim());
+      await updateDoc(projectRef, {
+        departmentId: departmentId.trim(),
+        updatedAt: serverTimestamp(),
+      });
+
+      // Log activity
+      try {
+        await ActivityService.logActivity(
+          'project_updated',
+          'project',
+          projectId,
+          {
+            targetName: project.name,
+            previousDepartmentId: project.departmentId || null,
+            newDepartmentId: departmentId.trim(),
+            action: 'department_assigned',
+          },
+          project.workspaceId,
+          assignedBy.trim()
+        );
+      } catch (activityError) {
+        console.warn('Failed to log department assignment activity:', activityError);
+      }
+    } catch (error) {
+      console.error('Error assigning project to department:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to assign project to department');
+    }
+  }
+
+  /**
+   * Remove project from department
+   */
+  static async removeProjectFromDepartment(projectId: string, removedBy: string): Promise<void> {
+    try {
+      // Input validation
+      if (!projectId || typeof projectId !== 'string' || projectId.trim() === '') {
+        throw new Error('Invalid project ID provided');
+      }
+      if (!removedBy || typeof removedBy !== 'string' || removedBy.trim() === '') {
+        throw new Error('Invalid user ID provided for removal');
+      }
+
+      const project = await this.getProject(projectId.trim());
+      if (!project) {
+        throw new Error(`Project with ID '${projectId}' not found`);
+      }
+
+      // Check if project is not assigned to any department
+      if (!project.departmentId) {
+        throw new Error('Project is not assigned to any department');
+      }
+
+      // Check if project is archived
+      if (project.status === 'archived') {
+        throw new Error('Cannot modify department assignment for archived projects');
+      }
+
+      const previousDepartmentId = project.departmentId;
+      const projectRef = doc(db, 'projects', projectId.trim());
+      await updateDoc(projectRef, {
+        departmentId: null,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Log activity
+      try {
+        await ActivityService.logActivity(
+          'project_updated',
+          'project',
+          projectId,
+          {
+            targetName: project.name,
+            previousDepartmentId,
+            action: 'department_removed',
+          },
+          project.workspaceId,
+          removedBy.trim()
+        );
+      } catch (activityError) {
+        console.warn('Failed to log department removal activity:', activityError);
+      }
+    } catch (error) {
+      console.error('Error removing project from department:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to remove project from department');
+    }
+  }
+
+  /**
    * Get a single project by ID
    */
   static async getProject(projectId: string): Promise<Project | null> {
@@ -811,4 +982,4 @@ export class ProjectService {
       console.error('Error deleting project epics:', error);
     }
   }
-} 
+}

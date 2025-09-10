@@ -22,7 +22,7 @@ import {
   CostCenter,
   Expense
 } from './types/financial-types';
-import { cleanFirestoreData, createUpdateData, convertTimestamps } from './firestore-utils';
+import { cleanFirestoreData, createUpdateData, convertTimestamps, toDate } from './firestore-utils';
 
 export class BudgetTrackingService {
   
@@ -309,6 +309,8 @@ export class BudgetTrackingService {
     dateRange?: { start: Date; end: Date }
   ): Promise<BudgetAnalytics> {
     try {
+      console.log('🔍 getBudgetAnalytics called with:', { workspaceId, dateRange });
+      
       let budgetsQuery = query(
         collection(db, 'budgets'),
         where('workspaceId', '==', workspaceId),
@@ -328,7 +330,11 @@ export class BudgetTrackingService {
         ...doc.data()
       })) as Budget[];
       
+
+      
       const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
+      
+
       const totalSpent = budgets.reduce((sum, budget) => sum + budget.spent, 0);
       const totalRemaining = budgets.reduce((sum, budget) => sum + budget.remaining, 0);
       const utilizationPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
@@ -348,8 +354,10 @@ export class BudgetTrackingService {
           return utilizationRate > 0.8; // 80% threshold for overrun risk
         })
         .map(budget => {
-          const timeElapsed = (new Date().getTime() - budget.startDate.getTime()) / 
-                             (budget.endDate.getTime() - budget.startDate.getTime());
+          const startDate = toDate(budget.startDate);
+          const endDate = toDate(budget.endDate);
+          const timeElapsed = (new Date().getTime() - startDate.getTime()) / 
+                             (endDate.getTime() - startDate.getTime());
           const projectedSpend = timeElapsed > 0 ? budget.spent / timeElapsed : budget.spent;
           const projectedOverrun = Math.max(0, projectedSpend - budget.amount);
           
@@ -403,15 +411,17 @@ export class BudgetTrackingService {
       
       const reports = await Promise.all(budgets.map(async (budget) => {
         const utilizationRate = budget.amount > 0 ? (budget.spent / budget.amount) * 100 : 0;
+        const startDate = toDate(budget.startDate);
+        const endDate = toDate(budget.endDate);
         const daysElapsed = Math.max(1, 
-          (new Date().getTime() - budget.startDate.getTime()) / (1000 * 60 * 60 * 24)
+          (new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
         );
         const spendingRate = budget.spent / daysElapsed;
         
-        const totalDays = (budget.endDate.getTime() - budget.startDate.getTime()) / (1000 * 60 * 60 * 24);
+        const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
         const projectedTotalSpend = spendingRate * totalDays;
         const projectedCompletion = new Date(
-          budget.startDate.getTime() + (budget.amount / spendingRate) * (1000 * 60 * 60 * 24)
+          startDate.getTime() + (budget.amount / spendingRate) * (1000 * 60 * 60 * 24)
         );
         
         const variance = ((budget.spent - (budget.amount * (daysElapsed / totalDays))) / budget.amount) * 100;
@@ -544,9 +554,11 @@ export class BudgetTrackingService {
       let budgets = await this.getBudgetsForWorkspaces(workspaceIds);
       budgets = budgets.filter(b => b.isActive);
       if (dateRange) {
-        budgets = budgets.filter(b =>
-          b.startDate >= dateRange.start && b.endDate <= dateRange.end
-        );
+        budgets = budgets.filter(b => {
+          const startDate = toDate(b.startDate);
+          const endDate = toDate(b.endDate);
+          return startDate >= dateRange.start && endDate <= dateRange.end;
+        });
       }
       const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
       const totalSpent = budgets.reduce((sum, budget) => sum + budget.spent, 0);
@@ -571,8 +583,10 @@ export class BudgetTrackingService {
           return utilizationRate > 0.8; // 80% threshold for overrun risk
         })
         .map(budget => {
-          const timeElapsed = (new Date().getTime() - budget.startDate.getTime()) /
-                             (budget.endDate.getTime() - budget.startDate.getTime());
+          const startDate = toDate(budget.startDate);
+          const endDate = toDate(budget.endDate);
+          const timeElapsed = (new Date().getTime() - startDate.getTime()) /
+                             (endDate.getTime() - startDate.getTime());
           const projectedSpend = timeElapsed > 0 ? budget.spent / timeElapsed : budget.spent;
           const projectedOverrun = Math.max(0, projectedSpend - budget.amount);
           return {
@@ -684,8 +698,10 @@ export class BudgetTrackingService {
    */
   private static calculateTimeToOverrun(budget: Budget): string {
     try {
-      const timeElapsed = new Date().getTime() - budget.startDate.getTime();
-      const totalTime = budget.endDate.getTime() - budget.startDate.getTime();
+      const startDate = toDate(budget.startDate);
+      const endDate = toDate(budget.endDate);
+      const timeElapsed = new Date().getTime() - startDate.getTime();
+      const totalTime = endDate.getTime() - startDate.getTime();
       const timeElapsedRatio = timeElapsed / totalTime;
       
       if (timeElapsedRatio <= 0 || budget.spent <= 0) {

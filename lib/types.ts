@@ -269,6 +269,7 @@ export interface Project {
   workspaceId: string;
   teamId: string;
   branchId?: string;
+  departmentId?: string;
   ownerId: string;
   status: 'planning' | 'active' | 'completed' | 'archived';
   priority: 'low' | 'medium' | 'high' | 'urgent';

@@ -108,7 +108,7 @@ export default function PayrollEmployeeCard({
                 className="flex-shrink-0"
               />
             )}
-            <User className="w-4 w-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+            <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <CardTitle className="text-base sm:text-lg truncate">{employee.employeeName}</CardTitle>
               <CardDescription className="flex items-center gap-2 text-xs sm:text-sm">

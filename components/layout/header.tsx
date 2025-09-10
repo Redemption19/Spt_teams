@@ -26,6 +26,7 @@ import { NotificationPanel } from './notification-panel';
 import { MobileNavigation } from './mobile-navigation';
 import { EnhancedMobileNavigation } from './enhanced-mobile-navigation';
 import { useNotifications } from '@/lib/notification-context';
+import { useI18n } from '@/lib/i18n-context';
 
 interface SearchResult {
   id: string;
@@ -36,83 +37,76 @@ interface SearchResult {
   icon: React.ReactNode;
 }
 
-const getBreadcrumbInfo = (pathname: string) => {
-  const pathSegments = pathname.split('/').filter(Boolean);
-  
-  if (pathSegments.length === 1 && pathSegments[0] === 'dashboard') {
-    return { title: 'Dashboard', group: null };
-  }
-  
-  // Common page mappings
-  const pageMap: Record<string, { title: string; group?: string }> = {
-    '/dashboard/tasks': { title: 'Projects & Tasks', group: 'Workspace' },
-    '/dashboard/folders': { title: 'Folders', group: 'Workspace' },
-    '/dashboard/reports': { title: 'Reports', group: 'Workspace' },
-    '/dashboard/analytics': { title: 'Analytics', group: 'Workspace' },
-    '/dashboard/workspaces': { title: 'Manage Workspaces', group: 'Workspace' },
-    '/dashboard/departments': { title: 'Departments', group: 'Organization' },
-    '/dashboard/branches': { title: 'Branches', group: 'Organization' },
-    '/dashboard/regions': { title: 'Regions', group: 'Organization' },
-    '/dashboard/teams': { title: 'Teams', group: 'Organization' },
-    '/dashboard/financial/overview': { title: 'Financial Dashboard', group: 'Financial Management' },
-    '/dashboard/financial/expenses': { title: 'Expense Management', group: 'Financial Management' },
-    '/dashboard/financial/budgets': { title: 'Budget Tracking', group: 'Financial Management' },
-    '/dashboard/financial/invoices': { title: 'Invoice Management', group: 'Financial Management' },
-    '/dashboard/financial/cost-centers': { title: 'Cost Centers', group: 'Financial Management' },
-    '/dashboard/financial/currency': { title: 'Currency Settings', group: 'Financial Management' },
-    '/dashboard/financial/reports': { title: 'Financial Reports', group: 'Financial Management' },
-    '/dashboard/financial/billing': { title: 'Billing & Subscriptions', group: 'Financial Management' },
-    '/dashboard/hr': { title: 'HR Overview', group: 'HR Management' },
-    '/dashboard/hr/employees': { title: 'Employee Management', group: 'HR Management' },
-    '/dashboard/hr/attendance': { title: 'Attendance Management', group: 'HR Management' },
-    '/dashboard/hr/leaves': { title: 'Leave Management', group: 'HR Management' },
-    '/dashboard/hr/payroll': { title: 'Payroll Management', group: 'HR Management' },
-    '/dashboard/hr/recruitment': { title: 'Recruitment', group: 'HR Management' },
-    '/dashboard/users': { title: 'User Management', group: 'Users' },
-    '/dashboard/permissions': { title: 'Permissions & Privileges', group: 'Users' },
-    '/dashboard/invite': { title: 'Invitations', group: 'Users' },
-    '/dashboard/migration': { title: 'Migration & Testing', group: 'Users' },
-    '/dashboard/user-fix': { title: 'User Relationship Fix', group: 'Users' },
-    '/dashboard/user-transfer': { title: 'User Transfer', group: 'Users' },
-    '/dashboard/video-call/start': { title: 'Start Meeting', group: 'Video Calls' },
-    '/dashboard/video-call/join': { title: 'Join Meeting', group: 'Video Calls' },
-    '/dashboard/video-call/schedule': { title: 'Schedule Meeting', group: 'Video Calls' },
-    '/dashboard/video-call/history': { title: 'Meeting History', group: 'Video Calls' },
-    '/dashboard/video-call/analytics': { title: 'Meeting Analytics', group: 'Video Calls' },
-    '/dashboard/video-call/settings': { title: 'Settings', group: 'Video Calls' },
-    '/dashboard/colleagues': { title: 'Team Members' },
-    '/dashboard/ai': { title: 'AI Assistant' },
-    '/dashboard/support': { title: 'Support/Help' },
-    '/dashboard/calendar': { title: 'Calendar' },
-    '/dashboard/notifications': { title: 'Notifications' },
-    '/dashboard/activity': { title: 'Activity Log' },
-    '/dashboard/databases': { title: 'Database Management' },
-  };
-  
-  // Check for exact match first
-  if (pageMap[pathname]) {
-    return pageMap[pathname];
-  }
-  
-  // Check for partial matches (for nested routes)
-  for (const [path, info] of Object.entries(pageMap)) {
-    if (pathname.startsWith(path + '/')) {
-      return { ...info, title: `${info.title} - ${pathSegments[pathSegments.length - 1]}` };
-    }
-  }
-  
-  // Fallback: use the last segment of the path
-  const lastSegment = pathSegments[pathSegments.length - 1];
-  return { 
-    title: lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' '),
-    group: pathSegments.length > 2 ? pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1) : null
-  };
-};
+// i18n-aware breadcrumb helper is defined within Header to access translations
 
 export function Header() {
   const { userProfile, logout } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const { unreadCount } = useNotifications();
+  const { t } = useI18n();
+
+  const getBreadcrumbInfo = (pathname: string) => {
+    const pathSegments = pathname.split('/').filter(Boolean);
+    if (pathSegments.length === 1 && pathSegments[0] === 'dashboard') {
+      return { title: t('nav.dashboard'), group: null as string | null };
+    }
+    const pageMap: Record<string, { title: string; group?: string }> = {
+      '/dashboard/tasks': { title: t('nav.tasks'), group: 'Workspace' },
+      '/dashboard/folders': { title: t('nav.folders'), group: 'Workspace' },
+      '/dashboard/reports': { title: t('nav.reports'), group: 'Workspace' },
+      '/dashboard/analytics': { title: t('nav.analytics'), group: 'Workspace' },
+      '/dashboard/workspaces': { title: t('nav.manageWorkspaces'), group: 'Workspace' },
+      '/dashboard/departments': { title: t('nav.departments'), group: 'Organization' },
+      '/dashboard/branches': { title: t('nav.branches'), group: 'Organization' },
+      '/dashboard/regions': { title: t('nav.regions'), group: 'Organization' },
+      '/dashboard/teams': { title: t('nav.teams'), group: 'Organization' },
+      '/dashboard/financial/overview': { title: t('nav.financialDashboard'), group: 'Financial Management' },
+      '/dashboard/financial/expenses': { title: t('nav.expenseManagement'), group: 'Financial Management' },
+      '/dashboard/financial/budgets': { title: t('nav.budgetTracking'), group: 'Financial Management' },
+      '/dashboard/financial/invoices': { title: t('nav.invoiceManagement'), group: 'Financial Management' },
+      '/dashboard/financial/cost-centers': { title: t('nav.costCenters'), group: 'Financial Management' },
+      '/dashboard/financial/currency': { title: t('nav.currencySettings'), group: 'Financial Management' },
+      '/dashboard/financial/reports': { title: t('nav.financialReports'), group: 'Financial Management' },
+      '/dashboard/financial/billing': { title: t('nav.billing'), group: 'Financial Management' },
+      '/dashboard/hr': { title: t('nav.hrOverview'), group: 'HR Management' },
+      '/dashboard/hr/employees': { title: t('nav.employeeManagement'), group: 'HR Management' },
+      '/dashboard/hr/attendance': { title: t('nav.attendanceManagement'), group: 'HR Management' },
+      '/dashboard/hr/leaves': { title: t('nav.leaveManagement'), group: 'HR Management' },
+      '/dashboard/hr/payroll': { title: t('nav.payrollManagement'), group: 'HR Management' },
+      '/dashboard/hr/recruitment': { title: t('nav.recruitment'), group: 'HR Management' },
+      '/dashboard/users': { title: t('nav.userManagement'), group: 'Users' },
+      '/dashboard/permissions': { title: t('nav.permissions'), group: 'Users' },
+      '/dashboard/invite': { title: t('nav.invitations'), group: 'Users' },
+      '/dashboard/migration': { title: t('nav.migration'), group: 'Users' },
+      '/dashboard/user-fix': { title: t('nav.userRelationshipFix'), group: 'Users' },
+      '/dashboard/user-transfer': { title: t('nav.userTransfer'), group: 'Users' },
+      '/dashboard/video-call/start': { title: t('nav.startMeeting'), group: 'Video Calls' },
+      '/dashboard/video-call/join': { title: t('nav.joinMeeting'), group: 'Video Calls' },
+      '/dashboard/video-call/schedule': { title: t('nav.scheduleMeeting'), group: 'Video Calls' },
+      '/dashboard/video-call/history': { title: t('nav.meetingHistory'), group: 'Video Calls' },
+      '/dashboard/video-call/analytics': { title: t('nav.meetingAnalytics'), group: 'Video Calls' },
+      '/dashboard/video-call/settings': { title: t('nav.meetingSettings'), group: 'Video Calls' },
+      '/dashboard/colleagues': { title: t('nav.teamMembers') },
+      '/dashboard/ai': { title: t('nav.aiAssistant') },
+      '/dashboard/support': { title: t('nav.support') },
+      '/dashboard/calendar': { title: t('nav.calendar') },
+      '/dashboard/notifications': { title: t('nav.notifications') },
+      '/dashboard/activity': { title: t('nav.activityLog') },
+      '/dashboard/databases': { title: t('nav.databaseManagement') },
+    };
+
+    if (pageMap[pathname]) return pageMap[pathname];
+    for (const [path, info] of Object.entries(pageMap)) {
+      if (pathname.startsWith(path + '/')) {
+        return { ...info, title: `${info.title} - ${pathSegments[pathSegments.length - 1]}` };
+      }
+    }
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    return {
+      title: lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' '),
+      group: pathSegments.length > 2 ? pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1) : null,
+    };
+  };
   const router = useRouter();
   const [regions, setRegions] = useState<Region[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -515,14 +509,14 @@ export function Header() {
                 data-mobile-menu-trigger
               >
                 <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t('nav.openMenu')}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 sm:w-96 p-0">
               <div className="flex flex-col h-full">
                 {/* Mobile Header */}
                 <div className="p-4 border-b">
-                  <h2 className="text-lg font-semibold">Navigation</h2>
+                  <h2 className="text-lg font-semibold">{t('nav.navigation')}</h2>
                 </div>
 
                 {/* Mobile Content */}
@@ -530,14 +524,14 @@ export function Header() {
                   <div className="p-4 space-y-6">
                     {/* Workspace Selector Mobile */}
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium text-muted-foreground">Current Workspace</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground">{t('nav.currentWorkspace')}</h3>
                       <WorkspaceSelector />
                     </div>
 
                     {/* Region/Branch Mobile */}
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-muted-foreground">
-                        {currentWorkspace?.workspaceType === 'sub' ? 'Bound Location' : 'Location'}
+                        {currentWorkspace?.workspaceType === 'sub' ? t('nav.boundLocation') : t('nav.location')}
                       </h3>
                       {loading ? (
                         <div className="space-y-2">
@@ -552,12 +546,12 @@ export function Header() {
                             disabled={currentWorkspace?.workspaceType === 'sub'}
                           >
                             <SelectTrigger className={`w-full h-10 rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
-                              <SelectValue placeholder="Select Region">
-                                {currentRegion?.name || "No Region"}
+                              <SelectValue placeholder={t('nav.selectRegion')}>
+                                {currentRegion?.name || t('nav.noRegion')}
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="rounded-lg">
-                              <SelectItem value="none">No Region</SelectItem>
+                              <SelectItem value="none">{t('nav.noRegion')}</SelectItem>
                               {regions.map((region) => (
                                 <SelectItem key={region.id} value={region.id} className="rounded-lg">
                                   {region.name}
@@ -572,12 +566,12 @@ export function Header() {
                             disabled={currentWorkspace?.workspaceType === 'sub'}
                           >
                             <SelectTrigger className={`w-full h-10 rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
-                              <SelectValue placeholder="Select Branch">
-                                {currentBranch?.name || "No Branch"}
+                              <SelectValue placeholder={t('nav.selectBranch')}>
+                                {currentBranch?.name || t('nav.noBranch')}
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="rounded-lg">
-                              <SelectItem value="none">No Branch</SelectItem>
+                              <SelectItem value="none">{t('nav.noBranch')}</SelectItem>
                               {getCurrentRegionBranches().map((branch) => (
                                 <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
                                   {branch.name}
@@ -593,8 +587,8 @@ export function Header() {
                   {/* Current Page Info */}
                   <div className="border-t p-4">
                     <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
-                      <Link href="/dashboard" className="hover:text-primary transition-colors">
-                        Dashboard
+                        <Link href="/dashboard" className="hover:text-primary transition-colors">
+                          {t('nav.dashboard')}
                       </Link>
                       {pathname !== '/dashboard' && (
                         <>
@@ -615,7 +609,7 @@ export function Header() {
                   {/* Main Navigation Mobile */}
                   <div className="border-t">
                     <div className="p-4">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Navigation</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('nav.navigation')}</h3>
                       <EnhancedMobileNavigation onNavigate={() => setIsMobileMenuOpen(false)} />
                     </div>
                   </div>
@@ -645,7 +639,7 @@ export function Header() {
                         >
                           <Link href="/dashboard/profile">
                             <User className="mr-2 h-4 w-4" />
-                            Profile
+                            {t('nav.profile')}
                           </Link>
                         </Button>
                         <Button 
@@ -654,7 +648,7 @@ export function Header() {
                           className="w-full justify-start rounded-lg text-red-600 border-red-200 hover:bg-red-50"
                         >
                           <LogOut className="mr-2 h-4 w-4" />
-                          Log out
+                          {t('nav.logout')}
                         </Button>
                       </div>
                     </div>
@@ -673,7 +667,7 @@ export function Header() {
           <div className="hidden xl:flex items-center space-x-2 border-l pl-4">
             {currentWorkspace?.workspaceType === 'sub' && (
               <div className="text-xs text-muted-foreground mr-2 whitespace-nowrap">
-                Bound to:
+                {t('nav.boundLocation')}:
               </div>
             )}
             {loading ? (
@@ -690,12 +684,12 @@ export function Header() {
                   disabled={currentWorkspace?.workspaceType === 'sub'}
                 >
                   <SelectTrigger className={`w-32 xl:w-40 h-8 text-sm border-border rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
-                    <SelectValue placeholder="Select Region">
-                      {currentRegion?.name || "No Region"}
+                  <SelectValue placeholder={t('nav.selectRegion')}>
+                    {currentRegion?.name || t('nav.noRegion')}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="rounded-lg">
-                    <SelectItem value="none">No Region</SelectItem>
+                    <SelectItem value="none">{t('nav.noRegion')}</SelectItem>
                     {regions.map((region) => (
                       <SelectItem key={region.id} value={region.id} className="rounded-lg">
                         {region.name}
@@ -710,12 +704,12 @@ export function Header() {
                   disabled={currentWorkspace?.workspaceType === 'sub'}
                 >
                   <SelectTrigger className={`w-28 xl:w-36 h-8 text-sm border-border rounded-lg ${currentWorkspace?.workspaceType === 'sub' ? 'cursor-not-allowed opacity-75' : ''}`}>
-                    <SelectValue placeholder="Select Branch">
-                      {currentBranch?.name || "No Branch"}
+                    <SelectValue placeholder={t('nav.selectBranch')}>
+                      {currentBranch?.name || t('nav.noBranch')}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="rounded-lg">
-                    <SelectItem value="none">No Branch</SelectItem>
+                    <SelectItem value="none">{t('nav.noBranch')}</SelectItem>
                     {getCurrentRegionBranches().map((branch) => (
                       <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
                         {branch.name}
@@ -733,7 +727,7 @@ export function Header() {
             <div className="hidden sm:block relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search projects, tasks..."
+                placeholder={t('nav.searchPlaceholder')}
                 className="pl-10 h-9 bg-background border-border rounded-lg text-sm"
                 ref={searchInputRef}
                 value={searchQuery}
@@ -746,7 +740,7 @@ export function Header() {
                   className="absolute top-12 left-0 w-full bg-background border border-border rounded-lg shadow-xl z-[100] max-h-80 overflow-y-auto"
                 >
                   {searchLoading ? (
-                    <div className="p-4 text-center text-sm">Loading...</div>
+                    <div className="p-4 text-center text-sm">{t('nav.loading')}</div>
                   ) : searchResults.length > 0 ? (
                     searchResults.map((result) => (
                       <div
@@ -765,7 +759,7 @@ export function Header() {
                     ))
                   ) : (
                     <div className="p-4 text-center text-sm text-muted-foreground">
-                      No results found
+                      {t('nav.noResults')}
                     </div>
                   )}
                 </div>
@@ -794,7 +788,7 @@ export function Header() {
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
-                    placeholder="Search..."
+                    placeholder={t('nav.searchPlaceholderShort')}
                     className="pl-8 h-8 bg-background border-border rounded-lg text-sm pr-8"
                     ref={searchInputRef}
                     value={searchQuery}
@@ -838,7 +832,7 @@ export function Header() {
                       className="absolute top-10 left-0 w-full bg-background border border-border rounded-lg shadow-xl z-[100] max-h-80 overflow-y-auto"
                     >
                       {searchLoading ? (
-                        <div className="p-4 text-center text-sm">Loading...</div>
+                        <div className="p-4 text-center text-sm">{t('nav.loading')}</div>
                       ) : searchResults.length > 0 ? (
                         searchResults.map((result) => (
                           <div
@@ -857,7 +851,7 @@ export function Header() {
                         ))
                       ) : (
                         <div className="p-4 text-center text-sm text-muted-foreground">
-                          No results found
+                          {t('nav.noResults')}
                         </div>
                       )}
                     </div>
@@ -925,12 +919,12 @@ export function Header() {
                 <DropdownMenuItem asChild className="rounded-lg mx-1 mb-1">
                   <Link href="/dashboard/profile" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>{t('nav.profile')}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout} className="rounded-lg mx-1 mb-1">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>{t('nav.logout')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

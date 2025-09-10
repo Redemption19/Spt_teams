@@ -219,9 +219,9 @@ export default function ViewReportPage() {
           <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Report Not Found</h2>
           <p className="text-muted-foreground mb-4">The requested report could not be found.</p>
-          <Button onClick={() => router.push('/dashboard/calendar')}>
+          <Button onClick={() => router.push('/dashboard/reports')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Calendar
+            Back to Reports
           </Button>
         </div>
       </div>
@@ -233,9 +233,9 @@ export default function ViewReportPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={() => router.push('/dashboard/calendar')}>
+          <Button variant="outline" onClick={() => router.push('/dashboard/reports')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Calendar
+            Back to Reports
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Report Details</h1>
@@ -479,4 +479,4 @@ export default function ViewReportPage() {
       )}
     </div>
   );
-} 
+}

@@ -390,9 +390,9 @@ export default function ReportViewPage() {
                 <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2 text-red-600">Error Loading Report</h3>
                 <p className="text-muted-foreground mb-4">{error || 'Report not found'}</p>
-                <Button onClick={() => router.back()} variant="outline">
+                <Button onClick={() => router.push('/dashboard/financial/reports')} variant="outline">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go Back
+                  Back to Reports
                 </Button>
               </CardContent>
             </Card>
@@ -412,7 +412,7 @@ export default function ReportViewPage() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/financial/reports')}
                 className="hover:bg-muted"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

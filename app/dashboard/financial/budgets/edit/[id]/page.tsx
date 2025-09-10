@@ -62,7 +62,7 @@ export default function BudgetEditPage() {
       <div className="max-w-3xl mx-auto py-12 text-center text-red-500">
         {error || "Budget not found."}
         <div className="mt-4">
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button variant="outline" onClick={() => router.push('/dashboard/financial/budgets')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
         </div>
@@ -77,7 +77,7 @@ export default function BudgetEditPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={() => router.push(`/dashboard/financial/budgets/${budgetId}`)}
           className="shrink-0"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -100,4 +100,4 @@ export default function BudgetEditPage() {
       />
     </div>
   );
-} 
+}

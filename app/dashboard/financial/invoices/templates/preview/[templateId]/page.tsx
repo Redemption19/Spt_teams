@@ -151,9 +151,9 @@ export default function InvoiceTemplatePreviewPage() {
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center gap-4 no-print">
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+            <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices/templates')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              Back to Templates
             </Button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Template Preview</h1>
@@ -168,7 +168,7 @@ export default function InvoiceTemplatePreviewPage() {
               <p className="text-muted-foreground mb-6">
                 {error || 'The template you are looking for does not exist.'}
               </p>
-              <Button onClick={() => router.back()}>Go Back</Button>
+              <Button onClick={() => router.push('/dashboard/financial/invoices/templates')}>Back to Templates</Button>
             </CardContent>
           </Card>
         </div>
@@ -182,9 +182,9 @@ export default function InvoiceTemplatePreviewPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between no-print">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+            <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices/templates')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              Back to Templates
             </Button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Template Preview</h1>

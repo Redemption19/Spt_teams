@@ -139,9 +139,9 @@ export default function TemplateSettingsPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices/templates')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Templates
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Template Settings</h1>
@@ -161,9 +161,9 @@ export default function TemplateSettingsPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices/templates')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Templates
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Template Settings</h1>
@@ -189,9 +189,9 @@ export default function TemplateSettingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices/templates')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Templates
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Template Settings</h1>

@@ -33,6 +33,7 @@ import {
   Upload
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useI18n } from '@/lib/i18n-context';
 
 // Import the sub-components
 import { ProfileSettings } from './profile-settings';
@@ -45,6 +46,7 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
+  const { t } = useI18n();
   const { userProfile } = useAuth();
   const { currentWorkspace, refreshWorkspaces, refreshCurrentWorkspace } = useWorkspace();
   const searchParams = useSearchParams();
@@ -143,20 +145,20 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Settings
+          {t('common.settings')}
         </h1>
-        <p className="text-muted-foreground mt-1">Manage your account and workspace preferences</p>
+        <p className="text-muted-foreground mt-1">{t('settings.appearance')}</p>
       </div>
 
       <Tabs defaultValue={tabFromUrl || "profile"} className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="profile">
             <User className="h-4 w-4 mr-2" />
-            Profile
+            {t('nav.profile')}
           </TabsTrigger>
           <TabsTrigger value="notifications">
             <Bell className="h-4 w-4 mr-2" />
-            Notifications
+            {t('nav.notifications')}
           </TabsTrigger>
           <TabsTrigger value="security">
             <Shield className="h-4 w-4 mr-2" />
@@ -176,7 +178,7 @@ export function SettingsPanel({ userRole = 'member' }: SettingsPanelProps) {
           )}
           <TabsTrigger value="appearance">
             <Palette className="h-4 w-4 mr-2" />
-            Appearance
+            {t('settings.appearance')}
           </TabsTrigger>
         </TabsList>
 

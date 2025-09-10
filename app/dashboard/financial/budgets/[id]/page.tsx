@@ -139,7 +139,7 @@ export default function BudgetDetailPage() {
       <div className="max-w-3xl mx-auto py-12 text-center text-red-500">
         {error || "Budget not found."}
         <div className="mt-4">
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button variant="outline" onClick={() => router.push('/dashboard/financial/budgets')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
         </div>
@@ -163,8 +163,8 @@ export default function BudgetDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-2">
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="shrink-0">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back
+        <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/budgets')} className="shrink-0">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Budgets
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budget Details</h1>

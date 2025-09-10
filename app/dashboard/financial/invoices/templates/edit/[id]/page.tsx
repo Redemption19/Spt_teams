@@ -300,10 +300,10 @@ export default function EditTemplatePage() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => router.back()}
+            onClick={() => router.push('/dashboard/financial/invoices/templates')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Templates
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Edit Template</h1>
@@ -687,7 +687,7 @@ export default function EditTemplatePage() {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/financial/invoices/templates')}
               >
                 Cancel
               </Button>

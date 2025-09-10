@@ -136,7 +136,7 @@ export default function CreateTemplatePage() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => router.back()}
+          onClick={() => router.push('/dashboard/financial/invoices/templates')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
@@ -491,7 +491,7 @@ export default function CreateTemplatePage() {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/financial/invoices/templates')}
               >
                 Cancel
               </Button>

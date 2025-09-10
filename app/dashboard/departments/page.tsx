@@ -1,7 +1,7 @@
 'use client';
 
-import { DepartmentManagement } from '@/components/settings/department-management/DepartmentManagement';
+import { DepartmentPerformanceDashboard } from '@/components/departments/DepartmentPerformanceDashboard';
 
 export default function DepartmentsPage() {
-  return <DepartmentManagement />;
-} 
+  return <DepartmentPerformanceDashboard />;
+}

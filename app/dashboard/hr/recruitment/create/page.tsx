@@ -223,7 +223,7 @@ export default function CreateJobPostingPage() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/hr/recruitment')}
                 className="hover:bg-muted/50"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -585,11 +585,11 @@ export default function CreateJobPostingPage() {
         <div className="flex items-center justify-between pt-6 border-t border-border/50">
           <Button 
             variant="ghost" 
-            onClick={() => router.back()}
+            onClick={() => router.push('/dashboard/hr/recruitment')}
             className="hover:bg-muted/50"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Cancel
+            Back to Recruitment
           </Button>
           <div className="flex items-center gap-3">
             <Button 
@@ -613,4 +613,4 @@ export default function CreateJobPostingPage() {
       </div>
     </div>
   );
-} 
+}

@@ -42,6 +42,7 @@ import { RegionService } from '@/lib/region-service';
 import { InvitationService } from '@/lib/invitation-service';
 import { useAuth } from '@/lib/auth-context';
 import { useRolePermissions, useIsOwner } from '@/lib/rbac-hooks';
+import { safeFormatDate } from '@/lib/utils/date-utils';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -872,7 +873,7 @@ export function UserManagement() {
                             
                             {joinedAt && (
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>Joined: {new Date(joinedAt).toLocaleDateString()}</span>
+                                <span>Joined: {safeFormatDate(joinedAt, undefined, 'Unknown')}</span>
                               </div>
                             )}
 

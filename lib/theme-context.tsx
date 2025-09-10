@@ -4,11 +4,20 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
+type BrandColors = {
+  primary: string; // hex, e.g. #8A0F3C
+  accent: string; // hex
+  secondary: string; // hex
+};
+
 interface ThemeContextType {
   theme: Theme;
   actualTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  brandColors: BrandColors;
+  setBrandColors: (colors: Partial<BrandColors>) => void;
+  resetBrandColors: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -16,6 +25,56 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('system');
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
+  const [brandColors, setBrandColorsState] = useState<BrandColors>({
+    primary: '#8A0F3C',
+    accent: '#CF163C',
+    secondary: '#E5E7EB',
+  });
+
+  // Convert hex like #RRGGBB to "H S% L%" string expected by Tailwind hsl(var(--x))
+  const hexToHslString = (hex: string): string => {
+    let clean = hex.trim();
+    if (clean.startsWith('#')) clean = clean.slice(1);
+    if (clean.length === 3) {
+      clean = clean.split('').map((c) => c + c).join('');
+    }
+    const r = parseInt(clean.slice(0, 2), 16) / 255;
+    const g = parseInt(clean.slice(2, 4), 16) / 255;
+    const b = parseInt(clean.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h /= 6;
+    }
+    const H = Math.round(h * 360);
+    const S = Math.round(s * 100);
+    const L = Math.round(l * 100);
+    return `${H} ${S}% ${L}%`;
+  };
+
+  const applyBrandColors = (colors: BrandColors) => {
+    if (typeof window === 'undefined') return;
+    const root = window.document.documentElement;
+    root.style.setProperty('--primary', hexToHslString(colors.primary));
+    root.style.setProperty('--accent', hexToHslString(colors.accent));
+    root.style.setProperty('--secondary', hexToHslString(colors.secondary));
+    // Ensure focus rings follow primary
+    root.style.setProperty('--ring', hexToHslString(colors.primary));
+  };
 
   // Function to get system preference
   const getSystemTheme = (): 'light' | 'dark' => {
@@ -77,6 +136,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
       
       setThemeState(initialTheme);
+      // Load and apply saved brand colors if any
+      try {
+        const saved = localStorage.getItem('brandColors');
+        if (saved) {
+          const parsed = JSON.parse(saved) as BrandColors;
+          setBrandColorsState(parsed);
+          applyBrandColors(parsed);
+        } else {
+          applyBrandColors(brandColors);
+        }
+      } catch {
+        applyBrandColors(brandColors);
+      }
     }
   }, []);
 
@@ -95,11 +167,38 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme]);
 
+  const setBrandColors = (partial: Partial<BrandColors>) => {
+    setBrandColorsState((prev) => {
+      const next = { ...prev, ...partial };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('brandColors', JSON.stringify(next));
+        applyBrandColors(next);
+      }
+      return next;
+    });
+  };
+
+  const resetBrandColors = () => {
+    const defaults: BrandColors = {
+      primary: '#8A0F3C',
+      accent: '#CF163C',
+      secondary: '#E5E7EB',
+    };
+    setBrandColorsState(defaults);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('brandColors');
+      applyBrandColors(defaults);
+    }
+  };
+
   const value = {
     theme,
     actualTheme,
     setTheme,
     toggleTheme,
+    brandColors,
+    setBrandColors,
+    resetBrandColors,
   };
 
   return (

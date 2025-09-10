@@ -78,9 +78,9 @@ export default function EditReportPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center space-x-4">
-        <Button variant="outline" onClick={() => router.push('/dashboard/calendar')}>
+        <Button variant="outline" onClick={() => router.push('/dashboard/reports')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Calendar
+          Back to Reports
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Edit Report</h1>
@@ -109,4 +109,4 @@ export default function EditReportPage() {
       )}
     </div>
   );
-} 
+}

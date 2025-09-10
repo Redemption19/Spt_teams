@@ -275,11 +275,11 @@ export default function AdvancedAnalyticsPage() {
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => router.push('/dashboard/financial/budgets')}
             className="shrink-0"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Budgets
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Advanced Budget Analytics</h1>

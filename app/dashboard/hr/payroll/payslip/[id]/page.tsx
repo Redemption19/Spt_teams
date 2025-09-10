@@ -149,11 +149,11 @@ export default function PayslipViewPage() {
             <div className="flex gap-3 justify-center">
               <Button
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/hr/payroll')}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Go Back
+                Back to Payroll
               </Button>
               <Button
                 onClick={() => router.push('/dashboard/hr/payroll')}
@@ -174,4 +174,4 @@ export default function PayslipViewPage() {
       onSend={handleSend}
     />
   );
-} 
+}

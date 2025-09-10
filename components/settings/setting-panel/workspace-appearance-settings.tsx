@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeSelector } from '@/components/ui/theme-selector';
+import { useTheme } from '@/lib/theme-context';
 import { 
   Palette, 
   Building2, 
@@ -24,6 +25,8 @@ import { toast } from '@/hooks/use-toast';
 import { BudgetTrackingService } from '@/lib/budget-tracking-service';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { LanguageSelector } from '@/components/ui/language-selector';
+import { useI18n } from '@/lib/i18n-context';
 
 interface WorkspaceAppearanceSettingsProps {
   workspaceSettings: any;
@@ -102,6 +105,8 @@ export function WorkspaceAppearanceSettings({
 
   const { toast } = useToast();
   const [recalcLoading, setRecalcLoading] = useState(false);
+  const { brandColors, setBrandColors, resetBrandColors } = useTheme();
+  const { t } = useI18n();
 
   // Handler for batch recalculation
   const handleRecalculateBudgets = async () => {
@@ -349,27 +354,68 @@ export function WorkspaceAppearanceSettings({
           <CardContent className="space-y-6">
             {/* Theme Settings */}
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Theme & Colors</h3>
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">{t('settings.themeColors')}</h3>
               
               {/* Theme Selector */}
               <ThemeSelector />
               
               {/* Color Scheme Preview */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Color Scheme</Label>
-                <div className="p-4 border border-border rounded-lg bg-gradient-to-r from-background to-muted">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">Brand Colors</span>
-                    <div className="flex space-x-2">
-                      <div className="w-4 h-4 rounded-full bg-primary" title="Primary: Deep Maroon"></div>
-                      <div className="w-4 h-4 rounded-full bg-accent" title="Accent: Bright Crimson"></div>
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Brand Colors</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Primary</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="color"
+                        value={brandColors.primary}
+                        onChange={(e) => setBrandColors({ primary: e.target.value })}
+                        className="w-16 h-10 p-1 border rounded"
+                      />
+                      <Input
+                        value={brandColors.primary}
+                        onChange={(e) => setBrandColors({ primary: e.target.value })}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="h-2 bg-primary rounded-full w-3/4"></div>
-                    <div className="h-2 bg-accent rounded-full w-1/2"></div>
-                    <div className="h-2 bg-muted rounded-full w-5/6"></div>
+                    <Label className="text-sm">Accent</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="color"
+                        value={brandColors.accent}
+                        onChange={(e) => setBrandColors({ accent: e.target.value })}
+                        className="w-16 h-10 p-1 border rounded"
+                      />
+                      <Input
+                        value={brandColors.accent}
+                        onChange={(e) => setBrandColors({ accent: e.target.value })}
+                      />
+                    </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Secondary</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="color"
+                        value={brandColors.secondary}
+                        onChange={(e) => setBrandColors({ secondary: e.target.value })}
+                        className="w-16 h-10 p-1 border rounded"
+                      />
+                      <Input
+                        value={brandColors.secondary}
+                        onChange={(e) => setBrandColors({ secondary: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2 items-center">
+                    <div className="w-6 h-6 rounded-full bg-primary border" />
+                    <div className="w-6 h-6 rounded-full bg-accent border" />
+                    <div className="w-6 h-6 rounded-full bg-secondary border" />
+                  </div>
+                  <Button variant="outline" onClick={resetBrandColors}>Reset Colors</Button>
                 </div>
               </div>
             </div>
@@ -378,26 +424,16 @@ export function WorkspaceAppearanceSettings({
 
             {/* Localization */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Localization</h3>
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">{t('settings.localization')}</h3>
               
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Language</Label>
-                  <Select defaultValue="en">
-                    <SelectTrigger className="border-border bg-background focus:ring-primary focus:border-primary">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="tw">Twi</SelectItem>
-                      <SelectItem value="ga">Ga</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>{t('settings.language')}</Label>
+                  <LanguageSelector />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Date & Time Format</Label>
+                  <Label>{t('settings.dateFormat')}</Label>
                   <Select defaultValue="24h">
                     <SelectTrigger className="border-border bg-background focus:ring-primary focus:border-primary">
                       <SelectValue />

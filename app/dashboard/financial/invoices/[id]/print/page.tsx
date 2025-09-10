@@ -122,9 +122,9 @@ export default function PrintInvoicePage() {
               {error || 'The invoice could not be loaded for printing.'}
             </p>
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={() => router.push('/dashboard/financial/invoices')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Go Back
+                Back to Invoices
               </Button>
               <Button onClick={() => router.push('/dashboard/financial/invoices')}>
                 View All Invoices

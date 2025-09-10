@@ -168,9 +168,9 @@ export default function CostCenterDetailPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
+          <Button variant="ghost" onClick={() => router.push('/dashboard/financial/cost-centers')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Cost Centers
           </Button>
         </div>
         <Card className="card-enhanced">
@@ -192,9 +192,9 @@ export default function CostCenterDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
+          <Button variant="ghost" onClick={() => router.push('/dashboard/financial/cost-centers')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Cost Centers
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{costCenter.name}</h1>
@@ -499,4 +499,4 @@ export default function CostCenterDetailPage() {
       </Tabs>
     </div>
   );
-} 
+}

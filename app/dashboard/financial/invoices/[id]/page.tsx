@@ -435,7 +435,7 @@ export default function ViewInvoicePage() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => router.back()}>
+                <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices')}>
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
                 <div>
@@ -456,8 +456,8 @@ export default function ViewInvoicePage() {
                   {error || 'The invoice you are looking for does not exist or has been deleted.'}
                 </p>
                 <div className="flex gap-4 justify-center">
-                  <Button variant="outline" onClick={() => router.back()}>
-                    Go Back
+                  <Button variant="outline" onClick={() => router.push('/dashboard/financial/invoices')}>
+                    Back to Invoices
                   </Button>
                   <Button onClick={() => router.push('/dashboard/financial/invoices')}>
                     View All Invoices
@@ -482,7 +482,7 @@ export default function ViewInvoicePage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => router.back()}>
+                <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/financial/invoices')}>
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
                 <div>
